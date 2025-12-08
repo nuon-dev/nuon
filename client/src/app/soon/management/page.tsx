@@ -21,20 +21,32 @@ import Header from "@/components/Header"
 import PersonAddIcon from "@mui/icons-material/PersonAdd"
 import PeopleIcon from "@mui/icons-material/People"
 import PhoneIcon from "@mui/icons-material/Phone"
+import { useSetAtom } from "jotai"
+import { NotificationMessage } from "@/state/notification"
+import { useRouter } from "next/navigation"
+import RequestKakaoLogin from "@/app/soon/management/RequestKakaoLogin"
 
 export default function SoonManagement() {
+  const {push} = useRouter()
   const [groupName, setGroupName] = useState("")
   const [soonList, setSoonList] = useState<User[]>([])
   const [openAddUser, setOpenAddUser] = useState(false)
+    const setNotificationMessage = useSetAtom(NotificationMessage)
 
   useEffect(() => {
     fetchGroupDate()
   }, [])
 
   async function fetchGroupDate() {
-    const group: Community = await get("/soon/my-group-info")
-    setGroupName(group.name)
-    setSoonList(group.users)
+      console.log("Fetching group data...");
+      const group: Community & { error: string } = await get("/soon/my-group-info")
+      if(group.error){
+        setNotificationMessage('순장만 이용할 수 있습니다.')
+        push('/')
+        return;
+      }
+      setGroupName(group.name)
+      setSoonList(group.users)
   }
 
   return (
@@ -165,6 +177,12 @@ export default function SoonManagement() {
                         />
                       </Stack>
                     </Stack>
+                    {
+                      !user.kakaoId && 
+                      <Stack mt="12px">
+                        <RequestKakaoLogin userId={user.id} />
+                      </Stack>
+                    }
                   </CardContent>
                   {index < soonList.length - 1 && <Divider />}
                 </Card>

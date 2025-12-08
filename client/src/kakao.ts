@@ -22,7 +22,7 @@ export default function useKakaoHook() {
     alert("필수 라이브러리 로딩 실패, 다른 브라우저를 이용해주세요.")
   }
 
-  function getKakaoToken() {
+  function getKakaoToken(): Promise<number> {
     return new Promise((resolve, reject) => {
       Kakao.Auth.login({
         success: function (response: Response) {

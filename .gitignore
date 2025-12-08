@@ -1,3 +1,4 @@
 sharing/*
 .DS_Store
 **/.DS_Store
+**/pnpm-lock.yaml

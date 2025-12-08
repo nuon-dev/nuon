@@ -12,6 +12,7 @@ import {
 } from "../entity/retreat/sharing"
 import { WorshipSchedule } from "../entity/worshipSchedule"
 import { AttendData } from "../entity/attendData"
+import { Vote } from "../entity/vote"
 
 const dataSource = new DataSource(require("../../ormconfig.js"))
 
@@ -28,5 +29,7 @@ export const retreatAttendDatabase = dataSource.getRepository(RetreatAttend)
 export const sharingTextDatabase = dataSource.getRepository(SharingText)
 export const sharingImageDatabase = dataSource.getRepository(SharingImage)
 export const sharingVideoDatabase = dataSource.getRepository(SharingVideo)
+
+export const voteDatabase = dataSource.getRepository(Vote)
 
 export default dataSource

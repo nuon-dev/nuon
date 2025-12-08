@@ -27,6 +27,7 @@ router.get("/my-group-info", async (req, res) => {
         yearOfBirth: true,
         phone: true,
         gender: true,
+        kakaoId: true,
       },
       children: true,
     },
@@ -65,7 +66,7 @@ router.get("/my-group-info", async (req, res) => {
         yearOfBirth: user.yearOfBirth,
         phone: user.phone,
         gender: user.gender,
-        kakaoId: !user.kakaoId,
+        kakaoId: !!user.kakaoId,
       } as any)
   )
 
@@ -218,6 +219,52 @@ router.post("/attendance", async (req, res) => {
     console.error("Error saving attendance data:", error)
     res.status(500).send({ error: "Failed to save attendance data" })
   }
+})
+
+router.post("/register-kakao-login", async (req, res) => {
+  const {
+    userId,
+    kakaoId,
+  } = req.body
+
+  const existingUsers = await userDatabase.findOne({where: {
+    kakaoId: kakaoId,
+  }})
+
+  if (existingUsers) {
+    res.status(400).send({ error: "This Kakao account is already linked to another user." });
+    return;
+  }
+
+  await userDatabase.update({ id: userId }, { kakaoId })
+  
+  res.status(200).send({ message: "정상적으로 등록 되었습니다." });
+})
+
+router.get("/isValid-kakao-login-register", async (req, res) => {
+  const userId = req.query.userId as string
+  if (!userId) {
+    res.status(400).send({ error: "Missing userId parameter" })
+    return
+  }
+
+  const user = await userDatabase.findOne({
+    where: {
+      id: userId,
+    }
+  })
+
+  if (!user) {
+    res.status(404).send({ error: "User not found" })
+    return
+  }
+
+  if (user.kakaoId) {
+    res.status(400).send({ error: "Kakao login is already registered for this user." })
+    return
+  }
+
+  res.status(200).send({ message: "Kakao login can be registered for this user." })
 })
 
 export default router
