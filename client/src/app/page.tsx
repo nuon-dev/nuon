@@ -1,7 +1,7 @@
 "use client"
 
 import { Stack } from "@mui/material"
-import Header from "@/components/Header"
+import Header from "@/components/Header/index"
 import useUserData from "@/hooks/useUserData"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -17,7 +17,7 @@ export default function Index() {
   async function checkLogin() {
     const user = await getUserDataFromToken()
     if (!user) {
-      push("/login")
+      push("/common/login")
     }
   }
   return (

@@ -17,41 +17,42 @@ import { User } from "@server/entity/user"
 import { get } from "@/config/api"
 import { useEffect, useState } from "react"
 import AddUser from "./AddUser"
-import Header from "@/components/Header"
+import Header from "@/app/leader/components/Header"
 import PersonAddIcon from "@mui/icons-material/PersonAdd"
 import PeopleIcon from "@mui/icons-material/People"
 import PhoneIcon from "@mui/icons-material/Phone"
 import { useSetAtom } from "jotai"
 import { NotificationMessage } from "@/state/notification"
 import { useRouter } from "next/navigation"
-import RequestKakaoLogin from "@/app/soon/management/RequestKakaoLogin"
+import RequestKakaoLogin from "@/app/leader/management/RequestKakaoLogin"
 
 export default function SoonManagement() {
-  const {push} = useRouter()
+  const { push } = useRouter()
   const [groupName, setGroupName] = useState("")
   const [soonList, setSoonList] = useState<User[]>([])
   const [openAddUser, setOpenAddUser] = useState(false)
-    const setNotificationMessage = useSetAtom(NotificationMessage)
+  const setNotificationMessage = useSetAtom(NotificationMessage)
 
   useEffect(() => {
     fetchGroupDate()
   }, [])
 
   async function fetchGroupDate() {
-      console.log("Fetching group data...");
-      const group: Community & { error: string } = await get("/soon/my-group-info")
-      if(group.error){
-        setNotificationMessage('순장만 이용할 수 있습니다.')
-        push('/')
-        return;
-      }
-      setGroupName(group.name)
-      setSoonList(group.users)
+    console.log("Fetching group data...")
+    const group: Community & { error: string } = await get(
+      "/soon/my-group-info"
+    )
+    if (group.error) {
+      setNotificationMessage("순장만 이용할 수 있습니다.")
+      push("/")
+      return
+    }
+    setGroupName(group.name)
+    setSoonList(group.users)
   }
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f8f9fa" }}>
-      <Header />
       <Container maxWidth="md" sx={{ py: 3 }}>
         <Stack spacing={3}>
           {/* 그룹 헤더 */}
@@ -177,12 +178,11 @@ export default function SoonManagement() {
                         />
                       </Stack>
                     </Stack>
-                    {
-                      !user.kakaoId && 
+                    {!user.kakaoId && (
                       <Stack mt="12px">
                         <RequestKakaoLogin userId={user.id} />
                       </Stack>
-                    }
+                    )}
                   </CardContent>
                   {index < soonList.length - 1 && <Divider />}
                 </Card>

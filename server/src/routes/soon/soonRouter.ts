@@ -222,23 +222,24 @@ router.post("/attendance", async (req, res) => {
 })
 
 router.post("/register-kakao-login", async (req, res) => {
-  const {
-    userId,
-    kakaoId,
-  } = req.body
+  const { userId, kakaoId } = req.body
 
-  const existingUsers = await userDatabase.findOne({where: {
-    kakaoId: kakaoId,
-  }})
+  const existingUsers = await userDatabase.findOne({
+    where: {
+      kakaoId: kakaoId,
+    },
+  })
 
   if (existingUsers) {
-    res.status(400).send({ error: "This Kakao account is already linked to another user." });
-    return;
+    res
+      .status(400)
+      .send({ error: "This Kakao account is already linked to another user." })
+    return
   }
 
   await userDatabase.update({ id: userId }, { kakaoId })
-  
-  res.status(200).send({ message: "정상적으로 등록 되었습니다." });
+
+  res.status(200).send({ message: "정상적으로 등록 되었습니다." })
 })
 
 router.get("/isValid-kakao-login-register", async (req, res) => {
@@ -251,7 +252,7 @@ router.get("/isValid-kakao-login-register", async (req, res) => {
   const user = await userDatabase.findOne({
     where: {
       id: userId,
-    }
+    },
   })
 
   if (!user) {
@@ -260,11 +261,15 @@ router.get("/isValid-kakao-login-register", async (req, res) => {
   }
 
   if (user.kakaoId) {
-    res.status(400).send({ error: "Kakao login is already registered for this user." })
+    res
+      .status(400)
+      .send({ error: "Kakao login is already registered for this user." })
     return
   }
 
-  res.status(200).send({ message: "Kakao login can be registered for this user." })
+  res
+    .status(200)
+    .send({ message: "Kakao login can be registered for this user." })
 })
 
 export default router
