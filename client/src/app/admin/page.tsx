@@ -6,7 +6,6 @@ import {
   Typography,
   Card,
   CardContent,
-  Grid,
   Box,
   Chip,
   CircularProgress,
@@ -14,7 +13,6 @@ import {
   Divider,
   List,
   ListItem,
-  ListItemText,
   LinearProgress,
 } from "@mui/material"
 import { useEffect, useState } from "react"

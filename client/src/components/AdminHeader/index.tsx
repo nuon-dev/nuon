@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Divider,
   Drawer,
   List,
   ListItem,
@@ -24,8 +25,6 @@ import useUserData from "@/hooks/useUserData"
 export default function AdminHeader() {
   const { getUserDataFromToken } = useUserData()
   const { push } = useRouter()
-  const [isShowMenu, setShowMenu] = useState(false)
-  const [myRoles, setMyRoles] = useState()
   const [isOpen, setOpen] = useState(false)
 
   useEffect(() => {
@@ -65,6 +64,10 @@ export default function AdminHeader() {
 
   function goToWorshipAttendance() {
     push("/admin/soon/attendance")
+  }
+
+  function goToEventVote(){
+      push("/admin/event/vote")
   }
 
   return (
@@ -137,6 +140,15 @@ export default function AdminHeader() {
                   <CheckCircleOutlineIcon fontSize="small" />
                 </ListItemIcon>
                 <ListItemText primary={"출석 관리"} />
+              </ListItemButton>
+            </ListItem>
+            <Divider />
+            <ListItem disablePadding>
+              <ListItemButton onClick={goToEventVote}>
+                <ListItemIcon>
+                  <EventIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary={"투표 시스템"} />
               </ListItemButton>
             </ListItem>
           </List>

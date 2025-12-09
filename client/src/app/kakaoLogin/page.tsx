@@ -4,10 +4,16 @@ import { post,get } from "@/config/api";
 import useKakaoHook from "@/kakao";
 import { Button, Stack } from "@mui/material"
 import { useSearchParams } from "next/navigation"
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
 export default function KakaoLoginPage() {
-    const searchParams = useSearchParams();
+  return <Suspense fallback={<div>Loading...</div>}>
+    <KakaoLogin />
+  </Suspense>
+}
+
+function KakaoLogin() {
+  const searchParams = useSearchParams();
     const userId = searchParams.get('userId');
     
     useEffect(() => {
@@ -57,7 +63,5 @@ export default function KakaoLoginPage() {
         <Button variant="outlined" onClick={requestKakaoLogin}>
             카카오 로그인
         </Button>
-
-        
     </Stack>
 }

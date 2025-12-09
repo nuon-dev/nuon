@@ -12,6 +12,7 @@
     "migration:check": "node scripts/check-migrations.js",
     "migration:create": "typeorm migration:create",
     "migration:generate": "typeorm migration:generate",
+    "schema:log": "typeorm schema:log -d ./src/model/dataSource.ts",
     "db:backup": "bash scripts/backup-db.sh",
     "db:restore": "set -a && source .env 2>/dev/null && set +a && ./scripts/restore-db.sh",
     "deploy:safe": "bash -c 'MIGRATION_STATUS=$(npm run migration:check --silent) && if [ \"$MIGRATION_STATUS\" = \"pending\" ]; then echo \"🔄 Pending migrations detected, creating backup...\"; npm run db:backup; echo \"🔄 Running migrations...\"; npm run migration:run; echo \"✅ Migrations completed\"; else echo \"✅ No pending migrations, skipping backup and migration\"; fi'"

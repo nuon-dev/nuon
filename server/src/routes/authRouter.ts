@@ -83,4 +83,25 @@ router.post("/receipt-record", async (req, res) => {
   }
 })
 
+router.post("/login", async (req, res) => {
+  const body = req.body
+
+  const kakaoId = body.kakaoId
+  const foundUser = await userDatabase.findOneBy({
+    kakaoId: kakaoId,
+  })
+
+  if (!foundUser) {
+    res.status(401).send({ result: "fail" })
+    return
+  }
+
+  foundUser.token = hashCode(foundUser.kakaoId + new Date().getTime())
+  const expireDay = new Date()
+  expireDay.setDate(expireDay.getDate() + 21)
+  foundUser.expire = expireDay
+  await userDatabase.save(foundUser)
+  res.send({ result: "success", token: foundUser.token })
+})
+
 export default router
