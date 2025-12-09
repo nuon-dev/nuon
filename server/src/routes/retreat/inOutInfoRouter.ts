@@ -3,7 +3,7 @@ import {
   inOutInfoDatabase,
   retreatAttendDatabase,
 } from "../../model/dataSource"
-import { getUserFromToken } from "../../util"
+import { getUserFromToken } from "../../util/util"
 import { InOutInfo } from "../../entity/retreat/inOutInfo"
 
 const router = express.Router()

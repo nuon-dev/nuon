@@ -5,7 +5,7 @@ import {
   inOutInfoDatabase,
   retreatAttendDatabase,
 } from "../../model/dataSource"
-import { getUserFromToken } from "../../util"
+import { getUserFromToken } from "../../util/util"
 import adminRouter from "./adminRouter"
 import sharingRouter from "./sharingRouter"
 import { RetreatAttend } from "../../entity/retreat/retreatAttend"

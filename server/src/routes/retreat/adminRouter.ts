@@ -1,5 +1,5 @@
 import express from "express"
-import { hasPermissionFromReq } from "../../util"
+import { hasPermissionFromReq } from "../../util/util"
 import {
   permissionDatabase,
   retreatAttendDatabase,

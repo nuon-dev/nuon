@@ -10,7 +10,7 @@ import {
   getUserFromToken,
   hasPermission,
   hasPermissionFromReq,
-} from "../../util"
+} from "../../util/util"
 import { PermissionType } from "../../entity/types"
 
 const router = express.Router()

@@ -1,9 +1,10 @@
 import crypto from "crypto"
 import dotenv from "dotenv"
-import { PermissionType } from "./entity/types"
-import { permissionDatabase, userDatabase } from "./model/dataSource"
-import { User } from "./entity/user"
+import { PermissionType } from "../entity/types"
+import { permissionDatabase, userDatabase } from "../model/dataSource"
+import { User } from "../entity/user"
 import express from "express"
+import jwt from "jsonwebtoken"
 
 const env = dotenv.config().parsed || {}
 
@@ -12,13 +13,6 @@ export const hashCode = function (content: string) {
     .createHash("sha512")
     .update(content + env.HASH_KEY)
     .digest("hex")
-}
-
-export function isTokenExpire(expire: Date) {
-  if (expire.getTime() < new Date().getTime()) {
-    return true
-  }
-  return false
 }
 
 export async function hasPermission(
@@ -39,10 +33,6 @@ export async function hasPermission(
   }
 
   if (!foundUser) {
-    return false
-  }
-
-  if (isTokenExpire(foundUser.expire)) {
     return false
   }
 
@@ -75,12 +65,14 @@ export async function getUserFromToken(req: express.Request) {
   if (!token) {
     return null
   }
+  const { id } = jwt.verify(token, env.JWT_SECRET)
+
   return await userDatabase.findOne({
     relations: {
       community: true,
     },
     where: {
-      token,
+      id: id,
     },
   })
 }

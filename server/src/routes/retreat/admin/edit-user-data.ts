@@ -1,5 +1,5 @@
 import express from "express"
-import { hasPermission, hasPermissionFromReq } from "../../../../src/util"
+import { hasPermission, hasPermissionFromReq } from "../../../util/util"
 import { PermissionType } from "../../../entity/types"
 import {
   inOutInfoDatabase,

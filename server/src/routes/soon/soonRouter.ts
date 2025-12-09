@@ -7,7 +7,7 @@ import {
   worshipScheduleDatabase,
 } from "../../model/dataSource"
 import { IsNull } from "typeorm"
-import { getUserFromToken } from "../../util"
+import { getUserFromToken } from "../../util/util"
 
 const router = express.Router()
 
@@ -270,6 +270,24 @@ router.get("/isValid-kakao-login-register", async (req, res) => {
   res
     .status(200)
     .send({ message: "Kakao login can be registered for this user." })
+})
+
+router.get("/my-info", async (req, res) => {
+  const user = await getUserFromToken(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  res.status(200).send({
+    id: user.id,
+    name: user.name,
+    yearOfBirth: user.yearOfBirth,
+    phone: user.phone,
+    gender: user.gender,
+    kakaoId: !!user.kakaoId,
+    community: user.community,
+  })
 })
 
 export default router

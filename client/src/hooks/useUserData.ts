@@ -1,7 +1,8 @@
 "use client"
 
+import jwt from "jwt-decode"
 import useKakaoHook from "../kakao"
-import { post } from "@/config/api"
+import { get, post } from "@/config/api"
 import { atom, useAtom } from "jotai"
 import { EditContent } from "./useBotChatLogic"
 import { User } from "@server/entity/user"
@@ -14,31 +15,25 @@ export default function useUserData() {
 
   async function getUserDataFromToken(): Promise<User | undefined> {
     const token = localStorage.getItem("token")
+    console.log("Token from localStorage:", token)
     if (!token) {
       return undefined
     }
-    const { result, userData } = await post("/auth/check-token", {
-      token,
-    })
-    if (result === "true") {
-      setUserInformation(userData)
-      return userData
-    }
-    return undefined
+    const myInfo = await get("/soon/my-info")
+    return myInfo
   }
 
   async function getUserDataFromKakaoLogin(): Promise<User | undefined> {
     try {
       var kakaoToken = await getKakaoToken()
-      const { token } = await post("/auth/receipt-record", {
+      const { accessToken, result } = await post("/auth/receipt-record", {
         kakaoId: kakaoToken,
       })
-      localStorage.setItem("token", token)
-      const { result, userData } = await post("/auth/check-token", {
-        token,
-      })
+      localStorage.setItem("token", accessToken)
 
-      if (result === "true") {
+      const userData = jwt.jwtDecode<User>(accessToken)
+      console.log(accessToken, userData)
+      if (result === "success") {
         setUserInformation(userData)
         return userData
       }

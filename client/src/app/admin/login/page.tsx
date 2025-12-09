@@ -11,10 +11,10 @@ export default function AdminLoginPage() {
 
   async function kakaoLogin() {
     const kakaoToken = await kakao.getKakaoToken()
-    const { token } = await post("/auth/receipt-record", {
+    const { accessToken } = await post("/auth/login", {
       kakaoId: kakaoToken,
     })
-    localStorage.setItem("token", token)
+    localStorage.setItem("token", accessToken)
     router.push("/admin")
   }
 

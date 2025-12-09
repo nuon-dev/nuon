@@ -1,19 +1,21 @@
 "use client"
 
 import { Button, Stack } from "@mui/material"
-import Header from "@/app/leader/components/Header"
 import useUserData from "@/hooks/useUserData"
 import { useRouter } from "next/navigation"
 import { useSetAtom } from "jotai"
 import { NotificationMessage } from "@/state/notification"
+import useAuth from "@/hooks/useAuth"
 
 export default function Login() {
   const { push } = useRouter()
+  useAuth()
   const { getUserDataFromKakaoLogin } = useUserData()
   const setNotificationMessage = useSetAtom(NotificationMessage)
 
   async function handleLogin() {
     const user = await getUserDataFromKakaoLogin()
+    console.log(user)
     if (!user) {
       setNotificationMessage("로그인에 실패했습니다. 다시 시도해주세요.")
       return

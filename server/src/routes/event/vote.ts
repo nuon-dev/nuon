@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { voteDatabase } from "../../model/dataSource"
-import { getUserFromToken } from "../../util"
+import { getUserFromToken } from "../../util/util"
 
 const router = Router()
 
