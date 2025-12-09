@@ -12,7 +12,7 @@ import {
 } from "../entity/retreat/sharing"
 import { WorshipSchedule } from "../entity/worshipSchedule"
 import { AttendData } from "../entity/attendData"
-import { Vote } from "../entity/vote"
+import { Vote } from "../entity/event/vote"
 
 const dataSource = new DataSource(require("../../ormconfig.js"))
 

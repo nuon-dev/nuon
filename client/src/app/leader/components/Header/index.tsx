@@ -17,6 +17,7 @@ import MenuIcon from "@mui/icons-material/Menu"
 import { useRouter } from "next/navigation"
 
 import PeopleIcon from "@mui/icons-material/People"
+import EventNoteIcon from "@mui/icons-material/EventNote"
 import useUserData from "@/hooks/useUserData"
 import { User } from "@server/entity/user"
 
@@ -42,8 +43,16 @@ export default function Header() {
     setOpen(value)
   }
 
-  function goToMyPage() {
-    push("/common/myPage")
+  function goToSoonManage() {
+    push("/leader/management")
+  }
+
+  function goToSoonAttendance() {
+    push("/leader/attendance")
+  }
+
+  function goToPostcard() {
+    push("/leader/postcard")
   }
 
   function goToHome() {
@@ -100,40 +109,36 @@ export default function Header() {
     <Stack
       py="8px"
       width="100%"
-      display="flex"
       flexDirection="row"
       bgcolor="#42C7F1"
       alignItems="center"
       justifyContent="space-between"
     >
-      <Stack
-        width="100%"
-        flexDirection="row"
-        alignItems="center"
-        justifyContent="space-between"
-        gap="8px"
-      >
+      <Stack flexDirection="row" alignItems="center" gap="8px">
         <Button onClick={goToHome}>
           <img width="80px" src="/logo_white.png" />
         </Button>
-        <Button
-          onClick={() => toggleDrawer(true)}
-          sx={{
-            minWidth: "auto",
-            p: 1,
-            "&:hover": {
-              bgcolor: "rgba(255,255,255,0.1)",
-            },
-          }}
-        >
-          <MenuIcon
-            sx={{
-              color: "white",
-              fontSize: 28,
-            }}
-          />
-        </Button>
+        <Stack fontSize="32px" fontWeight="bold" color="white">
+          순장
+        </Stack>
       </Stack>
+      <Button
+        onClick={() => toggleDrawer(true)}
+        sx={{
+          minWidth: "auto",
+          p: 1,
+          "&:hover": {
+            bgcolor: "rgba(255,255,255,0.1)",
+          },
+        }}
+      >
+        <MenuIcon
+          sx={{
+            color: "white",
+            fontSize: 28,
+          }}
+        />
+      </Button>
       <Drawer
         open={isOpen}
         onClose={() => toggleDrawer(false)}
@@ -153,7 +158,7 @@ export default function Header() {
           <List sx={{ px: 1 }}>
             <ListItem disablePadding sx={{ mb: 1 }}>
               <ListItemButton
-                onClick={goToMyPage}
+                onClick={goToSoonManage}
                 sx={{
                   borderRadius: 2,
                   mx: 1,
@@ -167,10 +172,40 @@ export default function Header() {
                 <ListItemIcon sx={{ minWidth: 40 }}>
                   <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />
                 </ListItemIcon>
-                <ListItemText primary={"나의 정보 수정"} />
+                <ListItemText
+                  primary={"순원 관리"}
+                  primaryTypographyProps={{
+                    fontWeight: 500,
+                    fontSize: "0.95rem",
+                  }}
+                />
               </ListItemButton>
             </ListItem>
-            <Divider />
+            <ListItem disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={goToSoonAttendance}
+                sx={{
+                  borderRadius: 2,
+                  mx: 1,
+                  "&:hover": {
+                    bgcolor: "#f5f5f5",
+                    transform: "translateX(4px)",
+                  },
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <EventNoteIcon fontSize="small" sx={{ color: "#4facfe" }} />
+                </ListItemIcon>
+                <ListItemText
+                  primary={"출석 관리"}
+                  primaryTypographyProps={{
+                    fontWeight: 500,
+                    fontSize: "0.95rem",
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
           </List>
         </Box>
       </Drawer>

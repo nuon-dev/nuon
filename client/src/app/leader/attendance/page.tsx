@@ -14,7 +14,7 @@ import {
   InputLabel,
   Chip,
 } from "@mui/material"
-import Header from "@/components/Header"
+import Header from "@/app/leader/components/Header"
 import { post } from "@/config/api"
 import { worshipKr } from "@/util/worship"
 import useAttendance from "./useAttendance"
@@ -45,7 +45,6 @@ export default function SoonAttendance() {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f8f9fa" }}>
-      <Header />
       <Container maxWidth="md" sx={{ py: 3 }}>
         <Stack spacing={3}>
           {/* 페이지 헤더 */}

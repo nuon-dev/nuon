@@ -1,7 +1,7 @@
 "use client"
 
 import { Button, Stack } from "@mui/material"
-import Header from "@/components/Header"
+import Header from "@/app/leader/components/Header"
 import useUserData from "@/hooks/useUserData"
 import { useRouter } from "next/navigation"
 import { useSetAtom } from "jotai"
@@ -22,7 +22,6 @@ export default function Login() {
   }
   return (
     <Stack>
-      <Header />
       <Stack
         gap="12px"
         sx={{
@@ -33,7 +32,7 @@ export default function Login() {
           justifyContent: "center",
         }}
       >
-        <Stack>새벽이슬 순장 화면</Stack>
+        <Stack>새벽이슬</Stack>
         <Button variant="outlined" onClick={handleLogin}>
           카카오로 로그인
         </Button>
