@@ -4,19 +4,21 @@ import dayjs from "dayjs"
 import Image from "next/image"
 import { get, post } from "@/config/api"
 import { isEvenAtom } from "@/state/retreat"
-import useUserData from "@/hooks/useUserData"
+import useUserData from "@/app/retreat/hooks/useUserData"
 import MyChat from "@/components/retreat/MyChat"
 import { Box, Drawer, Stack } from "@mui/material"
 import BotChat from "@/components/retreat/BotChat"
 import { Chat, ChatContent } from "@/types/retreat"
 import { useEffect, useRef, useState } from "react"
-import useRetreatData from "@/hooks/useRetreatData"
+import useRetreatData from "@/app/retreat/hooks/useRetreatData"
 import { Community } from "@server/entity/community"
 import InputText from "@/components/retreat/InputText"
 import { useAtom, useAtomValue, useSetAtom } from "jotai"
 import { NotificationMessage } from "@/state/notification"
 import InOutInfoForm from "@/components/retreat/InOutInfoForm"
-import useBotChatLogic, { EditContent } from "@/hooks/useBotChatLogic"
+import useBotChatLogic, {
+  EditContent,
+} from "@/app/retreat/hooks/useBotChatLogic"
 
 let ChatList: Chat[] = []
 export default function Index() {

@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode"
 import { useEffect } from "react"
 import { atom, useAtom, useAtomValue } from "jotai"
 import dayjs from "dayjs"
-import useKakaoHook from "@/kakao"
+import useKakaoHook from "@/hooks/useKakao"
 import axios from "@/config/axios"
 
 interface AuthUserData {

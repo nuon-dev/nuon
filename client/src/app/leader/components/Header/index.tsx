@@ -18,13 +18,13 @@ import { useRouter } from "next/navigation"
 
 import PeopleIcon from "@mui/icons-material/People"
 import EventNoteIcon from "@mui/icons-material/EventNote"
-import useUserData from "@/hooks/useUserData"
+import useUserData, { jwtPayload } from "@/hooks/useUserData"
 import { User } from "@server/entity/user"
 
 export default function Header() {
   const { push } = useRouter()
   const [isOpen, setOpen] = useState(false)
-  const [userInfo, setUserInfo] = useState<User | undefined>(undefined) // Assuming User type is defined somewhere
+  const [userInfo, setUserInfo] = useState<jwtPayload | undefined>(undefined) // Assuming User type is defined somewhere
   const { getUserDataFromToken } = useUserData()
 
   useEffect(() => {

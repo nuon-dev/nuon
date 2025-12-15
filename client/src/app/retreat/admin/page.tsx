@@ -1,7 +1,7 @@
 "use client"
 
 import jwt from "jwt-decode"
-import useKakaoHook from "@/kakao"
+import useKakaoHook from "@/hooks/useKakao"
 import { post } from "@/config/api"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"

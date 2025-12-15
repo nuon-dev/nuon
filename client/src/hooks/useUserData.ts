@@ -1,40 +1,60 @@
 "use client"
 
 import { jwtDecode } from "jwt-decode"
-import useKakaoHook from "../kakao"
-import { get, post } from "@/config/api"
+import useKakaoHook from "./useKakao"
+import axios from "@/config/axios"
 import { atom, useAtom } from "jotai"
-import { EditContent } from "./useBotChatLogic"
-import { User } from "@server/entity/user"
+import dayjs from "dayjs"
+import { Community } from "@server/entity/community"
 
-export const UserInformationAtom = atom<User | undefined>(undefined)
+export const JwtInformationAtom = atom<jwtPayload | undefined>(undefined)
+
+export interface jwtPayload {
+  id: string
+  name: string
+  yearOfBirth: number
+  community: Community
+  role: "admin" | "leader" | "user"
+  iat: number
+  exp: number
+}
 
 export default function useUserData() {
   const { getKakaoToken } = useKakaoHook()
-  const [userInformation, setUserInformation] = useAtom(UserInformationAtom)
+  const [JwtInformation, setJwtInformation] = useAtom(JwtInformationAtom)
 
-  async function getUserDataFromToken(): Promise<User | undefined> {
+  async function getUserDataFromToken(): Promise<jwtPayload | undefined> {
+    if (JwtInformation && JwtInformation.exp > dayjs().unix()) {
+      return JwtInformation
+    }
     const token = localStorage.getItem("token")
-    console.log("Token from localStorage:", token)
     if (!token) {
       return undefined
     }
-    const myInfo = await get("/soon/my-info")
-    return myInfo
+    const jwtPayload = jwtDecode<jwtPayload>(token)
+    if (dayjs(jwtPayload.exp).isBefore(dayjs())) {
+      //Todo: refresh token logic
+      return undefined
+    }
+    setJwtInformation(jwtPayload)
+    return jwtPayload
   }
 
-  async function getUserDataFromKakaoLogin(): Promise<User | undefined> {
+  async function getUserDataFromKakaoLogin(): Promise<jwtPayload | undefined> {
     try {
       var kakaoToken = await getKakaoToken()
-      const { accessToken, result } = await post("/auth/receipt-record", {
+      const { data, status } = await axios.post("/auth/login", {
         kakaoId: kakaoToken,
       })
+      if (status !== 200) {
+        return undefined
+      }
+      const { accessToken, result } = data
       localStorage.setItem("token", accessToken)
 
-      const userData = jwtDecode<User>(accessToken)
-      console.log(accessToken, userData)
+      const userData = jwtDecode<jwtPayload>(accessToken)
       if (result === "success") {
-        setUserInformation(userData)
+        setJwtInformation(userData)
         return userData
       }
     } catch {
@@ -43,45 +63,8 @@ export default function useUserData() {
     return undefined
   }
 
-  type UserKey = keyof User
-
-  function editUserInformation(key: UserKey, value: User[UserKey]) {
-    if (!userInformation) {
-      return
-    }
-    setUserInformation({
-      ...userInformation,
-      [key]: value,
-    })
-  }
-
-  async function saveUserInformation() {
-    await post("/auth/edit-my-information", userInformation)
-  }
-
-  function checkMissedUserInformation() {
-    if (!userInformation) {
-      return EditContent.none
-    }
-    if (!userInformation.name) {
-      return EditContent.name
-    } else if (!userInformation.yearOfBirth) {
-      return EditContent.yearOfBirth
-    } else if (!userInformation.phone) {
-      return EditContent.phone
-    } else if (!userInformation.gender) {
-      return EditContent.gender
-    } else if (!userInformation.community) {
-      return EditContent.darak
-    }
-    return EditContent.none
-  }
-
   return {
     getUserDataFromToken,
     getUserDataFromKakaoLogin,
-    editUserInformation,
-    saveUserInformation,
-    checkMissedUserInformation,
   }
 }

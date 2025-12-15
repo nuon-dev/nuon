@@ -2,7 +2,7 @@
 
 import useAuth from "@/hooks/useAuth"
 import useUserData from "@/hooks/useUserData"
-import useKakaoHook from "@/kakao"
+import useKakaoHook from "@/hooks/useKakao"
 import { Button, Stack } from "@mui/material"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -17,7 +17,7 @@ export default function VotePage() {
   }, [isLogin])
 
   async function checkLogin() {
-    if(!isLogin) {
+    if (!isLogin) {
       push("/common/login", {
         query: { returnUrl: "/event/vote" },
       })
