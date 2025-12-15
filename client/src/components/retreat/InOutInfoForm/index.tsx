@@ -1,7 +1,7 @@
 import { post } from "@/config/api"
 import { Ref, useEffect, useRef, useState } from "react"
 import styles from "./index.module.css"
-import useRetreatData from "@/hooks/useRetreatData"
+import useRetreatData from "@/app/retreat/hooks/useRetreatData"
 import { InOutInfo } from "@server/entity/retreat/inOutInfo"
 import { NotificationMessage } from "@/state/notification"
 import { useAtom, useSetAtom } from "jotai"
@@ -10,7 +10,7 @@ import { Button, FormControl, MenuItem, Select, Stack } from "@mui/material"
 import { ShowInOutInfoComponentAtom } from "@/state/retreat"
 import { every } from "lodash"
 import { ChatContent } from "@/types/retreat"
-import { EditContent } from "@/hooks/useBotChatLogic"
+import { EditContent } from "@/app/retreat/hooks/useBotChatLogic"
 
 interface IPops {
   addChat: (chat: ChatContent) => void

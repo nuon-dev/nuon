@@ -1,10 +1,11 @@
 "use client"
 
+import jwt from "jwt-decode"
+import useKakaoHook from "@/hooks/useKakao"
 import { post } from "@/config/api"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button, Stack } from "@mui/material"
-import { useRouter } from "next/navigation"
-import useKakaoHook from "@/kakao"
 import Header from "@/components/retreat/admin/Header"
 
 //아이콘 주소 https://www.flaticon.com/kr/
@@ -20,6 +21,9 @@ export default function Admin() {
 
   useEffect(() => {
     const token = localStorage.getItem("token")
+    if (!token) return
+    const userData = jwt.jwtDecode(token)
+    console.log(userData)
     post("/auth/check-token", {
       token,
     }).then((response) => {

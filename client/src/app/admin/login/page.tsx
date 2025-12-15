@@ -2,7 +2,7 @@
 
 import { Button } from "@mui/material"
 import { useRouter } from "next/navigation"
-import useKakaoHook from "@/kakao"
+import useKakaoHook from "@/hooks/useKakao"
 import { post } from "@/config/api"
 
 export default function AdminLoginPage() {
@@ -11,10 +11,10 @@ export default function AdminLoginPage() {
 
   async function kakaoLogin() {
     const kakaoToken = await kakao.getKakaoToken()
-    const { token } = await post("/auth/receipt-record", {
+    const { accessToken } = await post("/auth/login", {
       kakaoId: kakaoToken,
     })
-    localStorage.setItem("token", token)
+    localStorage.setItem("token", accessToken)
     router.push("/admin")
   }
 

@@ -24,7 +24,6 @@ import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
 import DeleteIcon from "@mui/icons-material/Delete"
 import SaveIcon from "@mui/icons-material/Save"
-import AdminHeader from "@/components/AdminHeader"
 import { useEffect, useState } from "react"
 import { WorshipKind, WorshipSchedule } from "@server/entity/worshipSchedule"
 import { dele, get, post, put } from "@/config/api"
@@ -92,8 +91,6 @@ export default function WorshipSchedulePage() {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5" }}>
-      <AdminHeader />
-
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" fontWeight="bold" gutterBottom>
           예배 일정 관리

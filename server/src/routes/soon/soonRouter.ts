@@ -7,7 +7,8 @@ import {
   worshipScheduleDatabase,
 } from "../../model/dataSource"
 import { IsNull } from "typeorm"
-import { getUserFromToken } from "../../util"
+import { checkJwt, getUserFromToken } from "../../util/util"
+import { Role } from "../../util/auth"
 
 const router = express.Router()
 
@@ -272,4 +273,62 @@ router.get("/isValid-kakao-login-register", async (req, res) => {
     .send({ message: "Kakao login can be registered for this user." })
 })
 
+router.get("/my-info", async (req, res) => {
+  const user = await getUserFromToken(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  res.status(200).send({
+    id: user.id,
+    name: user.name,
+    yearOfBirth: user.yearOfBirth,
+    phone: user.phone,
+    gender: user.gender,
+    kakaoId: !!user.kakaoId,
+    community: user.community,
+  })
+})
+
+router.get("/existing-users", async (req, res) => {
+  const user = await checkJwt(req)
+  console.log("user", user)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+  if (user.role !== Role.Leader) {
+    res.status(403).send({ error: "Forbidden" })
+    return
+  }
+
+  const phone = req.query.phone as string
+  if (!phone) {
+    res.status(400).send({ error: "Missing phone parameter" })
+    return
+  }
+
+  const existingUser = await userDatabase.findOne({
+    where: {
+      phone: phone,
+      community: {
+        id: user.community.id,
+      },
+    },
+  })
+
+  if (!existingUser) {
+    res.status(404).send()
+    return
+  }
+
+  res.status(200).send({
+    id: existingUser.id,
+    name: existingUser.name,
+    yearOfBirth: existingUser.yearOfBirth,
+    gender: existingUser.gender,
+    kakaoId: existingUser.kakaoId,
+  })
+})
 export default router

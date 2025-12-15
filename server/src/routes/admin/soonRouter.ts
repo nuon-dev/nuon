@@ -1,5 +1,5 @@
 import express from "express"
-import { hasPermission } from "../../util"
+import { hasPermission } from "../../util/util"
 import { PermissionType } from "../../entity/types"
 import {
   attendDataDatabase,

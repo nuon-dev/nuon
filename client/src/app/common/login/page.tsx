@@ -1,24 +1,44 @@
 "use client"
 
 import { Button, Stack } from "@mui/material"
-import Header from "@/app/leader/components/Header"
 import useUserData from "@/hooks/useUserData"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useSetAtom } from "jotai"
 import { NotificationMessage } from "@/state/notification"
+import useAuth from "@/hooks/useAuth"
+import { useEffect } from "react"
+import { Suspense } from "react"
 
-export default function Login() {
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Login />
+    </Suspense>
+  )
+}
+
+function Login() {
   const { push } = useRouter()
+  const searchParams = useSearchParams()
+  const { isLogin } = useAuth()
   const { getUserDataFromKakaoLogin } = useUserData()
   const setNotificationMessage = useSetAtom(NotificationMessage)
 
+  useEffect(() => {
+    const returnUrl = searchParams.get("returnUrl") || "/"
+    if (isLogin) {
+      push(returnUrl)
+    }
+  }, [isLogin])
+
   async function handleLogin() {
+    const returnUrl = searchParams.get("returnUrl") || "/"
     const user = await getUserDataFromKakaoLogin()
     if (!user) {
       setNotificationMessage("로그인에 실패했습니다. 다시 시도해주세요.")
       return
     }
-    push("/")
+    push(returnUrl)
   }
   return (
     <Stack>

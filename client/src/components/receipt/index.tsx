@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 
+import { jwtDecode } from "jwt-decode"
 import { post } from "@/config/api"
 import UserInformationForm from "@/components/form/UserInformationForm"
 import ReceiptResult from "@/components/form/ReceiptResult"
@@ -21,6 +22,11 @@ export default function Receipt() {
 
   const checkToken = () => {
     const token = localStorage.getItem("token")
+    if (!token) {
+      return
+    }
+    const userData = jwtDecode(token)
+    console.log(userData)
     if (!token) {
       return
     }

@@ -5,7 +5,7 @@ import {
   retreatAttendDatabase,
   userDatabase,
 } from "../../../model/dataSource"
-import { hasPermission } from "../../../util"
+import { hasPermission } from "../../../util/util"
 import { IsNull, Not } from "typeorm"
 
 const router = express.Router()

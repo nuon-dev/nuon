@@ -1,37 +1,104 @@
 import { User } from "../entity/user"
-import { hashCode } from "../util"
+import { generateAccessToken, generateRefreshToken } from "../util/auth"
 import { userDatabase } from "./dataSource"
 
-async function loginFromKakaoId(kakaoId: string): Promise<string> {
-  const foundUser = await userDatabase.findOneBy({
-    kakaoId: kakaoId,
+export const REFRESH_TOKEN_EXPIRE_DAYS = 21
+
+async function loginFromKakaoId(kakaoId: string): Promise<{
+  accessToken: string
+  refreshToken: string
+}> {
+  const foundUser = await userDatabase.findOne({
+    where: {
+      kakaoId: kakaoId,
+    },
+    relations: {
+      community: {
+        leader: true,
+        deputyLeader: true,
+      },
+    },
   })
   if (!foundUser) {
     return null
   }
 
-  foundUser.token = hashCode(foundUser.kakaoId + new Date().getTime())
+  const newRefreshToken = generateRefreshToken(foundUser)
+  foundUser.token = newRefreshToken
   const expireDay = new Date()
-  expireDay.setDate(expireDay.getDate() + 21)
+  expireDay.setDate(expireDay.getDate() + REFRESH_TOKEN_EXPIRE_DAYS)
   foundUser.expire = expireDay
   await userDatabase.save(foundUser)
-  return foundUser.token
+
+  const newAccessToken = generateAccessToken(foundUser)
+
+  return {
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+  }
 }
 
-async function registerNewUser(kakaoId: string): Promise<string> {
+async function registerNewUser(
+  kakaoId: string
+): Promise<{ accessToken: string; refreshToken: string }> {
   const now = new Date()
   const createUser = new User()
   createUser.kakaoId = kakaoId
   createUser.createAt = new Date()
   createUser.gender = ""
-  createUser.token = hashCode(kakaoId + now.getTime().toString())
-  createUser.expire = new Date(now.setDate(now.getDate() + 7))
+  const newRefreshToken = generateRefreshToken(createUser)
+  createUser.token = newRefreshToken
+  createUser.expire = new Date(
+    now.setDate(now.getDate() + REFRESH_TOKEN_EXPIRE_DAYS)
+  )
   await userDatabase.save(createUser)
-  return createUser.token
+  const newAccessToken = generateAccessToken(createUser)
+  return {
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+  }
 }
 
 async function updateUserData(user: User): Promise<void> {
   await userDatabase.save(user)
 }
 
-export default { loginFromKakaoId, registerNewUser, updateUserData }
+async function createNewAccessToken(currentToken: string): Promise<{
+  success: boolean
+  accessToken?: string
+  refreshToken?: string
+}> {
+  const foundUser = await userDatabase.findOne({
+    where: { token: currentToken },
+    relations: {
+      community: true,
+    },
+  })
+  if (!foundUser) {
+    return {
+      success: false,
+    }
+  }
+
+  const newRefreshToken = generateRefreshToken(foundUser)
+  foundUser.token = newRefreshToken
+  const expireDay = new Date()
+  expireDay.setDate(expireDay.getDate() + 21)
+  foundUser.expire = expireDay
+  await userDatabase.save(foundUser)
+
+  const newAccessToken = generateAccessToken(foundUser)
+
+  return {
+    success: true,
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+  }
+}
+
+export default {
+  loginFromKakaoId,
+  registerNewUser,
+  updateUserData,
+  createNewAccessToken,
+}

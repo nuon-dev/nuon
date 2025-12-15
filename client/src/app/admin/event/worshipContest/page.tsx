@@ -1,22 +1,18 @@
 "use client"
 
-import AdminHeader from "@/components/AdminHeader"
 import { Button, Stack } from "@mui/material"
 import { useEffect, useState } from "react"
-import {} from "@server/routes/event/vote"
 import { get, post } from "@/config/api"
 
 type VoteStatus = "투표불가" | "1부" | "2부"
 
 export default function VotePage() {
   const [currentState, setCurrentState] = useState<VoteStatus>("투표불가")
-  const [results, setResults] = useState<
-    { communityId: number; points: number; name: string }[]
-  >([])
+  const [results, setResults] = useState<Record<string, number>>()
   const [totalVotes, setTotalVotes] = useState(0)
 
   useEffect(() => {
-    get("/event/vote/status").then((data) => {
+    get("/event/worship-contest/status").then((data) => {
       setCurrentState(data.currentVoteStatus)
     })
     fetchResults()
@@ -24,21 +20,22 @@ export default function VotePage() {
   }, [])
 
   function handleVoteStatus(newStatus: VoteStatus) {
-    post("/event/vote/admin/set-status", { status: newStatus }).then(() => {
-      setCurrentState(newStatus)
-    })
+    post("/event/worship-contest/admin/set-status", { status: newStatus }).then(
+      () => {
+        setCurrentState(newStatus)
+      }
+    )
   }
 
   function fetchResults() {
-    get("/event/vote/results").then((data) => {
-      setResults(data.results)
+    get("/event/worship-contest/results").then((data) => {
+      setResults(data.result)
       setTotalVotes(data.totalVotes)
     })
   }
 
   return (
     <Stack minHeight="100vh">
-      <AdminHeader />
       <Stack padding={2} fontSize={24} fontWeight="bold" gap="12px">
         투표 시스템 관리 페이지 <Stack>현재 상태: {currentState}</Stack>
         <Button variant="outlined" onClick={() => handleVoteStatus("1부")}>
@@ -53,12 +50,12 @@ export default function VotePage() {
         순위 현황
         <Stack>
           총 투표 수: {totalVotes}
-          {results.map((result, index) => (
-            <Stack key={result.communityId} direction="row" gap="8px">
+          {Object.entries(results || {}).map(([communityId, points], index) => (
+            <Stack key={communityId} direction="row" gap="8px">
               <span>
-                {index + 1}위 - 공동체 ID: {result.name}
+                {index + 1}위 : {communityId}
               </span>
-              <span>점수: {(result.points / totalVotes).toFixed(2)}</span>
+              <span>점수: {(points / totalVotes).toFixed(2)}</span>
             </Stack>
           ))}
         </Stack>

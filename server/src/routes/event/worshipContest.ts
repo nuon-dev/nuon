@@ -1,6 +1,10 @@
 import { Router } from "express"
-import { voteDatabase } from "../../model/dataSource"
-import { getUserFromToken } from "../../util"
+import {
+  communityDatabase,
+  worshipContestDatabase,
+} from "../../model/dataSource"
+import { getUserFromToken } from "../../util/util"
+import { IsNull, In } from "typeorm"
 
 const router = Router()
 
@@ -36,7 +40,7 @@ router.post("/vote", async (req, res) => {
     return
   }
 
-  const existingVote = await voteDatabase.findOne({
+  const existingVote = await worshipContestDatabase.findOne({
     where: {
       voteUser: {
         id: user.id,
@@ -51,63 +55,44 @@ router.post("/vote", async (req, res) => {
   }
 
   const { firstCommunity, secondCommunity, thirdCommunity } = req.body
-  const vote = voteDatabase.create({
+  const vote = worshipContestDatabase.create({
     voteUser: user,
-    firstCommunity: { id: firstCommunity },
-    secondCommunity: { id: secondCommunity },
-    thirdCommunity: { id: thirdCommunity },
+    firstCommunity: firstCommunity,
+    secondCommunity: secondCommunity,
+    thirdCommunity: thirdCommunity,
     term: currentVoteStatus === "1부" ? 1 : 2,
   })
-  await voteDatabase.save(vote)
+  await worshipContestDatabase.save(vote)
 
   res.json({ message: "투표가 완료되었습니다." })
 })
 
 router.get("/results", async (req, res) => {
-  const votes = await voteDatabase.find({
-    relations: ["firstCommunity", "secondCommunity", "thirdCommunity"],
-  })
+  const votes = await worshipContestDatabase.find()
 
   const tally: Record<number, { points: number; name: string }> = {}
 
   votes.forEach((vote) => {
-    if (!tally[vote.firstCommunity.id]) {
-      tally[vote.firstCommunity.id] = {
-        points: 5,
-        name: vote.firstCommunity.name,
-      }
+    if (!tally[vote.firstCommunity]) {
+      tally[vote.firstCommunity] = 5
     } else {
-      tally[vote.firstCommunity.id].points += 5
+      tally[vote.firstCommunity] += 5
     }
 
-    if (!tally[vote.secondCommunity.id]) {
-      tally[vote.secondCommunity.id] = {
-        points: 3,
-        name: vote.secondCommunity.name,
-      }
+    if (!tally[vote.secondCommunity]) {
+      tally[vote.secondCommunity] = 3
     } else {
-      tally[vote.secondCommunity.id].points += 3
+      tally[vote.secondCommunity] += 3
     }
 
-    if (!tally[vote.thirdCommunity.id]) {
-      tally[vote.thirdCommunity.id] = {
-        points: 1,
-        name: vote.thirdCommunity.name,
-      }
+    if (!tally[vote.thirdCommunity]) {
+      tally[vote.thirdCommunity] = 1
     } else {
-      tally[vote.thirdCommunity.id].points += 1
+      tally[vote.thirdCommunity] += 1
     }
   })
 
-  const results = Object.entries(tally)
-    .map(([communityId, points]) => ({
-      communityId: Number(communityId),
-      name: points.name,
-      points: points.points,
-    }))
-    .sort((a, b) => b.points - a.points)
-
-  res.json({ results, totalVotes: votes.length })
+  res.json({ result: tally, totalVotes: votes.length })
 })
 
 export default router

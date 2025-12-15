@@ -1,6 +1,6 @@
 "use client"
 
-import { Box, Button, Stack, TextField } from "@mui/material"
+import { Button, Stack } from "@mui/material"
 import { useRouter } from "next/navigation"
 import { get, post } from "@/config/api"
 import { useEffect, useState } from "react"
@@ -8,7 +8,7 @@ import { SharingText } from "@server/entity/retreat/sharing"
 import dayjs from "dayjs"
 import { useSetAtom } from "jotai"
 import { NotificationMessage } from "@/state/notification"
-import useUserData from "@/hooks/useUserData"
+import useUserData from "@/app/retreat/hooks/useUserData"
 import DeleteIcon from "@mui/icons-material/Delete"
 import { User } from "@server/entity/user"
 

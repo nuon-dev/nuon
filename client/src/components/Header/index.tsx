@@ -18,12 +18,12 @@ import { useRouter } from "next/navigation"
 
 import PeopleIcon from "@mui/icons-material/People"
 import useUserData from "@/hooks/useUserData"
-import { User } from "@server/entity/user"
+import { jwtPayload } from "@/hooks/useAuth"
 
 export default function Header() {
   const { push } = useRouter()
   const [isOpen, setOpen] = useState(false)
-  const [userInfo, setUserInfo] = useState<User | undefined>(undefined) // Assuming User type is defined somewhere
+  const [userInfo, setUserInfo] = useState<jwtPayload | undefined>(undefined) // Assuming User type is defined somewhere
   const { getUserDataFromToken } = useUserData()
 
   useEffect(() => {
@@ -44,6 +44,10 @@ export default function Header() {
 
   function goToMyPage() {
     push("/common/myPage")
+  }
+
+  function goToVotePage() {
+    push("/event/vote")
   }
 
   function goToHome() {
@@ -171,6 +175,25 @@ export default function Header() {
               </ListItemButton>
             </ListItem>
             <Divider />
+            <ListItem disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={goToVotePage}
+                sx={{
+                  borderRadius: 2,
+                  mx: 1,
+                  "&:hover": {
+                    bgcolor: "#f5f5f5",
+                    transform: "translateX(4px)",
+                  },
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />
+                </ListItemIcon>
+                <ListItemText primary={"투표하러 가기"} />
+              </ListItemButton>
+            </ListItem>
           </List>
         </Box>
       </Drawer>

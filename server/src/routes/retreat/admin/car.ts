@@ -1,7 +1,7 @@
 import express from "express"
 import { PermissionType } from "../../../entity/types"
 import { inOutInfoDatabase, userDatabase } from "../../../model/dataSource"
-import { hasPermission } from "../../../util"
+import { hasPermission } from "../../../util/util"
 import { InOutInfo } from "../../../entity/retreat/inOutInfo"
 
 const router = express.Router()

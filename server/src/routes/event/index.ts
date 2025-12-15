@@ -1,8 +1,8 @@
 import { Router } from "express"
-import voteRouter from "./vote"
+import worshipContestRouter from "./worshipContest"
 
 const router = Router()
 
-router.use("/vote", voteRouter)
+router.use("/worship-contest", worshipContestRouter)
 
 export default router
