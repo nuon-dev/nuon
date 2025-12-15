@@ -19,7 +19,6 @@ import {
   Avatar,
   Tooltip,
 } from "@mui/material"
-import Header from "@/components/AdminHeader"
 import { get, put } from "@/config/api"
 import { MouseEvent, useEffect, useRef, useState } from "react"
 
@@ -411,7 +410,6 @@ export default function People() {
 
   return (
     <Box sx={{ bgcolor: "grey.50", minHeight: "100vh" }}>
-      <Header />
       <Box p={1.5}>
         <Stack
           direction="row"

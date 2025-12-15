@@ -2,7 +2,6 @@
 
 import { type Community } from "@server/entity/community"
 import { Stack, Box } from "@mui/material"
-import Header from "@/components/AdminHeader"
 import CommunityCard from "./CommunityCard"
 import CommunityControlPanel from "./CommunityControlPanel"
 import { MouseEvent, useEffect, useState } from "react"
@@ -158,7 +157,6 @@ export default function CommunityComponent() {
 
   return (
     <Stack minHeight="100vh" sx={{ bgcolor: "#fafafa" }}>
-      <Header />
       <Box p={2}>
         <CommunityControlPanel
           editMode={editMode}

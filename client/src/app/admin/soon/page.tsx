@@ -4,7 +4,6 @@ import { Stack } from "@mui/material"
 import { useEffect, useState } from "react"
 import { useSetAtom } from "jotai"
 import { User } from "@server/entity/user"
-import Header from "@/components/AdminHeader"
 import UserFilter from "./UserFilter"
 import UserTable from "./UserTable"
 import UserForm from "./UserForm"
@@ -152,7 +151,6 @@ export default function Soon() {
 
   return (
     <Stack minHeight="100vh">
-      <Header />
       <Stack direction="row" p="12px" gap="12px">
         <UserTable
           userList={userList}

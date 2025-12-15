@@ -38,7 +38,6 @@ export default function VotePage() {
 
   return (
     <Stack minHeight="100vh">
-      <AdminHeader />
       <Stack padding={2} fontSize={24} fontWeight="bold" gap="12px">
         투표 시스템 관리 페이지 <Stack>현재 상태: {currentState}</Stack>
         <Button variant="outlined" onClick={() => handleVoteStatus("1부")}>

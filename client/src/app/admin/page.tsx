@@ -16,7 +16,6 @@ import {
   LinearProgress,
 } from "@mui/material"
 import { useEffect, useState } from "react"
-import Header from "@/components/AdminHeader"
 import { useSetAtom } from "jotai"
 import { NotificationMessage } from "@/state/notification"
 import useUserData from "@/hooks/useUserData"
@@ -117,7 +116,6 @@ function index() {
           height: "100vh",
         }}
       >
-        <Header />
         <Stack alignItems="center" justifyContent="center" flex={1}>
           <CircularProgress size={60} />
           <Typography variant="h6" sx={{ mt: 2 }}>
@@ -136,7 +134,6 @@ function index() {
           height: "100vh",
         }}
       >
-        <Header />
         <Stack alignItems="center" justifyContent="center" flex={1} p={3}>
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
@@ -154,7 +151,6 @@ function index() {
           height: "100vh",
         }}
       >
-        <Header />
         <Stack alignItems="center" justifyContent="center" flex={1}>
           <Typography variant="h6">데이터를 불러올 수 없습니다.</Typography>
         </Stack>
@@ -164,7 +160,6 @@ function index() {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5" }}>
-      <Header />
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" fontWeight="bold" gutterBottom>
           관리자 대시보드
