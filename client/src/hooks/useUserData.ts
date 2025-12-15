@@ -9,6 +9,7 @@ import { Community } from "@server/entity/community"
 
 export const JwtInformationAtom = atom<jwtPayload | undefined>(undefined)
 
+//Todo: 서버와 통합할 수 있는 방법 찾아보기, 지금은 jwt type error로 인해 분리
 export interface jwtPayload {
   id: string
   name: string

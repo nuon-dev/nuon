@@ -20,7 +20,7 @@ axios.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       if (isBrowser) {
-        window.location.href = "/login"
+        window.location.href = "/common/login"
       }
     }
     return Promise.reject(error)

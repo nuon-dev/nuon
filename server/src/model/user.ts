@@ -8,8 +8,16 @@ async function loginFromKakaoId(kakaoId: string): Promise<{
   accessToken: string
   refreshToken: string
 }> {
-  const foundUser = await userDatabase.findOneBy({
-    kakaoId: kakaoId,
+  const foundUser = await userDatabase.findOne({
+    where: {
+      kakaoId: kakaoId,
+    },
+    relations: {
+      community: {
+        leader: true,
+        deputyLeader: true,
+      },
+    },
   })
   if (!foundUser) {
     return null

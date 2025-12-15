@@ -5,6 +5,7 @@ import { permissionDatabase, userDatabase } from "../model/dataSource"
 import { User } from "../entity/user"
 import express from "express"
 import jwt from "jsonwebtoken"
+import { jwtPayload } from "./auth"
 
 const env = dotenv.config().parsed || {}
 
@@ -75,6 +76,19 @@ export async function getUserFromToken(req: express.Request) {
       id: id,
     },
   })
+}
+
+export async function checkJwt(req: express.Request) {
+  const token = req.header("token")
+  if (!token) {
+    return null
+  }
+  try {
+    const payload = jwt.verify<jwtPayload>(token, env.JWT_SECRET) as jwtPayload
+    return payload
+  } catch (e) {
+    return null
+  }
 }
 
 export async function hasPermissionFromReq(

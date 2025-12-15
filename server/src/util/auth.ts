@@ -1,6 +1,23 @@
 import jwt from "jsonwebtoken"
 import { User } from "../entity/user"
 import { REFRESH_TOKEN_EXPIRE_DAYS } from "../model/user"
+import { Community } from "../entity/community"
+
+export enum Role {
+  Admin = "admin",
+  Leader = "leader",
+  Member = "member",
+}
+
+export interface jwtPayload {
+  id: string
+  name: string
+  yearOfBirth: number
+  community: Community
+  role: Role
+  iat: number
+  exp: number
+}
 
 export function generateRefreshToken(user: User) {
   const payload = {
@@ -30,23 +47,23 @@ export function generateAccessToken(user: User) {
   })
 }
 
-function getRole(user: User): "member" | "leader" | "admin" {
+function getRole(user: User): Role {
   if (user.isSuperUser) {
-    return "admin"
+    return Role.Admin
   }
   if (!user.community) {
-    return "member"
+    return Role.Member
   }
 
   if (!user.community.leader && !user.community.deputyLeader) {
-    return "member"
+    return Role.Member
   }
 
   if (
     user.community.leader.id === user.id ||
     user.community.deputyLeader.id === user.id
   ) {
-    return "leader"
+    return Role.Leader
   }
-  return "member"
+  return Role.Member
 }

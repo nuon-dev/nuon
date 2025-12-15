@@ -7,7 +7,8 @@ import {
   worshipScheduleDatabase,
 } from "../../model/dataSource"
 import { IsNull } from "typeorm"
-import { getUserFromToken } from "../../util/util"
+import { checkJwt, getUserFromToken } from "../../util/util"
+import { Role } from "../../util/auth"
 
 const router = express.Router()
 
@@ -290,4 +291,44 @@ router.get("/my-info", async (req, res) => {
   })
 })
 
+router.get("/existing-users", async (req, res) => {
+  const user = await checkJwt(req)
+  console.log("user", user)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+  if (user.role !== Role.Leader) {
+    res.status(403).send({ error: "Forbidden" })
+    return
+  }
+
+  const phone = req.query.phone as string
+  if (!phone) {
+    res.status(400).send({ error: "Missing phone parameter" })
+    return
+  }
+
+  const existingUser = await userDatabase.findOne({
+    where: {
+      phone: phone,
+      community: {
+        id: user.community.id,
+      },
+    },
+  })
+
+  if (!existingUser) {
+    res.status(404).send()
+    return
+  }
+
+  res.status(200).send({
+    id: existingUser.id,
+    name: existingUser.name,
+    yearOfBirth: existingUser.yearOfBirth,
+    gender: existingUser.gender,
+    kakaoId: existingUser.kakaoId,
+  })
+})
 export default router
