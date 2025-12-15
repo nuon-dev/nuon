@@ -1,34 +1,26 @@
 "use client"
 
+import useAuth from "@/hooks/useAuth"
 import useUserData from "@/hooks/useUserData"
 import useKakaoHook from "@/kakao"
 import { Button, Stack } from "@mui/material"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 export default function VotePage() {
-  const { getKakaoToken } = useKakaoHook()
-  const { getUserDataFromKakaoLogin } = useUserData()
-  const [isLogin, setIsLogin] = useState<boolean>(false)
+  const { isLogin } = useAuth()
+  const { push } = useRouter()
   const [] = useState()
 
   useEffect(() => {
     checkLogin()
-  }, [])
+  }, [isLogin])
 
   async function checkLogin() {
-    const user = await getUserDataFromKakaoLogin()
-    console.log(user)
-    if (user) {
-      setIsLogin(true)
-    }
-  }
-
-  async function login() {
-    await getKakaoToken()
-    const user = await getUserDataFromKakaoLogin()
-    console.log(user)
-    if (user) {
-      setIsLogin(true)
+    if(!isLogin) {
+      push("/common/login", {
+        query: { returnUrl: "/event/vote" },
+      })
     }
   }
 
@@ -43,12 +35,18 @@ export default function VotePage() {
         gap={2}
       >
         카카오 로그인이 필요합니다.
-        <Button variant="outlined" onClick={login}>
+        <Button variant="outlined" onClick={checkLogin}>
           로그인 하러가기
         </Button>
       </Stack>
     )
   }
 
-  return <Stack></Stack>
+  return (
+    <Stack>
+      <Button variant="outlined" onClick={checkLogin}>
+        로그인 하러가기
+      </Button>
+    </Stack>
+  )
 }

@@ -46,6 +46,10 @@ export default function Header() {
     push("/common/myPage")
   }
 
+  function goToVotePage() {
+    push("/event/vote")
+  }
+
   function goToHome() {
     push("/")
   }
@@ -171,6 +175,25 @@ export default function Header() {
               </ListItemButton>
             </ListItem>
             <Divider />
+            <ListItem disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={goToVotePage}
+                sx={{
+                  borderRadius: 2,
+                  mx: 1,
+                  "&:hover": {
+                    bgcolor: "#f5f5f5",
+                    transform: "translateX(4px)",
+                  },
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />
+                </ListItemIcon>
+                <ListItemText primary={"투표하러 가기"} />
+              </ListItemButton>
+            </ListItem>
           </List>
         </Box>
       </Drawer>

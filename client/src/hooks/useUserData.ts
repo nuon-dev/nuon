@@ -1,6 +1,6 @@
 "use client"
 
-import jwt from "jwt-decode"
+import { jwtDecode } from "jwt-decode"
 import useKakaoHook from "../kakao"
 import { get, post } from "@/config/api"
 import { atom, useAtom } from "jotai"
@@ -31,7 +31,7 @@ export default function useUserData() {
       })
       localStorage.setItem("token", accessToken)
 
-      const userData = jwt.jwtDecode<User>(accessToken)
+      const userData = jwtDecode<User>(accessToken)
       console.log(accessToken, userData)
       if (result === "success") {
         setUserInformation(userData)

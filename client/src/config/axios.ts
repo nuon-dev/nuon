@@ -1,7 +1,4 @@
 import axios from "axios"
-
-const isBrowser = typeof window !== "undefined"
-
 const PORT = 8000
 const SERVER_URL =
   process.env.NODE_ENV === "development"
@@ -9,9 +6,24 @@ const SERVER_URL =
     : "https://nuon.iubns.net"
 export const SERVER_FULL_PATH = `${SERVER_URL}:${PORT}`
 
+const isBrowser = typeof window !== "undefined"
+
 axios.defaults.baseURL = SERVER_FULL_PATH
 if (isBrowser) {
   axios.defaults.headers.common["token"] = localStorage.getItem("token") || ""
 }
 
+axios.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (isBrowser) {
+        window.location.href = "/login"
+      }
+    }
+    return Promise.reject(error)
+  }
+)
 export default axios
