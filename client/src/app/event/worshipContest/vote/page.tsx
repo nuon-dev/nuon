@@ -5,7 +5,6 @@ import axios from "@/config/axios"
 import { useEffect } from "react"
 import { MenuItem, Select, Stack } from "@mui/material"
 import useAuth from "@/hooks/useAuth"
-import { Community } from "@server/entity/community"
 
 const 마을들 = [
   "히피",

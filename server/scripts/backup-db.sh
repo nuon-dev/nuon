@@ -3,8 +3,16 @@
 # 데이터베이스 백업 스크립트
 # Usage: ./scripts/backup-db.sh
 
+
 # 스크립트가 있는 디렉토리의 상위 디렉토리로 이동 (server 디렉토리)
 cd "$(dirname "$0")/.."
+
+# .env 파일이 있으면 환경변수로 불러오기
+if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+fi
 
 # 환경변수에서 설정 읽기
 DB_HOST="${DB_HOST}"

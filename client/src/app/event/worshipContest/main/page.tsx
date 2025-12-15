@@ -31,7 +31,7 @@ export default function VotePage() {
   const { ifNotLoggedGoToLogin } = useAuth()
 
   useEffect(() => {
-    ifNotLoggedGoToLogin("/event/worshipContest/vote")
+    ifNotLoggedGoToLogin("/event/worshipContest/main")
   }, [])
 
   return (
