@@ -7,8 +7,17 @@ import { useSetAtom } from "jotai"
 import { NotificationMessage } from "@/state/notification"
 import useAuth from "@/hooks/useAuth"
 import { useEffect } from "react"
+import { Suspense } from "react"
 
-export default function Login() {
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Login />
+    </Suspense>
+  )
+}
+
+function Login() {
   const { push } = useRouter()
   const searchParams = useSearchParams()
   const { isLogin } = useAuth()
