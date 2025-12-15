@@ -18,7 +18,8 @@ import { useRouter } from "next/navigation"
 
 import PeopleIcon from "@mui/icons-material/People"
 import EventNoteIcon from "@mui/icons-material/EventNote"
-import useUserData, { jwtPayload } from "@/hooks/useUserData"
+import useUserData from "@/hooks/useUserData"
+import { jwtPayload } from "@/hooks/useAuth"
 
 export default function Header() {
   const { push } = useRouter()

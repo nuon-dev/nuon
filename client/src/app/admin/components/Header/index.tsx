@@ -65,8 +65,8 @@ export default function AdminHeader() {
     push("/admin/soon/attendance")
   }
 
-  function goToEventVote() {
-    push("/admin/event/vote")
+  function goToEventWorshipContest() {
+    push("/admin/event/worshipContest")
   }
 
   return (
@@ -143,11 +143,11 @@ export default function AdminHeader() {
             </ListItem>
             <Divider />
             <ListItem disablePadding>
-              <ListItemButton onClick={goToEventVote}>
+              <ListItemButton onClick={goToEventWorshipContest}>
                 <ListItemIcon>
                   <EventIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText primary={"투표 시스템"} />
+                <ListItemText primary={"워십 콘테스트"} />
               </ListItemButton>
             </ListItem>
           </List>

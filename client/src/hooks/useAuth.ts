@@ -6,28 +6,28 @@ import { atom, useAtom, useAtomValue } from "jotai"
 import dayjs from "dayjs"
 import useKakaoHook from "@/hooks/useKakao"
 import axios from "@/config/axios"
+import { Community } from "@server/entity/community"
+import { useRouter } from "next/navigation"
 
-interface AuthUserData {
+export const JwtInformationAtom = atom<jwtPayload | null>(null)
+
+//Todo: 서버와 통합할 수 있는 방법 찾아보기, 지금은 jwt type error로 인해 분리
+export interface jwtPayload {
   id: string
   name: string
   yearOfBirth: number
-  community: {
-    id: string
-    name: string
-  } | null
-  role: "member" | "leader" | "admin"
+  community: Community
+  role: "admin" | "leader" | "user"
+  iat: number
   exp: number
-  iap: number
 }
-
-const userAuthAtom = atom<AuthUserData | null>(null)
-const isLoginAtom = atom((get) => !!get(userAuthAtom))
+const isLoginAtom = atom((get) => !!get(JwtInformationAtom))
 
 export default function useAuth() {
   const isLogin = useAtomValue(isLoginAtom)
-  const [authUserData, setAuthUserData] = useAtom(userAuthAtom)
-
+  const [authUserData, setAuthUserData] = useAtom(JwtInformationAtom)
   const { getKakaoToken } = useKakaoHook()
+  const { push } = useRouter()
 
   useEffect(() => {
     loadFromLocalStorage()
@@ -38,7 +38,7 @@ export default function useAuth() {
     if (!token) {
       return
     }
-    const userData = jwtDecode<AuthUserData>(token)
+    const userData = jwtDecode<jwtPayload>(token)
     const expiration = dayjs.unix(userData.exp)
     if (dayjs().isAfter(expiration)) {
       const userData = await getNewAccessToken()
@@ -47,11 +47,11 @@ export default function useAuth() {
     setAuthUserData(userData)
   }
 
-  async function getNewAccessToken(): Promise<AuthUserData | null> {
+  async function getNewAccessToken(): Promise<jwtPayload | null> {
     const { data } = await axios.post("/auth/refresh-token", {})
     const { result, accessToken } = data
     if (result === "success") {
-      const userData = jwtDecode<AuthUserData>(accessToken)
+      const userData = jwtDecode<jwtPayload>(accessToken)
       localStorage.setItem("token", accessToken)
       return userData
     }
@@ -68,13 +68,24 @@ export default function useAuth() {
       return
     }
     localStorage.setItem("token", accessToken)
-    const userData = jwtDecode<AuthUserData>(accessToken)
+    const userData = jwtDecode<jwtPayload>(accessToken)
     setAuthUserData(userData)
+  }
+
+  function ifNotLoggedGoToLogin(returnUrl?: string) {
+    if (!isLogin) {
+      let loginUrl = `/common/login`
+      if (returnUrl) {
+        loginUrl += `?returnUrl=${encodeURIComponent(returnUrl)}`
+      }
+      push(loginUrl)
+    }
   }
 
   return {
     authUserData,
     isLogin,
     login,
+    ifNotLoggedGoToLogin,
   }
 }

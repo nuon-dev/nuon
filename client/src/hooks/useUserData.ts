@@ -6,20 +6,13 @@ import axios from "@/config/axios"
 import { atom, useAtom } from "jotai"
 import dayjs from "dayjs"
 import { Community } from "@server/entity/community"
+import { jwtPayload } from "./useAuth"
 
 export const JwtInformationAtom = atom<jwtPayload | undefined>(undefined)
 
-//Todo: 서버와 통합할 수 있는 방법 찾아보기, 지금은 jwt type error로 인해 분리
-export interface jwtPayload {
-  id: string
-  name: string
-  yearOfBirth: number
-  community: Community
-  role: "admin" | "leader" | "user"
-  iat: number
-  exp: number
-}
-
+/**
+ * @deprecated use useAuth instead
+ */
 export default function useUserData() {
   const { getKakaoToken } = useKakaoHook()
   const [JwtInformation, setJwtInformation] = useAtom(JwtInformationAtom)

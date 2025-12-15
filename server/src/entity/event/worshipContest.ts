@@ -4,26 +4,27 @@ import {
   ManyToOne,
   CreateDateColumn,
   PrimaryGeneratedColumn,
+  JoinColumn,
 } from "typeorm"
 import { User } from "../user"
-import { Community } from "../community"
 
 @Entity()
-export class Vote {
+export class WorshipContest {
   @PrimaryGeneratedColumn()
   id: number
 
+  @JoinColumn({ name: "voteUserId" })
   @ManyToOne(() => User, (user) => user.id)
   voteUser: User
 
-  @ManyToOne(() => Community, (community) => community.id)
-  firstCommunity: Community
+  @Column()
+  firstCommunity: string
 
-  @ManyToOne(() => Community, (community) => community.id)
-  secondCommunity: Community
+  @Column()
+  secondCommunity: string
 
-  @ManyToOne(() => Community, (community) => community.id)
-  thirdCommunity: Community
+  @Column()
+  thirdCommunity: string
 
   @Column()
   term: number
