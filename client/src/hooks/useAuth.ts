@@ -2,12 +2,13 @@
 
 import { jwtDecode } from "jwt-decode"
 import { useEffect } from "react"
-import { atom, useAtom, useAtomValue } from "jotai"
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai"
 import dayjs from "dayjs"
 import useKakaoHook from "@/hooks/useKakao"
 import axios from "@/config/axios"
 import { Community } from "@server/entity/community"
 import { useRouter } from "next/navigation"
+import { NotificationMessage } from "@/state/notification"
 
 export const JwtInformationAtom = atom<jwtPayload | null>(null)
 
@@ -29,10 +30,11 @@ export interface jwtPayload {
 const isLoginAtom = atom((get) => !!get(JwtInformationAtom))
 
 export default function useAuth() {
-  const isLogin = useAtomValue(isLoginAtom)
-  const [authUserData, setAuthUserData] = useAtom(JwtInformationAtom)
-  const { getKakaoToken } = useKakaoHook()
   const { push } = useRouter()
+  const { getKakaoToken } = useKakaoHook()
+  const isLogin = useAtomValue(isLoginAtom)
+  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const [authUserData, setAuthUserData] = useAtom(JwtInformationAtom)
 
   useEffect(() => {
     loadFromLocalStorage()
@@ -88,10 +90,28 @@ export default function useAuth() {
     }
   }
 
+  function isLeaderIfNotExit(path: string) {
+    if (!isLogin) {
+      push(`/common/login?returnUrl=${encodeURIComponent(path)}`)
+      return false
+    }
+
+    if (!authUserData) {
+      return false
+    }
+
+    if (authUserData.role.Leader === false) {
+      push("/")
+      setNotificationMessage("리더 권한이 없습니다.")
+      return false
+    }
+  }
+
   return {
     authUserData,
     isLogin,
     login,
     ifNotLoggedGoToLogin,
+    isLeaderIfNotExit,
   }
 }
