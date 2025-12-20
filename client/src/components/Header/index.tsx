@@ -47,7 +47,7 @@ export default function Header() {
   }
 
   function goToVotePage() {
-    push("/event/vote")
+    push("/event/worshipContest/vote")
   }
 
   function goToHome() {

@@ -40,7 +40,10 @@ export default function VotePage() {
         [공연순서]
         {titles.map((title, index) => `${index + 1}. ${title}`).join("\n")}
       </Stack>
-      <Button variant="outlined" onClick={() => push("/event/vote")}>
+      <Button
+        variant="outlined"
+        onClick={() => push("/event/worshipContest/vote")}
+      >
         투표하러 가기
       </Button>
     </Stack>

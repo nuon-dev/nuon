@@ -2,12 +2,12 @@
 
 import { Stack } from "@mui/material"
 import Header from "@/components/Header/index"
-import useUserData from "@/hooks/useUserData"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import useAuth from "@/hooks/useAuth"
 
 export default function Index() {
-  const { getUserDataFromToken } = useUserData()
+  const { isLogin } = useAuth()
   const { push } = useRouter()
 
   useEffect(() => {
@@ -15,8 +15,7 @@ export default function Index() {
   }, [])
 
   async function checkLogin() {
-    const user = await getUserDataFromToken()
-    if (!user) {
+    if (!isLogin) {
       push("/common/login")
     }
   }
