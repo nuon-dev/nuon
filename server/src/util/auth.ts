@@ -3,10 +3,9 @@ import { User } from "../entity/user"
 import { REFRESH_TOKEN_EXPIRE_DAYS } from "../model/user"
 import { Community } from "../entity/community"
 
-export enum Role {
-  Admin = "admin",
-  Leader = "leader",
-  Member = "member",
+export interface Role {
+  Admin: boolean
+  Leader: boolean
 }
 
 export interface jwtPayload {
@@ -48,22 +47,16 @@ export function generateAccessToken(user: User) {
 }
 
 function getRole(user: User): Role {
-  if (user.isSuperUser) {
-    return Role.Admin
-  }
-  if (!user.community) {
-    return Role.Member
+  let isAdmin = user.isSuperUser
+  let isLeader = false
+
+  if (user.community) {
+    if (user.community.leader.id === user.id) {
+      isLeader = true
+    } else if (user.community.deputyLeader.id === user.id) {
+      isLeader = true
+    }
   }
 
-  if (!user.community.leader && !user.community.deputyLeader) {
-    return Role.Member
-  }
-
-  if (
-    user.community.leader.id === user.id ||
-    user.community.deputyLeader.id === user.id
-  ) {
-    return Role.Leader
-  }
-  return Role.Member
+  return { Admin: isAdmin, Leader: isLeader }
 }

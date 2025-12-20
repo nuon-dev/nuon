@@ -298,7 +298,7 @@ router.get("/existing-users", async (req, res) => {
     res.status(401).send({ error: "Unauthorized" })
     return
   }
-  if (user.role !== Role.Leader) {
+  if (!user.role.Leader) {
     res.status(403).send({ error: "Forbidden" })
     return
   }

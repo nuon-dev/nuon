@@ -20,6 +20,7 @@ import PeopleIcon from "@mui/icons-material/People"
 import EventNoteIcon from "@mui/icons-material/EventNote"
 import useUserData from "@/hooks/useUserData"
 import { jwtPayload } from "@/hooks/useAuth"
+import UserInformation from "@/components/Header/UserInformation"
 
 export default function Header() {
   const { push } = useRouter()
@@ -56,53 +57,7 @@ export default function Header() {
   }
 
   function goToHome() {
-    push("/")
-  }
-
-  function UserInfo() {
-    if (!userInfo) {
-      return null
-    }
-    return (
-      <Stack>
-        <Box
-          sx={{
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            color: "white",
-            p: 3,
-            textAlign: "center",
-          }}
-        >
-          <Stack spacing={1} alignItems="center">
-            <Box
-              sx={{
-                width: 48,
-                height: 48,
-                borderRadius: "50%",
-                bgcolor: "rgba(255,255,255,0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1.2rem",
-                fontWeight: "bold",
-                mb: 1,
-              }}
-            >
-              {userInfo.name.charAt(0)}
-            </Box>
-            <Stack>
-              <Box sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>
-                {userInfo.name}
-              </Box>
-              <Box sx={{ fontSize: "0.9rem", opacity: 0.8 }}>
-                {userInfo.yearOfBirth}년생
-              </Box>
-            </Stack>
-          </Stack>
-        </Box>
-        <Divider />
-      </Stack>
-    )
+    push("/leader")
   }
 
   return (
@@ -154,7 +109,7 @@ export default function Header() {
           role="presentation"
           onClick={() => toggleDrawer(false)}
         >
-          <UserInfo />
+          <UserInformation />
           <List sx={{ px: 1 }}>
             <ListItem disablePadding sx={{ mb: 1 }}>
               <ListItemButton

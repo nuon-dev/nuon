@@ -18,7 +18,6 @@ import {
 import { useEffect, useState } from "react"
 import { useSetAtom } from "jotai"
 import { NotificationMessage } from "@/state/notification"
-import useUserData from "@/hooks/useUserData"
 import { get } from "@/config/api"
 import PeopleIcon from "@mui/icons-material/People"
 import EventNoteIcon from "@mui/icons-material/EventNote"
@@ -84,12 +83,9 @@ function index() {
   }, [loading])
 
   async function hasPermission() {
-    if (!isLogin) {
-      setNotificationMessage(
-        "사용자 정보가 없습니다.\n로그인 화면으로 이동합니다."
-      )
-      router.push("/admin/login")
-    } else if (authUserData?.role !== "admin") {
+    if (!isLogin || !authUserData) {
+      router.push("/common/login?returnUrl=/admin")
+    } else if (!authUserData.role.Admin) {
       setNotificationMessage("관리자 권한이 없습니다.")
       router.push("/")
     } else {
