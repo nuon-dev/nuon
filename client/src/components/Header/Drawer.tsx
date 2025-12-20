@@ -12,40 +12,25 @@ import {
 } from "@mui/material"
 import { useRouter } from "next/navigation"
 import UserInformation from "./UserInformation"
-import PeopleIcon from "@mui/icons-material/People"
 import useAuth from "@/hooks/useAuth"
 
 interface HeaderDrawerProps {
   isOpen: boolean
   toggleDrawer: (value: boolean) => void
+  DrawerItems: Array<DrawerItemsType>
 }
 
-interface DrawerItemsType {
+export interface DrawerItemsType {
   title?: string
   icon?: React.ReactNode
   path?: string
   type: "divider" | "menu"
 }
 
-const DrawerItems: Array<DrawerItemsType> = [
-  {
-    title: "나의 정보 수정",
-    icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
-    path: "/common/myPage",
-    type: "menu",
-  },
-  { type: "divider" },
-  {
-    title: "투표하러 가기",
-    icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
-    path: "/event/worshipContest/main",
-    type: "menu",
-  },
-]
-
 export default function HeaderDrawer({
   isOpen,
   toggleDrawer,
+  DrawerItems,
 }: HeaderDrawerProps) {
   const { push } = useRouter()
   const { authUserData, isLogin } = useAuth()
@@ -105,30 +90,6 @@ export default function HeaderDrawer({
               )
             }
           })}
-          {isLeader() && (
-            <>
-              <Divider />
-              <ListItem disablePadding sx={{ mb: 1 }}>
-                <ListItemButton
-                  onClick={() => goToPage("/leader")}
-                  sx={{
-                    borderRadius: 2,
-                    mx: 1,
-                    "&:hover": {
-                      bgcolor: "#f5f5f5",
-                      transform: "translateX(4px)",
-                    },
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 40 }}>
-                    <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />
-                  </ListItemIcon>
-                  <ListItemText primary="리더 화면" />
-                </ListItemButton>
-              </ListItem>
-            </>
-          )}
         </List>
       </Box>
     </Drawer>

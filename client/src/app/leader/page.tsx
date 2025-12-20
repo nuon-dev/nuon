@@ -1,14 +1,10 @@
 "use client"
 
 import useAuth from "@/hooks/useAuth"
-import { NotificationMessage } from "@/state/notification"
 import { Stack } from "@mui/material"
-import { useSetAtom } from "jotai"
-import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
 export default function LeaderPage() {
-  const { push } = useRouter()
   const { isLeaderIfNotExit, authUserData } = useAuth()
 
   useEffect(() => {

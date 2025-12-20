@@ -1,7 +1,6 @@
 "use client"
 
 import { jwtDecode } from "jwt-decode"
-import useKakaoHook from "./useKakao"
 import { atom, useAtom } from "jotai"
 import dayjs from "dayjs"
 import { jwtPayload } from "./useAuth"
@@ -12,7 +11,6 @@ export const JwtInformationAtom = atom<jwtPayload | undefined>(undefined)
  * @deprecated use useAuth instead
  */
 export default function useUserData() {
-  const { getKakaoToken } = useKakaoHook()
   const [JwtInformation, setJwtInformation] = useAtom(JwtInformationAtom)
 
   async function getUserDataFromToken(): Promise<jwtPayload | undefined> {
