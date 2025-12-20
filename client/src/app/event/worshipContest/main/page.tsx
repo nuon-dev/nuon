@@ -5,8 +5,6 @@ import { Stack } from "@mui/material"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import mainBg from "./main_bg.jpeg"
-import btn from "./btn.jpeg"
 
 export default function VotePage() {
   const [] = useState()
@@ -26,7 +24,7 @@ export default function VotePage() {
     >
       <Stack>
         <Image
-          src={mainBg}
+          src="/event/worship_contest/main_bg.jpeg"
           alt="Worship Contest"
           style={{
             width: "100vw",
@@ -35,7 +33,7 @@ export default function VotePage() {
           }}
         />
         <Image
-          src={btn}
+          src="/event/worship_contest/btn.jpeg"
           onClick={() => push("/event/worshipContest/vote")}
           alt="Vote Button"
           style={{
