@@ -14,7 +14,6 @@ import {
   InputLabel,
   Chip,
 } from "@mui/material"
-import Header from "@/app/leader/components/Header"
 import { post } from "@/config/api"
 import { worshipKr } from "@/util/worship"
 import useAttendance from "./useAttendance"
@@ -22,6 +21,8 @@ import AttendRow from "./AttendRow"
 import SaveIcon from "@mui/icons-material/Save"
 import EventNoteIcon from "@mui/icons-material/EventNote"
 import PeopleIcon from "@mui/icons-material/People"
+import useAuth from "@/hooks/useAuth"
+import { useEffect } from "react"
 
 export default function SoonAttendance() {
   const {
@@ -32,6 +33,11 @@ export default function SoonAttendance() {
     worshipScheduleList,
     groupInfo,
   } = useAttendance()
+  const { isLeaderIfNotExit } = useAuth()
+
+  useEffect(() => {
+    isLeaderIfNotExit("/leader/attendance")
+  }, [])
 
   async function saveAttendData() {
     await post("/soon/attendance", {

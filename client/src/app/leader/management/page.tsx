@@ -24,15 +24,18 @@ import { useSetAtom } from "jotai"
 import { NotificationMessage } from "@/state/notification"
 import { useRouter } from "next/navigation"
 import RequestKakaoLogin from "@/app/leader/management/RequestKakaoLogin"
+import useAuth from "@/hooks/useAuth"
 
 export default function SoonManagement() {
   const { push } = useRouter()
+  const { isLeaderIfNotExit } = useAuth()
   const [groupName, setGroupName] = useState("")
   const [soonList, setSoonList] = useState<User[]>([])
   const [openAddUser, setOpenAddUser] = useState(false)
   const setNotificationMessage = useSetAtom(NotificationMessage)
 
   useEffect(() => {
+    isLeaderIfNotExit("/leader/management")
     fetchGroupDate()
   }, [])
 
