@@ -50,7 +50,7 @@ jobs:
           remote-host: ${{ secrets.SERVER_HOST }}
           remote-user: ${{ secrets.SERVER_USER }}
           remote-password: ${{ secrets.SERVER_PASSWORD }}
-          remote-path: /var/www/nuon
+          remote-path: /var/www/nuon-dev
           remote-port: 22
           local-path: client/out
           sync: full
