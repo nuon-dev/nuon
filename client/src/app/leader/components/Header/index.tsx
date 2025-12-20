@@ -1,33 +1,16 @@
 "use client"
 
-import { Button, Stack } from "@mui/material"
-import { useEffect, useState } from "react"
-import MenuIcon from "@mui/icons-material/Menu"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-
+import { Button, Stack } from "@mui/material"
+import MenuIcon from "@mui/icons-material/Menu"
 import PeopleIcon from "@mui/icons-material/People"
-import EventNoteIcon from "@mui/icons-material/EventNote"
-import useUserData from "@/hooks/useUserData"
-import { jwtPayload } from "@/hooks/useAuth"
 import HeaderDrawer from "@/components/Header/Drawer"
+import EventNoteIcon from "@mui/icons-material/EventNote"
 
 export default function Header() {
   const { push } = useRouter()
   const [isOpen, setOpen] = useState(false)
-  const [userInfo, setUserInfo] = useState<jwtPayload | undefined>(undefined) // Assuming User type is defined somewhere
-  const { getUserDataFromToken } = useUserData()
-
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  async function fetchData() {
-    const myRole = await getUserDataFromToken()
-    if (!myRole) {
-      return
-    }
-    setUserInfo(myRole)
-  }
 
   function toggleDrawer(value: boolean) {
     setOpen(value)

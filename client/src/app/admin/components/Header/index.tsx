@@ -1,31 +1,18 @@
-import {
-  Box,
-  Button,
-  Divider,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Stack,
-} from "@mui/material"
-import { useEffect, useState } from "react"
-import MenuIcon from "@mui/icons-material/Menu"
-import { useRouter } from "next/navigation"
-
 import useAuth from "@/hooks/useAuth"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { Button, Stack } from "@mui/material"
+import MenuIcon from "@mui/icons-material/Menu"
 import EventIcon from "@mui/icons-material/Event"
 import BusinessIcon from "@mui/icons-material/Business"
-import CommunitysIcon from "@mui/icons-material/Groups"
+import CommunityIcon from "@mui/icons-material/Groups"
+import HeaderDrawer, { DrawerItemsType } from "@/components/Header/Drawer"
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined"
-import HeaderDrawer, { DrawerItemsType } from "@/components/Header/Drawer"
-import path from "path"
 
 export default function AdminHeader() {
-  const { isAdminIfNotExit } = useAuth()
   const { push } = useRouter()
+  const { isAdminIfNotExit } = useAuth()
   const [isOpen, setOpen] = useState(false)
 
   useEffect(() => {
@@ -40,33 +27,10 @@ export default function AdminHeader() {
     push("/admin")
   }
 
-  function goToEditAllSoonList() {
-    push("/admin/soon")
-  }
-
-  function goToDarakCommunityManagement() {
-    push("/admin/darak/community")
-  }
-
-  function goToDarakPeopleManagement() {
-    push("/admin/darak/people")
-  }
-
-  function goToWorshipSchedule() {
-    push("/admin/worshipSchedule")
-  }
-
-  function goToWorshipAttendance() {
-    push("/admin/soon/attendance")
-  }
-
-  function goToEventWorshipContest() {
-    push("/admin/event/worshipContest")
-  }
   const DrawerItems: Array<DrawerItemsType> = [
     {
       title: "순 관리",
-      icon: <CommunitysIcon fontSize="small" />,
+      icon: <CommunityIcon fontSize="small" />,
       path: "/admin/soon",
       type: "menu",
     },

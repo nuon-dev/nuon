@@ -11,5 +11,5 @@ export default function LeaderPage() {
     isLeaderIfNotExit("/leader")
   }, [])
 
-  return <Stack p="12px">나중에 일정이나 공지 있음 좋을 듯?</Stack>
+  return <Stack p="12px">나중에 일정이나 공지 추가 예정</Stack>
 }
