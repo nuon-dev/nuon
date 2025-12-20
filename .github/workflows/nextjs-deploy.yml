@@ -94,15 +94,15 @@ jobs:
             fi
 
             echo "=== Current PM2 processes ==="
-            sudo pm2 list || echo "PM2 list failed"
+            pm2 list || echo "PM2 list failed"
 
             echo "=== Reloading nuon process ==="
-            sudo pm2 reload nuon || sudo pm2 start npm --name "nuon" -- start
+            pm2 reload nuon || pm2 start npm --name "nuon" -- start
 
             echo "=== Final PM2 processes ==="
-            sudo pm2 list
+            pm2 list
 
             echo "=== PM2 logs (last 10 lines) ==="
-            timeout 10s sudo pm2 logs nuon --lines 10 || echo "Could not fetch logs or timeout"
+            timeout 10s pm2 logs nuon --lines 10 || echo "Could not fetch logs or timeout"
 
             echo "=== Server restart completed ==="

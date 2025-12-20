@@ -95,4 +95,31 @@ router.get("/results", async (req, res) => {
   res.json({ result: tally, totalVotes: votes.length })
 })
 
+router.get("/my-village", async (req, res) => {
+  const user = await getUserFromToken(req)
+  if (!user) {
+    res.status(401).json({ message: "로그인이 필요합니다." })
+    return
+  }
+
+  const myCommunityId = user.community.id
+
+  const community = await communityDatabase.findOne({
+    where: { id: myCommunityId },
+    relations: {
+      parent: true,
+    },
+  })
+
+  if (!community) {
+    res.status(404).json({ message: "소속된 공동체를 찾을 수 없습니다." })
+    return
+  }
+
+  res.json({
+    communityId: community.parent.id,
+    communityName: community.parent.name,
+  })
+})
+
 export default router

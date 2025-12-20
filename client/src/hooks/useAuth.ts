@@ -65,11 +65,12 @@ export default function useAuth() {
     })
     const { result, accessToken } = data
     if (status !== 200 || result !== "success") {
-      return
+      return false
     }
     localStorage.setItem("token", accessToken)
     const userData = jwtDecode<jwtPayload>(accessToken)
     setAuthUserData(userData)
+    return userData
   }
 
   function ifNotLoggedGoToLogin(returnUrl?: string) {

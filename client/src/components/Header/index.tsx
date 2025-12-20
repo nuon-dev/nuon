@@ -1,103 +1,21 @@
 "use client"
 
-import {
-  Box,
-  Button,
-  Divider,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Stack,
-} from "@mui/material"
-import { useEffect, useState } from "react"
-import MenuIcon from "@mui/icons-material/Menu"
+import { useState } from "react"
+import HeaderDrawer from "./Drawer"
 import { useRouter } from "next/navigation"
-
-import PeopleIcon from "@mui/icons-material/People"
-import useUserData from "@/hooks/useUserData"
-import { jwtPayload } from "@/hooks/useAuth"
+import { Button, Stack } from "@mui/material"
+import MenuIcon from "@mui/icons-material/Menu"
 
 export default function Header() {
   const { push } = useRouter()
   const [isOpen, setOpen] = useState(false)
-  const [userInfo, setUserInfo] = useState<jwtPayload | undefined>(undefined) // Assuming User type is defined somewhere
-  const { getUserDataFromToken } = useUserData()
-
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  async function fetchData() {
-    const myRole = await getUserDataFromToken()
-    if (!myRole) {
-      return
-    }
-    setUserInfo(myRole)
-  }
 
   function toggleDrawer(value: boolean) {
     setOpen(value)
   }
 
-  function goToMyPage() {
-    push("/common/myPage")
-  }
-
-  function goToVotePage() {
-    push("/event/vote")
-  }
-
   function goToHome() {
     push("/")
-  }
-
-  function UserInfo() {
-    if (!userInfo) {
-      return null
-    }
-    return (
-      <Stack>
-        <Box
-          sx={{
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            color: "white",
-            p: 3,
-            textAlign: "center",
-          }}
-        >
-          <Stack spacing={1} alignItems="center">
-            <Box
-              sx={{
-                width: 48,
-                height: 48,
-                borderRadius: "50%",
-                bgcolor: "rgba(255,255,255,0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1.2rem",
-                fontWeight: "bold",
-                mb: 1,
-              }}
-            >
-              {userInfo.name.charAt(0)}
-            </Box>
-            <Stack>
-              <Box sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>
-                {userInfo.name}
-              </Box>
-              <Box sx={{ fontSize: "0.9rem", opacity: 0.8 }}>
-                {userInfo.yearOfBirth}년생
-              </Box>
-            </Stack>
-          </Stack>
-        </Box>
-        <Divider />
-      </Stack>
-    )
   }
 
   return (
@@ -138,65 +56,7 @@ export default function Header() {
           />
         </Button>
       </Stack>
-      <Drawer
-        open={isOpen}
-        onClose={() => toggleDrawer(false)}
-        sx={{
-          "& .MuiDrawer-paper": {
-            borderRadius: "0 16px 16px 0",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-          },
-        }}
-      >
-        <Box
-          sx={{ width: 280 }}
-          role="presentation"
-          onClick={() => toggleDrawer(false)}
-        >
-          <UserInfo />
-          <List sx={{ px: 1 }}>
-            <ListItem disablePadding sx={{ mb: 1 }}>
-              <ListItemButton
-                onClick={goToMyPage}
-                sx={{
-                  borderRadius: 2,
-                  mx: 1,
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                    transform: "translateX(4px)",
-                  },
-                  transition: "all 0.2s ease",
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />
-                </ListItemIcon>
-                <ListItemText primary={"나의 정보 수정"} />
-              </ListItemButton>
-            </ListItem>
-            <Divider />
-            <ListItem disablePadding sx={{ mb: 1 }}>
-              <ListItemButton
-                onClick={goToVotePage}
-                sx={{
-                  borderRadius: 2,
-                  mx: 1,
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                    transform: "translateX(4px)",
-                  },
-                  transition: "all 0.2s ease",
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />
-                </ListItemIcon>
-                <ListItemText primary={"투표하러 가기"} />
-              </ListItemButton>
-            </ListItem>
-          </List>
-        </Box>
-      </Drawer>
+      <HeaderDrawer isOpen={isOpen} toggleDrawer={toggleDrawer} />
     </Stack>
   )
 }

@@ -24,6 +24,7 @@ import PeopleIcon from "@mui/icons-material/People"
 import EventNoteIcon from "@mui/icons-material/EventNote"
 import TrendingUpIcon from "@mui/icons-material/TrendingUp"
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday"
+import useAuth from "@/hooks/useAuth"
 
 interface DashboardData {
   totalUsers: number
@@ -66,7 +67,7 @@ interface DashboardData {
 
 function index() {
   const router = useRouter()
-  const { getUserDataFromToken, getUserDataFromKakaoLogin } = useUserData()
+  const { isLogin, authUserData } = useAuth()
   const setNotificationMessage = useSetAtom(NotificationMessage)
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -83,16 +84,14 @@ function index() {
   }, [loading])
 
   async function hasPermission() {
-    let userData = await getUserDataFromToken()
-
-    if (!userData) {
-      userData = await getUserDataFromKakaoLogin()
-    }
-    if (!userData) {
+    if (!isLogin) {
       setNotificationMessage(
         "사용자 정보가 없습니다.\n로그인 화면으로 이동합니다."
       )
       router.push("/admin/login")
+    } else if (authUserData?.role !== "admin") {
+      setNotificationMessage("관리자 권한이 없습니다.")
+      router.push("/")
     } else {
       setLoading(false)
     }

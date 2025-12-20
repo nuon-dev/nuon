@@ -3,8 +3,16 @@
 # 데이터베이스 복원 스크립트
 # Usage: ./scripts/restore-db.sh backup_file.sql.gz
 
+
 # 스크립트가 있는 디렉토리의 상위 디렉토리로 이동 (server 디렉토리)
 cd "$(dirname "$0")/.."
+
+# .env 파일이 있으면 환경변수로 불러오기
+if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+fi
 
 if [ $# -eq 0 ]; then
     echo "사용법: $0 <backup_file.sql.gz>"
