@@ -4,7 +4,7 @@ import { Button, Stack } from "@mui/material"
 import { useEffect, useState } from "react"
 import { get, post } from "@/config/api"
 
-type VoteStatus = "투표불가" | "1부" | "2부"
+type VoteStatus = "투표불가" | "1부 투표" | "2부 투표"
 
 export default function VotePage() {
   const [currentState, setCurrentState] = useState<VoteStatus>("투표불가")
@@ -38,10 +38,10 @@ export default function VotePage() {
     <Stack minHeight="100vh">
       <Stack padding={2} fontSize={24} fontWeight="bold" gap="12px">
         투표 시스템 관리 페이지 <Stack>현재 상태: {currentState}</Stack>
-        <Button variant="outlined" onClick={() => handleVoteStatus("1부")}>
+        <Button variant="outlined" onClick={() => handleVoteStatus("1부 투표")}>
           1부 투표 시작
         </Button>
-        <Button variant="outlined" onClick={() => handleVoteStatus("2부")}>
+        <Button variant="outlined" onClick={() => handleVoteStatus("2부 투표")}>
           2부 투표 시작
         </Button>
         <Button variant="outlined" onClick={() => handleVoteStatus("투표불가")}>

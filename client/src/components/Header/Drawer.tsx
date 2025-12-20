@@ -37,7 +37,7 @@ const DrawerItems: Array<DrawerItemsType> = [
   {
     title: "투표하러 가기",
     icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
-    path: "/event/worshipContest/vote",
+    path: "/event/worshipContest/main",
     type: "menu",
   },
 ]
