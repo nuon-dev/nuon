@@ -71,7 +71,10 @@ async function createNewAccessToken(currentToken: string): Promise<{
   const foundUser = await userDatabase.findOne({
     where: { token: currentToken },
     relations: {
-      community: true,
+      community: {
+        leader: true,
+        deputyLeader: true,
+      },
     },
   })
   if (!foundUser) {

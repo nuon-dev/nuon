@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/navigation"
 import UserInformation from "./UserInformation"
 import PeopleIcon from "@mui/icons-material/People"
+import useAuth from "@/hooks/useAuth"
 
 interface HeaderDrawerProps {
   isOpen: boolean
@@ -47,9 +48,16 @@ export default function HeaderDrawer({
   toggleDrawer,
 }: HeaderDrawerProps) {
   const { push } = useRouter()
+  const { authUserData, isLogin } = useAuth()
 
   function goToPage(path?: string) {
     push(path || "/")
+  }
+
+  function isLeader() {
+    if (!isLogin) return false
+    if (!authUserData) return false
+    return authUserData.role.Leader
   }
 
   return (
@@ -75,7 +83,7 @@ export default function HeaderDrawer({
               return <Divider key={index} />
             } else if (item.type === "menu") {
               return (
-                <ListItem disablePadding sx={{ mb: 1 }}>
+                <ListItem key={index} disablePadding sx={{ mb: 1 }}>
                   <ListItemButton
                     onClick={() => goToPage(item.path)}
                     sx={{
@@ -97,6 +105,30 @@ export default function HeaderDrawer({
               )
             }
           })}
+          {isLeader() && (
+            <>
+              <Divider />
+              <ListItem disablePadding sx={{ mb: 1 }}>
+                <ListItemButton
+                  onClick={() => goToPage("/leader")}
+                  sx={{
+                    borderRadius: 2,
+                    mx: 1,
+                    "&:hover": {
+                      bgcolor: "#f5f5f5",
+                      transform: "translateX(4px)",
+                    },
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 40 }}>
+                    <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />
+                  </ListItemIcon>
+                  <ListItemText primary="리더 화면" />
+                </ListItemButton>
+              </ListItem>
+            </>
+          )}
         </List>
       </Box>
     </Drawer>

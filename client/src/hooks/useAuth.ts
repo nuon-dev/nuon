@@ -11,13 +11,18 @@ import { useRouter } from "next/navigation"
 
 export const JwtInformationAtom = atom<jwtPayload | null>(null)
 
+export interface Role {
+  Admin: boolean
+  Leader: boolean
+}
+
 //Todo: 서버와 통합할 수 있는 방법 찾아보기, 지금은 jwt type error로 인해 분리
 export interface jwtPayload {
   id: string
   name: string
   yearOfBirth: number
   community: Community
-  role: "admin" | "leader" | "user"
+  role: Role
   iat: number
   exp: number
 }

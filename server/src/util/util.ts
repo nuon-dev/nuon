@@ -22,7 +22,7 @@ export async function hasPermission(
 ): Promise<boolean> {
   const payload = jwt.verify<jwtPayload>(token, env.JWT_SECRET) as jwtPayload
 
-  if (payload.role === "admin") {
+  if (payload.role.Admin) {
     return true
   }
 
