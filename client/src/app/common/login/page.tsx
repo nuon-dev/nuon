@@ -1,13 +1,12 @@
 "use client"
 
-import { Button, Stack } from "@mui/material"
-import useUserData from "@/hooks/useUserData"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
-import useAuth from "@/hooks/useAuth"
-import { useEffect } from "react"
 import { Suspense } from "react"
+import { useEffect } from "react"
+import { useSetAtom } from "jotai"
+import useAuth from "@/hooks/useAuth"
+import { Button, Stack } from "@mui/material"
+import { NotificationMessage } from "@/state/notification"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function LoginPage() {
   return (
@@ -20,8 +19,7 @@ export default function LoginPage() {
 function Login() {
   const { push } = useRouter()
   const searchParams = useSearchParams()
-  const { isLogin } = useAuth()
-  const { getUserDataFromKakaoLogin } = useUserData()
+  const { isLogin, login } = useAuth()
   const setNotificationMessage = useSetAtom(NotificationMessage)
 
   useEffect(() => {
@@ -32,12 +30,12 @@ function Login() {
   }, [isLogin])
 
   async function handleLogin() {
-    const returnUrl = searchParams.get("returnUrl") || "/"
-    const user = await getUserDataFromKakaoLogin()
+    const user = await login()
     if (!user) {
       setNotificationMessage("로그인에 실패했습니다. 다시 시도해주세요.")
       return
     }
+    const returnUrl = searchParams.get("returnUrl") || "/"
     push(returnUrl)
   }
   return (

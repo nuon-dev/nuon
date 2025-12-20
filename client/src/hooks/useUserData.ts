@@ -2,10 +2,8 @@
 
 import { jwtDecode } from "jwt-decode"
 import useKakaoHook from "./useKakao"
-import axios from "@/config/axios"
 import { atom, useAtom } from "jotai"
 import dayjs from "dayjs"
-import { Community } from "@server/entity/community"
 import { jwtPayload } from "./useAuth"
 
 export const JwtInformationAtom = atom<jwtPayload | undefined>(undefined)
@@ -34,31 +32,7 @@ export default function useUserData() {
     return jwtPayload
   }
 
-  async function getUserDataFromKakaoLogin(): Promise<jwtPayload | undefined> {
-    try {
-      var kakaoToken = await getKakaoToken()
-      const { data, status } = await axios.post("/auth/login", {
-        kakaoId: kakaoToken,
-      })
-      if (status !== 200) {
-        return undefined
-      }
-      const { accessToken, result } = data
-      localStorage.setItem("token", accessToken)
-
-      const userData = jwtDecode<jwtPayload>(accessToken)
-      if (result === "success") {
-        setJwtInformation(userData)
-        return userData
-      }
-    } catch {
-      return undefined
-    }
-    return undefined
-  }
-
   return {
     getUserDataFromToken,
-    getUserDataFromKakaoLogin,
   }
 }
