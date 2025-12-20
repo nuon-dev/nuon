@@ -14,10 +14,9 @@ import {
 } from "@mui/material"
 import { Community } from "@server/entity/community"
 import { User } from "@server/entity/user"
-import { get } from "@/config/api"
+import axios from "@/config/axios"
 import { useEffect, useState } from "react"
 import AddUser from "./AddUser"
-import Header from "@/app/leader/components/Header"
 import PersonAddIcon from "@mui/icons-material/PersonAdd"
 import PeopleIcon from "@mui/icons-material/People"
 import PhoneIcon from "@mui/icons-material/Phone"
@@ -38,17 +37,18 @@ export default function SoonManagement() {
   }, [])
 
   async function fetchGroupDate() {
-    console.log("Fetching group data...")
-    const group: Community & { error: string } = await get(
-      "/soon/my-group-info"
-    )
-    if (group.error) {
+    try {
+      const { data } = await axios.get<Community & { error: string }>(
+        "/soon/my-group-info"
+      )
+      setGroupName(data.name)
+      setSoonList(data.users)
+    } catch (error: any) {
+      console.error("Error fetching group data:", error)
       setNotificationMessage("순장만 이용할 수 있습니다.")
       push("/")
       return
     }
-    setGroupName(group.name)
-    setSoonList(group.users)
   }
 
   return (
