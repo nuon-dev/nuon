@@ -20,9 +20,15 @@ export async function hasPermission(
   token: string | undefined,
   permissionType: PermissionType
 ): Promise<boolean> {
+  const payload = jwt.verify<jwtPayload>(token, env.JWT_SECRET) as jwtPayload
+
+  if (payload.role === "admin") {
+    return true
+  }
+
   const foundUser = await userDatabase.findOne({
     where: {
-      token,
+      id: payload.id,
     },
     relations: {
       permissions: true,
