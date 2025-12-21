@@ -240,7 +240,9 @@ router.post("/register-kakao-login", async (req, res) => {
 
   await userDatabase.update({ id: userId }, { kakaoId })
 
-  res.status(200).send({ message: "정상적으로 등록 되었습니다." })
+  res
+    .status(200)
+    .send({ message: "정상적으로 등록 되었습니다.\n창을 닫으셔도 됩니다." })
 })
 
 router.get("/isValid-kakao-login-register", async (req, res) => {
