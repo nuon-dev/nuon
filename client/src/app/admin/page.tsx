@@ -191,7 +191,7 @@ function index() {
                     {dashboardData.totalCommunities}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    전체 커뮤니티
+                    전체 다락방
                   </Typography>
                 </Stack>
               </Stack>

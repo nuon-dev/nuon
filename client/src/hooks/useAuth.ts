@@ -99,7 +99,7 @@ export default function useAuth() {
 
     if (authUserData.role.Leader === false) {
       push("/")
-      setNotificationMessage("리더 권한이 없습니다.")
+      setNotificationMessage("순장 권한이 없습니다.")
       return false
     }
     return true
