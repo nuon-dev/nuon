@@ -36,7 +36,7 @@ function Login() {
       return
     }
     const returnUrl = searchParams.get("returnUrl") || "/"
-    push(returnUrl)
+    //push(returnUrl)
   }
   return (
     <Stack>
