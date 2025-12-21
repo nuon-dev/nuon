@@ -121,6 +121,12 @@ export default function useAuth() {
     return true
   }
 
+  function logout() {
+    localStorage.removeItem("token")
+    setAuthUserData(null)
+    push("/common/login")
+  }
+
   return {
     authUserData,
     isLogin,
@@ -128,5 +134,6 @@ export default function useAuth() {
     ifNotLoggedGoToLogin,
     isLeaderIfNotExit,
     isAdminIfNotExit,
+    logout,
   }
 }

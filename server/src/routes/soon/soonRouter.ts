@@ -232,9 +232,7 @@ router.post("/register-kakao-login", async (req, res) => {
   })
 
   if (existingUsers) {
-    res
-      .status(400)
-      .send({ error: "This Kakao account is already linked to another user." })
+    res.status(400).send({ error: "이미 등록어 있는 카카오 계정 입니다." })
     return
   }
 

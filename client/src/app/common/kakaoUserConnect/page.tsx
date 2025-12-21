@@ -43,7 +43,7 @@ function KakaoLogin() {
     } catch (error) {
       if (error.response) {
         alert(
-          error.response.error ||
+          error.response.data.error ||
             "등록에 실패했습니다. 관리자에게 문의 해주세요."
         )
       }
