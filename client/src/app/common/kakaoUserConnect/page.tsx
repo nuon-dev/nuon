@@ -31,13 +31,22 @@ function KakaoLogin() {
       return
     }
 
-    const { message, error } = await post("/soon/register-kakao-login", {
-      userId,
-      kakaoId: token,
-    })
-    alert(message || error)
-    if (message) {
-      window.close()
+    try {
+      const { message, error } = await post("/soon/register-kakao-login", {
+        userId,
+        kakaoId: token,
+      })
+      alert(message || error)
+      if (message) {
+        window.close()
+      }
+    } catch (error) {
+      if (error.response) {
+        alert(
+          error.response.error ||
+            "등록에 실패했습니다. 관리자에게 문의 해주세요."
+        )
+      }
     }
   }
 
