@@ -1,7 +1,5 @@
 "use client"
 
-import { Community } from "@server/entity/community"
-import { type User } from "@server/entity/user"
 import {
   Box,
   Button,
@@ -20,6 +18,8 @@ import {
   Tooltip,
 } from "@mui/material"
 import { get, put } from "@/config/api"
+import { type User } from "@server/entity/user"
+import { Community } from "@server/entity/community"
 import { MouseEvent, useEffect, useRef, useState } from "react"
 
 export default function People() {

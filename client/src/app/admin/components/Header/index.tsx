@@ -1,41 +1,23 @@
-import {
-  Box,
-  Button,
-  Divider,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Stack,
-} from "@mui/material"
-import { useEffect, useState } from "react"
-import MenuIcon from "@mui/icons-material/Menu"
+import useAuth from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
-
-import CommunitysIcon from "@mui/icons-material/Groups"
-import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined"
+import { useEffect, useState } from "react"
+import { Button, Stack } from "@mui/material"
+import MenuIcon from "@mui/icons-material/Menu"
 import EventIcon from "@mui/icons-material/Event"
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
 import BusinessIcon from "@mui/icons-material/Business"
-import useUserData from "@/hooks/useUserData"
+import CommunityIcon from "@mui/icons-material/Groups"
+import HeaderDrawer, { DrawerItemsType } from "@/components/Header/Drawer"
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
+import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined"
 
 export default function AdminHeader() {
-  const { getUserDataFromToken } = useUserData()
   const { push } = useRouter()
+  const { isAdminIfNotExit } = useAuth()
   const [isOpen, setOpen] = useState(false)
 
   useEffect(() => {
-    fetchData()
+    isAdminIfNotExit("/admin")
   }, [])
-
-  async function fetchData() {
-    const myRole = await getUserDataFromToken()
-    if (!myRole) {
-      return
-    }
-  }
 
   function toggleDrawer(value: boolean) {
     setOpen(value)
@@ -45,29 +27,47 @@ export default function AdminHeader() {
     push("/admin")
   }
 
-  function goToEditAllSoonList() {
-    push("/admin/soon")
-  }
-
-  function goToDarakCommunityManagement() {
-    push("/admin/darak/community")
-  }
-
-  function goToDarakPeopleManagement() {
-    push("/admin/darak/people")
-  }
-
-  function goToWorshipSchedule() {
-    push("/admin/worshipSchedule")
-  }
-
-  function goToWorshipAttendance() {
-    push("/admin/soon/attendance")
-  }
-
-  function goToEventWorshipContest() {
-    push("/admin/event/worshipContest")
-  }
+  const DrawerItems: Array<DrawerItemsType> = [
+    {
+      title: "순 관리",
+      icon: <CommunityIcon fontSize="small" />,
+      path: "/admin/soon",
+      type: "menu",
+    },
+    {
+      title: "다락방 그룹 관리",
+      icon: <BusinessIcon fontSize="small" />,
+      path: "/admin/darak/community",
+      type: "menu",
+    },
+    {
+      title: "다락방 인원 관리",
+      icon: <PeopleOutlineOutlinedIcon fontSize="small" />,
+      path: "/admin/darak/people",
+      type: "menu",
+    },
+    {
+      title: "예배 관리",
+      icon: <EventIcon fontSize="small" />,
+      path: "/admin/worshipSchedule",
+      type: "menu",
+    },
+    {
+      title: "출석 관리",
+      icon: <CheckCircleOutlineIcon fontSize="small" />,
+      path: "/admin/soon/attendance",
+      type: "menu",
+    },
+    {
+      type: "divider",
+    },
+    {
+      title: "워십 콘테스트",
+      icon: <EventIcon fontSize="small" />,
+      path: "/admin/event/worshipContest",
+      type: "menu",
+    },
+  ]
 
   return (
     <Stack
@@ -94,65 +94,11 @@ export default function AdminHeader() {
           }}
         />
       </Button>
-      <Drawer open={isOpen} onClose={() => toggleDrawer(false)}>
-        <Box
-          sx={{ width: 250 }}
-          role="presentation"
-          onClick={() => toggleDrawer(false)}
-        >
-          <List>
-            <ListItem disablePadding>
-              <ListItemButton onClick={goToEditAllSoonList}>
-                <ListItemIcon>
-                  <CommunitysIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary={"순 관리"} />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton onClick={goToDarakCommunityManagement}>
-                <ListItemIcon>
-                  <BusinessIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary={"다락방 그룹 관리"} />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton onClick={goToDarakPeopleManagement}>
-                <ListItemIcon>
-                  <PeopleOutlineOutlinedIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary={"다락방 인원 관리"} />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton onClick={goToWorshipSchedule}>
-                <ListItemIcon>
-                  <EventIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary={"예배 관리"} />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton onClick={goToWorshipAttendance}>
-                <ListItemIcon>
-                  <CheckCircleOutlineIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary={"출석 관리"} />
-              </ListItemButton>
-            </ListItem>
-            <Divider />
-            <ListItem disablePadding>
-              <ListItemButton onClick={goToEventWorshipContest}>
-                <ListItemIcon>
-                  <EventIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary={"워십 콘테스트"} />
-              </ListItemButton>
-            </ListItem>
-          </List>
-        </Box>
-      </Drawer>
+      <HeaderDrawer
+        isOpen={isOpen}
+        toggleDrawer={toggleDrawer}
+        DrawerItems={DrawerItems}
+      />
     </Stack>
   )
 }

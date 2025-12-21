@@ -1,14 +1,14 @@
 "use client"
 
-import { type Community } from "@server/entity/community"
+import { useSetAtom } from "jotai"
+import styles from "./page.module.css"
 import { Stack, Box } from "@mui/material"
 import CommunityCard from "./CommunityCard"
-import CommunityControlPanel from "./CommunityControlPanel"
-import { MouseEvent, useEffect, useState } from "react"
-import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
-import styles from "./page.module.css"
 import { dele, get, post, put } from "@/config/api"
+import { MouseEvent, useEffect, useState } from "react"
+import { type Community } from "@server/entity/community"
+import { NotificationMessage } from "@/state/notification"
+import CommunityControlPanel from "./CommunityControlPanel"
 
 enum EditMode {
   All,
@@ -148,7 +148,7 @@ export default function CommunityComponent() {
             setClickedCommunity(community)
             setIsCommunityNameEditMode(true)
           }}
-          onNameClick={(e) => e.stopPropagation()}
+          onNameClick={() => setCommunityStack([...communityStack, community])}
           onNameChange={setClickedCommunityName}
           renderChildren={renderCommunityChildren}
         />

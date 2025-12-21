@@ -1,13 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import HeaderDrawer from "./Drawer"
+import HeaderDrawer, { DrawerItemsType } from "./Drawer"
 import { useRouter } from "next/navigation"
 import { Button, Stack } from "@mui/material"
 import MenuIcon from "@mui/icons-material/Menu"
+import PeopleIcon from "@mui/icons-material/People"
+import useAuth from "@/hooks/useAuth"
 
 export default function Header() {
   const { push } = useRouter()
+  const { authUserData } = useAuth()
   const [isOpen, setOpen] = useState(false)
 
   function toggleDrawer(value: boolean) {
@@ -16,6 +19,33 @@ export default function Header() {
 
   function goToHome() {
     push("/")
+  }
+  const DrawerItems: Array<DrawerItemsType> = [
+    {
+      title: "나의 정보 수정",
+      icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
+      path: "/common/myPage",
+      type: "menu",
+    },
+    { type: "divider" },
+    {
+      title: "투표하러 가기",
+      icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
+      path: "/event/worshipContest/main",
+      type: "menu",
+    },
+  ]
+
+  if (authUserData?.role.Leader) {
+    DrawerItems.push({
+      type: "divider",
+    })
+    DrawerItems.push({
+      title: "리더 화면",
+      icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
+      path: "/leader",
+      type: "menu",
+    })
   }
 
   return (
@@ -56,7 +86,11 @@ export default function Header() {
           />
         </Button>
       </Stack>
-      <HeaderDrawer isOpen={isOpen} toggleDrawer={toggleDrawer} />
+      <HeaderDrawer
+        isOpen={isOpen}
+        toggleDrawer={toggleDrawer}
+        DrawerItems={DrawerItems}
+      />
     </Stack>
   )
 }

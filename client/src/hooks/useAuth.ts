@@ -90,11 +90,8 @@ export default function useAuth() {
     }
   }
 
-  function isLeaderIfNotExit(path: string) {
-    if (!isLogin) {
-      push(`/common/login?returnUrl=${encodeURIComponent(path)}`)
-      return false
-    }
+  function isLeaderIfNotExit(redirectUrl: string) {
+    ifNotLoggedGoToLogin(redirectUrl)
 
     if (!authUserData) {
       return false
@@ -102,9 +99,25 @@ export default function useAuth() {
 
     if (authUserData.role.Leader === false) {
       push("/")
-      setNotificationMessage("리더 권한이 없습니다.")
+      setNotificationMessage("순장 권한이 없습니다.")
       return false
     }
+    return true
+  }
+
+  function isAdminIfNotExit(redirectUrl: string) {
+    ifNotLoggedGoToLogin(redirectUrl)
+
+    if (!authUserData) {
+      return false
+    }
+
+    if (authUserData.role.Admin === false) {
+      push("/")
+      setNotificationMessage("관리자 권한이 없습니다.")
+      return false
+    }
+    return true
   }
 
   return {
@@ -113,5 +126,6 @@ export default function useAuth() {
     login,
     ifNotLoggedGoToLogin,
     isLeaderIfNotExit,
+    isAdminIfNotExit,
   }
 }

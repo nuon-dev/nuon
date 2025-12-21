@@ -1,59 +1,19 @@
 "use client"
 
-import {
-  Box,
-  Button,
-  Divider,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Stack,
-} from "@mui/material"
-import { useEffect, useState } from "react"
-import MenuIcon from "@mui/icons-material/Menu"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-
+import { Button, Stack } from "@mui/material"
+import MenuIcon from "@mui/icons-material/Menu"
 import PeopleIcon from "@mui/icons-material/People"
+import HeaderDrawer from "@/components/Header/Drawer"
 import EventNoteIcon from "@mui/icons-material/EventNote"
-import useUserData from "@/hooks/useUserData"
-import { jwtPayload } from "@/hooks/useAuth"
-import UserInformation from "@/components/Header/UserInformation"
 
 export default function Header() {
   const { push } = useRouter()
   const [isOpen, setOpen] = useState(false)
-  const [userInfo, setUserInfo] = useState<jwtPayload | undefined>(undefined) // Assuming User type is defined somewhere
-  const { getUserDataFromToken } = useUserData()
-
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  async function fetchData() {
-    const myRole = await getUserDataFromToken()
-    if (!myRole) {
-      return
-    }
-    setUserInfo(myRole)
-  }
 
   function toggleDrawer(value: boolean) {
     setOpen(value)
-  }
-
-  function goToSoonManage() {
-    push("/leader/management")
-  }
-
-  function goToSoonAttendance() {
-    push("/leader/attendance")
-  }
-
-  function goToPostcard() {
-    push("/leader/postcard")
   }
 
   function goToHome() {
@@ -94,76 +54,24 @@ export default function Header() {
           }}
         />
       </Button>
-      <Drawer
-        open={isOpen}
-        onClose={() => toggleDrawer(false)}
-        sx={{
-          "& .MuiDrawer-paper": {
-            borderRadius: "0 16px 16px 0",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+      <HeaderDrawer
+        isOpen={isOpen}
+        toggleDrawer={toggleDrawer}
+        DrawerItems={[
+          {
+            title: "순원 관리",
+            icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
+            path: "/leader/management",
+            type: "menu",
           },
-        }}
-      >
-        <Box
-          sx={{ width: 280 }}
-          role="presentation"
-          onClick={() => toggleDrawer(false)}
-        >
-          <UserInformation />
-          <List sx={{ px: 1 }}>
-            <ListItem disablePadding sx={{ mb: 1 }}>
-              <ListItemButton
-                onClick={goToSoonManage}
-                sx={{
-                  borderRadius: 2,
-                  mx: 1,
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                    transform: "translateX(4px)",
-                  },
-                  transition: "all 0.2s ease",
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={"순원 관리"}
-                  primaryTypographyProps={{
-                    fontWeight: 500,
-                    fontSize: "0.95rem",
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding sx={{ mb: 1 }}>
-              <ListItemButton
-                onClick={goToSoonAttendance}
-                sx={{
-                  borderRadius: 2,
-                  mx: 1,
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                    transform: "translateX(4px)",
-                  },
-                  transition: "all 0.2s ease",
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <EventNoteIcon fontSize="small" sx={{ color: "#4facfe" }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={"출석 관리"}
-                  primaryTypographyProps={{
-                    fontWeight: 500,
-                    fontSize: "0.95rem",
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          </List>
-        </Box>
-      </Drawer>
+          {
+            title: "출석 관리",
+            icon: <EventNoteIcon fontSize="small" sx={{ color: "#4facfe" }} />,
+            path: "/leader/attendance",
+            type: "menu",
+          },
+        ]}
+      />
     </Stack>
   )
 }

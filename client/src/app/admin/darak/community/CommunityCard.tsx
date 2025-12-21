@@ -1,7 +1,7 @@
 "use client"
 
 import { type Community } from "@server/entity/community"
-import { Card, Input, Stack, Typography, Box, Avatar } from "@mui/material"
+import { Card, Input, Stack, Typography, Box } from "@mui/material"
 import { MouseEvent, ReactElement } from "react"
 
 interface CommunityCardProps {

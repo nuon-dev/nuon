@@ -19,17 +19,17 @@ import {
   Chip,
   Divider,
 } from "@mui/material"
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth"
+import { useSetAtom } from "jotai"
+import { worshipKr } from "@/util/worship"
+import { useEffect, useState } from "react"
 import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
-import DeleteIcon from "@mui/icons-material/Delete"
 import SaveIcon from "@mui/icons-material/Save"
-import { useEffect, useState } from "react"
-import { WorshipKind, WorshipSchedule } from "@server/entity/worshipSchedule"
-import { dele, get, post, put } from "@/config/api"
-import { useSetAtom } from "jotai"
+import DeleteIcon from "@mui/icons-material/Delete"
 import { NotificationMessage } from "@/state/notification"
-import { worshipKr } from "@/util/worship"
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth"
+import { WorshipKind, WorshipSchedule } from "@server/entity/worshipSchedule"
+import axios from "@/config/axios"
 
 export default function WorshipSchedulePage() {
   const setNotificationMessage = useSetAtom(NotificationMessage)
@@ -55,7 +55,9 @@ export default function WorshipSchedulePage() {
   }
 
   async function fetchWorshipSchedules() {
-    const worshipScheduleList = await get("/admin/worship-schedule")
+    const { data: worshipScheduleList } = await axios.get(
+      "/admin/worship-schedule"
+    )
     setWorshipScheduleList(worshipScheduleList)
   }
 
@@ -65,9 +67,9 @@ export default function WorshipSchedulePage() {
       return
     }
     if (selectedWorship.id) {
-      await put("/admin/worship-schedule", selectedWorship)
+      await axios.put("/admin/worship-schedule", selectedWorship)
     } else {
-      await post("/admin/worship-schedule", selectedWorship)
+      await axios.post("/admin/worship-schedule", selectedWorship)
     }
     setNotificationMessage("예배 일정이 저장되었습니다.")
     await fetchWorshipSchedules()
@@ -82,11 +84,11 @@ export default function WorshipSchedulePage() {
     } as WorshipSchedule)
   }
 
-  function deleteWorshipSchedule() {
+  async function deleteWorshipSchedule() {
     if (!selectedWorship.id) return
-    dele(`/admin/worship-schedule/${selectedWorship.id}`, {})
+    await axios.delete(`/admin/worship-schedule/${selectedWorship.id}`)
     setNotificationMessage("예배 일정이 삭제되었습니다.")
-    fetchWorshipSchedules()
+    await fetchWorshipSchedules()
   }
 
   return (

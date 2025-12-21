@@ -24,7 +24,7 @@ export default function VotePage() {
     >
       <Stack>
         <Image
-          src="/event/worship_contest/main_bg.jpeg"
+          src="/main_bg.jpeg"
           alt="Worship Contest"
           style={{
             width: "100vw",
@@ -33,7 +33,7 @@ export default function VotePage() {
           }}
         />
         <Image
-          src="/event/worship_contest/btn.jpeg"
+          src="/btn.jpeg"
           onClick={() => push("/event/worshipContest/vote")}
           alt="Vote Button"
           style={{

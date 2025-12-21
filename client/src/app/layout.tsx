@@ -17,7 +17,9 @@ export default function RootLayout({
     if (useragt.includes("kakao")) {
       global.location.href =
         "kakaotalk://web/openExternal?url=" +
-        encodeURIComponent(`https://nuon.iubns.net${global.location?.pathname}`)
+        encodeURIComponent(
+          `https://nuon.iubns.net${global.location?.pathname}?${global.location?.search}`
+        )
       isKakaoBrowser = true
     }
   }
