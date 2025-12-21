@@ -41,7 +41,7 @@ export default function Header() {
       type: "divider",
     })
     DrawerItems.push({
-      title: "리더 화면",
+      title: "순장 화면",
       icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
       path: "/leader",
       type: "menu",
