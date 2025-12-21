@@ -10,7 +10,7 @@ import { Community } from "@server/entity/community"
 import { useRouter } from "next/navigation"
 import { NotificationMessage } from "@/state/notification"
 
-export const JwtInformationAtom = atom<jwtPayload | null>(null)
+export const JwtInformationAtom = atom<jwtPayload | null | undefined>(null)
 
 export interface Role {
   Admin: boolean
@@ -27,7 +27,7 @@ export interface jwtPayload {
   iat: number
   exp: number
 }
-const isLoginAtom = atom((get) => !!get(JwtInformationAtom))
+const isLoginAtom = atom((get) => get(JwtInformationAtom) != null)
 
 export default function useAuth() {
   const { push } = useRouter()
@@ -43,6 +43,7 @@ export default function useAuth() {
   async function loadFromLocalStorage() {
     const token = localStorage.getItem("token")
     if (!token) {
+      setAuthUserData(null)
       return
     }
     const userData = jwtDecode<jwtPayload>(token)
