@@ -51,9 +51,12 @@ function getRole(user: User): Role {
   let isLeader = false
 
   if (user.community) {
-    if (user.community.leader.id === user.id) {
+    if (user.community.leader && user.community.leader.id === user.id) {
       isLeader = true
-    } else if (user.community.deputyLeader.id === user.id) {
+    } else if (
+      user.community.deputyLeader &&
+      user.community.deputyLeader.id === user.id
+    ) {
       isLeader = true
     }
   }
