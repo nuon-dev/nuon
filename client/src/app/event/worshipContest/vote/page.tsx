@@ -5,6 +5,9 @@ import axios from "@/config/axios"
 import { useEffect } from "react"
 import { MenuItem, Select, Stack } from "@mui/material"
 import useAuth from "@/hooks/useAuth"
+import { useSetAtom } from "jotai"
+import { NotificationMessage } from "@/state/notification"
+import { useRouter } from "next/navigation"
 
 const 마을들: Record<string, string[]> = {
   투표불가: [],
@@ -73,6 +76,8 @@ export default function VotePage() {
   const [firstCommunity, setFirstCommunity] = useState("")
   const [secondCommunity, setSecondCommunity] = useState("")
   const [thirdCommunity, setThirdCommunity] = useState("")
+  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { push } = useRouter()
 
   useEffect(() => {
     ifNotLoggedGoToLogin("/event/worshipContest/vote")
@@ -83,6 +88,10 @@ export default function VotePage() {
   async function getCurrentStage() {
     const { data } = await axios.get("/event/worship-contest/status")
     setState(data.currentVoteStatus)
+    if (data.currentVoteStatus === "투표불가") {
+      setNotificationMessage(`현재 투표가 불가능합니다.`)
+      push("/event/worshipContest/main")
+    }
   }
 
   async function getMyVillage() {
