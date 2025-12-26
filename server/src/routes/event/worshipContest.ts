@@ -81,6 +81,11 @@ router.post("/vote", async (req, res) => {
 })
 
 router.get("/results", async (req, res) => {
+  const user = await getUserFromToken(req)
+  if (!user || !user.isSuperUser) {
+    res.status(403).json({ message: "권한이 없습니다." })
+    return
+  }
   const votes = await worshipContestDatabase.find()
 
   let firstTermVoteCount = 0

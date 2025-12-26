@@ -11,6 +11,8 @@ import {
 } from "@mui/material"
 import { useEffect, useState } from "react"
 import { get, post } from "@/config/api"
+import axios from "@/config/axios"
+import useAuth from "@/hooks/useAuth"
 
 type VoteStatus = "투표불가" | "1부 투표" | "2부 투표"
 
@@ -22,6 +24,7 @@ export default function VotePage() {
   const [firstTermVotes, setFirstTermVotes] = useState(0)
   const [secondTermVotes, setSecondTermVotes] = useState(0)
   const [userCount, setUserCount] = useState(0)
+  const { ifNotLoggedGoToLogin } = useAuth()
 
   useEffect(() => {
     get("/event/worship-contest/status").then((data) => {
@@ -40,14 +43,17 @@ export default function VotePage() {
     )
   }
 
-  function fetchResults() {
-    get("/event/worship-contest/results").then((data) => {
+  async function fetchResults() {
+    try {
+      const { data } = await axios.get("/event/worship-contest/results")
       setResults(data.result)
       setTotalVotes(data.totalVotes)
       setFirstTermVotes(data.firstTermVoteCount)
       setSecondTermVotes(data.secondTermVoteCount)
       setUserCount(data.userCount)
-    })
+    } catch (error) {
+      ifNotLoggedGoToLogin("/admin/event/worshipContest")
+    }
   }
 
   function getCommunityRow(
@@ -61,15 +67,12 @@ export default function VotePage() {
       <TableRow key={communityName}>
         <TableCell>{index + 1}</TableCell>
         <TableCell>{communityName}</TableCell>
+        <TableCell>{data.term}부</TableCell>
         <TableCell>{data.first}</TableCell>
         <TableCell>{data.second}</TableCell>
         <TableCell>{data.third}</TableCell>
         <TableCell>{point}</TableCell>
-        <TableCell>
-          {(
-            point / (data.term === 1 ? firstTermVotes : secondTermVotes)
-          ).toFixed(4)}
-        </TableCell>
+        <TableCell>{calculateAverage(communityName).toFixed(4)}</TableCell>
       </TableRow>
     )
   }
@@ -82,6 +85,15 @@ export default function VotePage() {
       results[communityName].second * 3 +
       results[communityName].third * 1
     return point
+  }
+
+  function calculateAverage(communityName: string) {
+    if (!results) return 0
+    if (!results[communityName]) return 0
+    const point = calculatePoints(communityName)
+    const termVotes =
+      results[communityName].term === 1 ? firstTermVotes : secondTermVotes
+    return point / termVotes
   }
 
   return (
@@ -108,6 +120,7 @@ export default function VotePage() {
               <TableRow>
                 <TableCell>순위</TableCell>
                 <TableCell>다락방 이름</TableCell>
+                <TableCell>순서</TableCell>
                 <TableCell>1등 투표 수</TableCell>
                 <TableCell>2등 투표 수</TableCell>
                 <TableCell>3등 투표 수</TableCell>
@@ -117,7 +130,7 @@ export default function VotePage() {
             </TableHead>
             <TableBody>
               {Object.entries(results || {})
-                .sort(([a], [b]) => calculatePoints(b) - calculatePoints(a))
+                .sort(([a], [b]) => calculateAverage(b) - calculateAverage(a))
                 .map(([communityId, data], index) =>
                   getCommunityRow(communityId, data, index)
                 )}
