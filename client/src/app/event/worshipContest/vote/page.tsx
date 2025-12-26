@@ -3,7 +3,15 @@
 import { SetStateAction, useState } from "react"
 import axios from "@/config/axios"
 import { useEffect } from "react"
-import { MenuItem, Select, Stack } from "@mui/material"
+import {
+  MenuItem,
+  Select,
+  Stack,
+  Paper,
+  Typography,
+  Button,
+  Avatar,
+} from "@mui/material"
 import useAuth from "@/hooks/useAuth"
 import { useSetAtom } from "jotai"
 import { NotificationMessage } from "@/state/notification"
@@ -100,15 +108,30 @@ export default function VotePage() {
   }
 
   async function submitVote() {
-    await axios.post("/event/worship-contest/vote", {
-      firstCommunity,
-      secondCommunity,
-      thirdCommunity,
-    })
-    alert("투표가 완료되었습니다.")
+    const confirmed = confirm(
+      "제출한 투표는 수정할 수 없습니다. 제출하시겠습니까?"
+    )
+    if (!confirmed) {
+      return
+    }
+    try {
+      await axios.post("/event/worship-contest/vote", {
+        firstCommunity,
+        secondCommunity,
+        thirdCommunity,
+        state,
+      })
+      setNotificationMessage("투표가 완료되었습니다.")
+    } catch (error) {
+      setNotificationMessage(error.response.data.message)
+      return
+    }
   }
 
-  function villageFilter(community: string) {
+  function villageFilter(community: string, selectedCommunities: string) {
+    if (community === selectedCommunities) {
+      return true
+    }
     if (community === myVillage) {
       return false
     }
@@ -132,12 +155,9 @@ export default function VotePage() {
     setState: (value: SetStateAction<string>) => void
   }) {
     return (
-      <Select
-        value={selectedValue}
-        onChange={(e) => setState(e.target.value as string)}
-      >
+      <Select value={selectedValue} onChange={(e) => setState(e.target.value)}>
         {마을들[state]
-          .filter((community) => villageFilter(community))
+          .filter((community) => villageFilter(community, selectedValue))
           .map((community) => (
             <MenuItem key={community} value={community}>
               {community}
@@ -149,47 +169,128 @@ export default function VotePage() {
 
   return (
     <Stack
-      padding="20px"
+      minHeight="100vh"
       justifyContent="center"
-      height="100vh"
-      bgcolor={bgcolor[state]}
+      alignItems="center"
+      sx={{
+        background: `linear-gradient(135deg, ${bgcolor[state]} 60%, #fff 100%)`,
+        padding: { xs: 1, sm: 3 },
+      }}
     >
-      <Stack textAlign="center" fontSize="30px" fontWeight="bold">
-        {state}
-      </Stack>
-      <Stack bgcolor="#ccc" p="12px">
-        투표방식 <br />
-        <ul>
+      {/* 상단 배너 */}
+      <Paper
+        elevation={6}
+        sx={{
+          mb: 3,
+          px: 4,
+          py: 2,
+          borderRadius: 3,
+          bgcolor: bgcolor[state],
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          minWidth: "80%",
+        }}
+      >
+        <Avatar
+          sx={{
+            bgcolor: "#fff",
+            color: bgcolor[state],
+            width: 48,
+            height: 48,
+            fontWeight: "bold",
+            fontSize: 28,
+          }}
+        >
+          🎤
+        </Avatar>
+        <Typography variant="h4" fontWeight="bold">
+          {state}
+        </Typography>
+      </Paper>
+
+      {/* 안내 카드 */}
+      <Paper
+        elevation={3}
+        sx={{
+          mb: 2,
+          px: { xs: 2, sm: 4 },
+          py: 2,
+          borderRadius: 3,
+          maxWidth: 480,
+          width: "90%",
+        }}
+      >
+        <Typography variant="h6" fontWeight="bold" mb={1} color="primary">
+          투표 안내
+        </Typography>
+        <ul style={{ margin: 0, paddingLeft: 20, fontSize: 16 }}>
           <li>
             {state === "1부 투표" ? "1" : "2"}부 안에서 1, 2, 3등을
             선택해주세요.
           </li>
           <li>
             {state === "1부 투표" ? "1" : "2"}부 투표시간 이후에는{" "}
-            {state === "1부 투표" ? "1" : "2"}부 마을 투표가 불가능 합니다.
+            {state === "1부 투표" ? "1" : "2"}부 마을 투표가
+            <br /> 불가능합니다.
           </li>
           <li>자신의 마을에는 투표할 수 없습니다.</li>
         </ul>
-        <Stack>
-          <Stack>&lt;{state === "1부 투표" ? "1" : "2"}부 공연순서 &gt;</Stack>
-          <Stack>
-            {titles[state].map((title) => (
-              <div key={title}>{title}</div>
-            ))}
-            <br />
-            <br />
-          </Stack>
+        <Typography
+          variant="subtitle1"
+          mt={2}
+          fontWeight="bold"
+          color="secondary"
+        >
+          〈{state === "1부 투표" ? "1" : "2"}부 공연순서〉
+        </Typography>
+        <Stack mt={1} spacing={0.5}>
+          {titles[state].map((title) => (
+            <Typography key={title} fontSize={15} color="text.secondary">
+              {title}
+            </Typography>
+          ))}
         </Stack>
-      </Stack>
-      <Stack bgcolor="white" mt="12px" p="12px">
-        <Stack textAlign="center">
+      </Paper>
+
+      {/* 투표용지 카드 */}
+      <Paper
+        elevation={4}
+        sx={{
+          px: { xs: 2, sm: 4 },
+          py: 3,
+          borderRadius: 3,
+          maxWidth: 480,
+          width: "90%",
+          mt: 1,
+        }}
+      >
+        <Stack alignItems="center" mb={2}>
+          <Avatar
+            sx={{
+              bgcolor: bgcolor[state],
+              color: "#fff",
+              width: 56,
+              height: 56,
+              fontWeight: "bold",
+              fontSize: 24,
+              mb: 1,
+            }}
+          >
+            {authUserData?.name?.[0] || "U"}
+          </Avatar>
+          <Typography variant="subtitle1" fontWeight="bold">
+            {authUserData?.name}{" "}
+            <span style={{ color: "#888", fontWeight: 400 }}>
+              ({myVillage})
+            </span>
+          </Typography>
+        </Stack>
+        <Typography variant="h6" fontWeight="bold" textAlign="center" mb={2}>
           투표용지
-          <br />
-          <Stack>
-            {authUserData?.name} ({myVillage})
-          </Stack>
-        </Stack>
-        <Stack gap="12px" mt="12px" justifyContent="center">
+        </Typography>
+        <Stack gap={2} mb={2}>
           <VoteComponent
             selectedValue={firstCommunity}
             setState={setFirstCommunity}
@@ -202,9 +303,49 @@ export default function VotePage() {
             selectedValue={thirdCommunity}
             setState={setThirdCommunity}
           />
-          <button onClick={submitVote}>제출</button>
         </Stack>
-      </Stack>
+        <Button
+          variant="contained"
+          fullWidth
+          size="large"
+          sx={{
+            fontWeight: "bold",
+            fontSize: 18,
+            borderRadius: 2,
+            py: 1.2,
+            background:
+              state === "1부 투표"
+                ? "linear-gradient(90deg, #b3e0f2 0%, #e0f7fa 100%)"
+                : state === "2부 투표"
+                ? "linear-gradient(90deg, #f8bbd0 0%, #fce4ec 100%)"
+                : undefined,
+            color: "#444",
+            boxShadow:
+              state === "1부 투표"
+                ? "0 2px 8px rgba(115,174,180,0.10)"
+                : state === "2부 투표"
+                ? "0 2px 8px rgba(239,160,174,0.10)"
+                : undefined,
+            "&:hover": {
+              background:
+                state === "1부 투표"
+                  ? "linear-gradient(90deg, #e0f7fa 0%, #b3e0f2 100%)"
+                  : state === "2부 투표"
+                  ? "linear-gradient(90deg, #fce4ec 0%, #f8bbd0 100%)"
+                  : undefined,
+              boxShadow:
+                state === "1부 투표"
+                  ? "0 4px 16px rgba(115,174,180,0.15)"
+                  : state === "2부 투표"
+                  ? "0 4px 16px rgba(239,160,174,0.15)"
+                  : undefined,
+            },
+          }}
+          onClick={submitVote}
+        >
+          투표 제출
+        </Button>
+      </Paper>
     </Stack>
   )
 }
