@@ -8,6 +8,7 @@ import useAuth from "@/hooks/useAuth"
 import { useSetAtom } from "jotai"
 import { NotificationMessage } from "@/state/notification"
 import { useRouter } from "next/navigation"
+import { CurrentStatus } from "@server/entity/types"
 
 const 마을들: Record<string, string[]> = {
   투표불가: [],
@@ -100,15 +101,24 @@ export default function VotePage() {
   }
 
   async function submitVote() {
-    await axios.post("/event/worship-contest/vote", {
-      firstCommunity,
-      secondCommunity,
-      thirdCommunity,
-    })
-    alert("투표가 완료되었습니다.")
+    try {
+      await axios.post("/event/worship-contest/vote", {
+        firstCommunity,
+        secondCommunity,
+        thirdCommunity,
+        state,
+      })
+      setNotificationMessage("투표가 완료되었습니다.")
+    } catch (error) {
+      setNotificationMessage(error.response.data.message)
+      return
+    }
   }
 
-  function villageFilter(community: string) {
+  function villageFilter(community: string, selectedCommunities: string) {
+    if (community === selectedCommunities) {
+      return true
+    }
     if (community === myVillage) {
       return false
     }
@@ -132,12 +142,9 @@ export default function VotePage() {
     setState: (value: SetStateAction<string>) => void
   }) {
     return (
-      <Select
-        value={selectedValue}
-        onChange={(e) => setState(e.target.value as string)}
-      >
+      <Select value={selectedValue} onChange={(e) => setState(e.target.value)}>
         {마을들[state]
-          .filter((community) => villageFilter(community))
+          .filter((community) => villageFilter(community, selectedValue))
           .map((community) => (
             <MenuItem key={community} value={community}>
               {community}
