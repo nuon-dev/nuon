@@ -291,18 +291,48 @@ export default function VotePage() {
           투표용지
         </Typography>
         <Stack gap={2} mb={2}>
-          <VoteComponent
-            selectedValue={firstCommunity}
-            setState={setFirstCommunity}
-          />
-          <VoteComponent
-            selectedValue={secondCommunity}
-            setState={setSecondCommunity}
-          />
-          <VoteComponent
-            selectedValue={thirdCommunity}
-            setState={setThirdCommunity}
-          />
+          <Stack>
+            <Typography
+              variant="subtitle2"
+              fontWeight="bold"
+              mb={0.5}
+              color="primary"
+            >
+              1등 마을
+            </Typography>
+            <VoteComponent
+              selectedValue={firstCommunity}
+              setState={setFirstCommunity}
+            />
+          </Stack>
+          <Stack>
+            <Typography
+              variant="subtitle2"
+              fontWeight="bold"
+              mb={0.5}
+              color="primary"
+            >
+              2등 마을
+            </Typography>
+            <VoteComponent
+              selectedValue={secondCommunity}
+              setState={setSecondCommunity}
+            />
+          </Stack>
+          <Stack>
+            <Typography
+              variant="subtitle2"
+              fontWeight="bold"
+              mb={0.5}
+              color="primary"
+            >
+              3등 마을
+            </Typography>
+            <VoteComponent
+              selectedValue={thirdCommunity}
+              setState={setThirdCommunity}
+            />
+          </Stack>
         </Stack>
         <Button
           variant="contained"
