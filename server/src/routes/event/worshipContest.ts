@@ -19,7 +19,12 @@ router.get("/status", async (req, res) => {
 
 router.post("/admin/set-status", async (req, res) => {
   const user = await getUserFromToken(req)
-  if (!user || !user.isSuperUser) {
+  if (!user) {
+    res.status(401).json({ message: "로그인후 이용해주세요" })
+    return
+  }
+
+  if (!user.isSuperUser) {
     res.status(403).json({ message: "권한이 없습니다." })
     return
   }
@@ -82,10 +87,16 @@ router.post("/vote", async (req, res) => {
 
 router.get("/results", async (req, res) => {
   const user = await getUserFromToken(req)
-  if (!user || !user.isSuperUser) {
+  if (!user) {
+    res.status(401).json({ message: "로그인후 이용해주세요" })
+    return
+  }
+
+  if (!user.isSuperUser) {
     res.status(403).json({ message: "권한이 없습니다." })
     return
   }
+
   const votes = await worshipContestDatabase.find()
 
   let firstTermVoteCount = 0
