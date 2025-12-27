@@ -16,7 +16,11 @@ export default function AdminHeader() {
   const [isOpen, setOpen] = useState(false)
 
   useEffect(() => {
-    isAdminIfNotExit("/admin")
+    let path = "/admin"
+    if (global && global.location && global.location.pathname) {
+      path = global.location.pathname
+    }
+    isAdminIfNotExit(path)
   }, [])
 
   function toggleDrawer(value: boolean) {
