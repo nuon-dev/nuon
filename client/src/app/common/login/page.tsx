@@ -30,12 +30,13 @@ function Login() {
   }, [isLogin])
 
   async function handleLogin() {
-    const user = await login()
-    if (!user) {
-      setNotificationMessage("로그인에 실패했습니다. 다시 시도해주세요.")
-      return
+    try {
+      await login()
+    } catch {
+      setNotificationMessage("등록되지 않은 사용자 입니다.")
     }
   }
+
   return (
     <Stack>
       <Stack

@@ -54,7 +54,7 @@ router.post("/login", async (req, res) => {
 
   const newUserToken = await userModel.loginFromKakaoId(kakaoId)
   if (!newUserToken) {
-    res.status(401).send({ result: "fail" })
+    res.status(404).send({ result: "fail" })
     return
   }
 
