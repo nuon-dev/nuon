@@ -103,8 +103,15 @@ export default function VotePage() {
   }
 
   async function getMyVillage() {
-    const { data } = await axios.get("/event/worship-contest/my-village")
-    setMyVillage(data.communityName)
+    try {
+      const { data } = await axios.get("/event/worship-contest/my-village")
+      setMyVillage(data.communityName)
+    } catch (error) {
+      setNotificationMessage(
+        "마을 정보를 불러오지 못했습니다.\n순장님에게 문의하세요."
+      )
+      push("/event/worshipContest/main")
+    }
   }
 
   async function submitVote() {
