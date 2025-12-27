@@ -17,7 +17,7 @@ export default function useKakaoHook() {
         }
         return
       }
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 500))
     }
     alert("필수 라이브러리 로딩 실패, 다른 브라우저를 이용해주세요.")
   }
