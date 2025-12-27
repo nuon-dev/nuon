@@ -68,9 +68,15 @@ export default function useAuth() {
 
   async function login() {
     const kakaoId = await getKakaoToken()
-    const { data, status } = await axios.post("/auth/login", {
-      kakaoId: kakaoId,
-    })
+    const { data, status } = await axios.post(
+      "/auth/login",
+      {
+        kakaoId: kakaoId,
+      },
+      {
+        withCredentials: true,
+      }
+    )
     const { result, accessToken } = data
     if (status !== 200 || result !== "success") {
       return false

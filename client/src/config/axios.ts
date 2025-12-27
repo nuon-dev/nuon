@@ -13,6 +13,8 @@ if (isBrowser) {
   axios.defaults.headers.common["token"] = localStorage.getItem("token") || ""
 }
 
+axios.defaults.withCredentials = true
+
 axios.interceptors.response.use(
   (response) => {
     return response

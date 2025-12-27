@@ -1,6 +1,5 @@
 import express, { Router } from "express"
 
-import cors from "cors"
 import { sharingVideoPath } from "./retreat/sharingRouter"
 
 import authRouter from "./authRouter"
@@ -11,8 +10,6 @@ import soonRouter from "./soon/soonRouter"
 import eventRouter from "./event"
 
 const router: Router = express.Router()
-
-router.use(cors())
 
 router.use("/sharing/image", express.static(sharingVideoPath))
 

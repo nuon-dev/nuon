@@ -1,16 +1,23 @@
-import express from "express"
-import bodyParser from "body-parser"
-import apiRouter from "./routes"
-import dataSource from "./model/dataSource"
 import fs from "fs"
-import https from "https"
 import cors from "cors"
+import https from "https"
+import express from "express"
+import apiRouter from "./routes"
+import bodyParser from "body-parser"
+import dataSource from "./model/dataSource"
+import cookieParser from "cookie-parser"
 
 const app = express()
 const port = 8000
 
 app.use(bodyParser.json())
-app.use(cors())
+app.use(cookieParser())
+app.use(
+  cors({
+    origin: ["http://localhost:8080", "https://nuon.iubns.net"],
+    credentials: true,
+  })
+)
 app.use("/", apiRouter)
 
 const is_dev = process.env.NODE_ENV === "development"

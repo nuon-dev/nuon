@@ -34,7 +34,7 @@ export default function HeaderDrawer({
   DrawerItems,
 }: HeaderDrawerProps) {
   const { push } = useRouter()
-  const { logout } = useAuth()
+  const { logout, isLogin } = useAuth()
 
   function goToPage(path?: string) {
     push(path || "/")
@@ -85,25 +85,27 @@ export default function HeaderDrawer({
               )
             }
           })}
-          <ListItem disablePadding sx={{ mb: 1 }}>
-            <ListItemButton
-              onClick={logout}
-              sx={{
-                borderRadius: 2,
-                mx: 1,
-                "&:hover": {
-                  bgcolor: "#f5f5f5",
-                  transform: "translateX(4px)",
-                },
-                transition: "all 0.2s ease",
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <LogoutIcon />
-              </ListItemIcon>
-              <ListItemText primary="로그아웃" />
-            </ListItemButton>
-          </ListItem>
+          {isLogin && (
+            <ListItem disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={logout}
+                sx={{
+                  borderRadius: 2,
+                  mx: 1,
+                  "&:hover": {
+                    bgcolor: "#f5f5f5",
+                    transform: "translateX(4px)",
+                  },
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <LogoutIcon />
+                </ListItemIcon>
+                <ListItemText primary="로그아웃" />
+              </ListItemButton>
+            </ListItem>
+          )}
         </List>
       </Box>
     </Drawer>
