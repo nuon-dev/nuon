@@ -40,7 +40,7 @@ function Login() {
   return (
     <Stack>
       <Stack
-        gap="12px"
+        gap="20px"
         sx={{
           width: "100%",
           height: "calc(100vh - 64px)",
@@ -49,8 +49,42 @@ function Login() {
           justifyContent: "center",
         }}
       >
-        <Stack>새벽이슬</Stack>
-        <Button variant="outlined" onClick={handleLogin}>
+        <Stack alignItems="center" mb={2}>
+          <span
+            style={{
+              fontSize: 28,
+              fontWeight: 800,
+              color: "#222",
+              letterSpacing: -1,
+            }}
+          >
+            수원 제일 교회 청년부
+          </span>
+          <span
+            style={{
+              fontSize: 22,
+              color: "#555",
+              marginTop: 8,
+              fontWeight: 500,
+              letterSpacing: -0.5,
+            }}
+          >
+            새벽이슬
+          </span>
+        </Stack>
+        <Button
+          variant="contained"
+          onClick={handleLogin}
+          sx={{
+            background: "#fee500",
+            color: "#3c1e1e",
+            fontWeight: 600,
+            borderRadius: 2,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            padding: "10px 32px",
+            "&:hover": { background: "#ffe066" },
+          }}
+        >
           카카오로 로그인
         </Button>
       </Stack>

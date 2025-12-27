@@ -73,13 +73,13 @@ router.post("/login", async (req, res) => {
 router.post("/refresh-token", async (req, res) => {
   const refreshToken = req.cookies.refreshToken
   if (!refreshToken) {
-    res.status(401).send({ success: false })
+    res.status(403).send({ success: false })
     return
   }
 
   const tokenResult = await userModel.createNewAccessToken(refreshToken)
   if (!tokenResult.success) {
-    res.status(401).send({ result: "fail" })
+    res.status(404).send({ result: "fail" })
     return
   }
 
