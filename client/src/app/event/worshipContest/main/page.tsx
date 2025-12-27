@@ -26,7 +26,7 @@ export default function VotePage() {
         <Image
           src="/event/worshipContest/main_bg.jpeg"
           alt="Worship Contest"
-          width={window.innerWidth}
+          width={global.innerWidth}
           height={0}
           style={{
             width: "100vw",
