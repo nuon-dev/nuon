@@ -6,6 +6,9 @@ import userModel from "../model/user"
 
 const router = express.Router()
 
+/**
+ * Todo: 클라이언트에서 isSuperUser true 날리면 그냥 해줄겨? 아주 그냥...ㅎ 바꾸기
+ */
 router.post("/edit-my-information", async (req, res) => {
   const me = await getUserFromToken(req)
   if (!me) {

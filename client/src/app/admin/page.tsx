@@ -175,7 +175,7 @@ function index() {
                     {dashboardData.totalUsers}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    전체 사용자
+                    등록된 인원
                   </Typography>
                 </Stack>
               </Stack>
@@ -191,7 +191,7 @@ function index() {
                     {dashboardData.totalCommunities}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    전체 다락방
+                    다락방 + 마을 수
                   </Typography>
                 </Stack>
               </Stack>

@@ -53,20 +53,23 @@ function RetreatContent() {
 
   return (
     <Stack
-      pb="40px"
       width="100vw"
-      minHeight="100vh"
+      height="100vh"
       alignItems="center"
       bgcolor="#2F3237"
       justifyContent="center"
     >
-      <img src={topImageUrl} alt={`step ${step} top`} width="70%" />
-      {step === 1 && <FirstStep />}
-      {step === 2 && <SecondStep />}
-      {step === 3 && <ThirdStep />}
-      {step === 4 && <FourthStep />}
-      <Stack position="absolute" bottom="30px" alignItems="center">
-        <img src="/retreat/main/bottom.png" alt="first top" width="120px" />
+      <Stack height="100%" alignItems="center" justifyContent="center" pt="20%">
+        <img src={topImageUrl} alt={`step ${step} top`} width="60%" />
+        <Stack height="100%">
+          {step === 1 && <FirstStep />}
+          {step === 2 && <SecondStep />}
+          {step === 3 && <ThirdStep />}
+          {step === 4 && <FourthStep />}
+        </Stack>
+      </Stack>
+      <Stack height="20%" alignItems="center" justifyContent="center">
+        <img src="/retreat/main/bottom.png" alt="first top" width="80px" />
       </Stack>
     </Stack>
   )

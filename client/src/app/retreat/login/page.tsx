@@ -11,8 +11,6 @@ export default function RetreatLogin() {
 
   async function handleKakaoLogin() {
     try {
-      alert("접수 오픈 예정입니다!")
-      return
       await login()
       push("/retreat")
     } catch {
@@ -28,7 +26,7 @@ export default function RetreatLogin() {
       alignItems="center"
     >
       <img src="/retreat/login/top_bg.png" alt="top background" width="70%" />
-      <Stack width="50%">
+      <Stack width="50%" mt="5vh">
         <RetreatButton label="카카오로 로그인" onClick={handleKakaoLogin} />
       </Stack>
       <Stack mt="12%" alignItems="center">

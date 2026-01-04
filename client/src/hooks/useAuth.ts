@@ -68,8 +68,10 @@ export default function useAuth() {
     return null
   }
 
-  async function login() {
-    const kakaoId = await getKakaoToken()
+  async function login(kakaoId?: number): Promise<jwtPayload> {
+    if (!kakaoId) {
+      kakaoId = await getKakaoToken()
+    }
     setKakaoToken(kakaoId)
     const { data } = await axios.post(
       "/auth/login",

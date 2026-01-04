@@ -4,6 +4,7 @@ import {
   communityDatabase,
   inOutInfoDatabase,
   retreatAttendDatabase,
+  userDatabase,
 } from "../../model/dataSource"
 import { getUserFromToken } from "../../util/util"
 import adminRouter from "./adminRouter"
@@ -59,7 +60,44 @@ router.get("/", async (req, res) => {
   res.json(retreatAttend)
 })
 
-router.post("/edit-information", async (req, res) => {
+interface JoinNuonRequest {
+  kakaoId: string
+  name: string
+  yearOfBirth: number
+  gender: "man" | "woman"
+  phone: string
+}
+
+router.post("/join", async (req, res) => {
+  const retreatAttend: JoinNuonRequest = req.body
+
+  const foundUser = await userDatabase.findOne({
+    where: {
+      kakaoId: retreatAttend.kakaoId,
+    },
+  })
+
+  if (foundUser) {
+    res.status(409).send({ result: "fail", message: "User already exists" })
+    return
+  }
+
+  const newUser = await userDatabase.create({
+    kakaoId: retreatAttend.kakaoId,
+    name: retreatAttend.name,
+    yearOfBirth: retreatAttend.yearOfBirth,
+    gender: retreatAttend.gender,
+    phone: retreatAttend.phone,
+  })
+  await userDatabase.save(newUser)
+
+  res.send({ result: "success" })
+})
+
+/*
+ * Todo: remove deprecated
+ */
+router.post("/update-move-info", async (req, res) => {
   const foundUser = await getUserFromToken(req)
 
   if (!foundUser) {
@@ -71,7 +109,6 @@ router.post("/edit-information", async (req, res) => {
 
   const foundRetreatAttend = await retreatAttendDatabase.findOne({
     where: {
-      id: retreatAttend.id,
       user: {
         id: foundUser.id,
       },

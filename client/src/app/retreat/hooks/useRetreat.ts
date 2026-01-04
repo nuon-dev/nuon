@@ -1,9 +1,6 @@
-import useAuth from "@/hooks/useAuth"
-import useKakaoHook from "@/hooks/useKakao"
-import { UnfoldLess } from "@mui/icons-material"
 import axios from "@/config/axios"
+import useAuth from "@/hooks/useAuth"
 import { atom, useAtom } from "jotai"
-import { useEffect } from "react"
 
 const stepAtom = atom(2)
 const isHalfAtom = atom<boolean | null>(null)
@@ -14,6 +11,36 @@ export default function useRetreat() {
   const [isHalf, setIsHalf] = useAtom(isHalfAtom)
   const [isWorker, setIsWorker] = useAtom(isWorkerAtom)
 
+  const { login, isLogin } = useAuth()
+
+  interface JoinNuonRequest {
+    kakaoId: number
+    name: string
+    yearOfBirth: number
+    gender: "man" | "woman"
+    phone: string
+  }
+
+  async function updateNuon(request: JoinNuonRequest) {
+    if (!isLogin) {
+      await axios.post("/retreat/join", request)
+      await login(request.kakaoId)
+    } else {
+      return axios.post("/auth/edit-my-information", request)
+    }
+    return
+  }
+
+  async function fetchRetreatAttend() {
+    const response = await axios.get("/retreat/attend")
+    return response.data
+  }
+
+  async function getMyInfo() {
+    const { data } = await axios.get("/soon/my-info")
+    return data
+  }
+
   return {
     step,
     setStep,
@@ -21,5 +48,8 @@ export default function useRetreat() {
     setIsHalf,
     isWorker,
     setIsWorker,
+    updateNuon,
+    fetchRetreatAttend,
+    getMyInfo,
   }
 }

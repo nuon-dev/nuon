@@ -12,8 +12,8 @@ export default function SecondStep() {
     setIsHalf(isHalf)
   }
   return (
-    <Stack>
-      <Stack color="white" textAlign="center" my="40px">
+    <Stack alignItems="center" height="100%">
+      <Stack color="white" textAlign="center" my="10%">
         <Box fontSize="14px" color="#999">
           (1/30 ~ 2/01)
         </Box>
@@ -23,17 +23,15 @@ export default function SecondStep() {
           참석일자를 선택해주세요.
         </Box>
       </Stack>
-      <Stack>
+      <Stack width="60%" gap="24px">
         <RetreatButton
-          label="토요일 저녁집회 이전"
+          label="(토) 집회 이전"
           onClick={() => {
             handleNextStep(false)
           }}
         />
-      </Stack>
-      <Stack mt="20px">
         <RetreatButton
-          label="토요일 저녁집회 이후"
+          label="(토) 집회 이후"
           onClick={() => {
             handleNextStep(true)
           }}
