@@ -28,6 +28,7 @@ export interface jwtPayload {
   exp: number
 }
 const isLoginAtom = atom((get) => get(JwtInformationAtom) != null)
+const kakaoTokenAtom = atom<number | null>(null)
 
 export default function useAuth() {
   const { push } = useRouter()
@@ -35,6 +36,7 @@ export default function useAuth() {
   const isLogin = useAtomValue(isLoginAtom)
   const setNotificationMessage = useSetAtom(NotificationMessage)
   const [authUserData, setAuthUserData] = useAtom(JwtInformationAtom)
+  const [kakaoToken, setKakaoToken] = useAtom(kakaoTokenAtom)
 
   useEffect(() => {
     loadFromLocalStorage()
@@ -68,7 +70,8 @@ export default function useAuth() {
 
   async function login() {
     const kakaoId = await getKakaoToken()
-    const { data, status } = await axios.post(
+    setKakaoToken(kakaoId)
+    const { data } = await axios.post(
       "/auth/login",
       {
         kakaoId: kakaoId,
@@ -77,10 +80,7 @@ export default function useAuth() {
         withCredentials: true,
       }
     )
-    const { result, accessToken } = data
-    if (status !== 200 || result !== "success") {
-      return false
-    }
+    const { accessToken } = data
     localStorage.setItem("token", accessToken)
     const userData = jwtDecode<jwtPayload>(accessToken)
     setAuthUserData(userData)
@@ -141,5 +141,6 @@ export default function useAuth() {
     isLeaderIfNotExit,
     isAdminIfNotExit,
     logout,
+    kakaoToken,
   }
 }
