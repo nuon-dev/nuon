@@ -34,7 +34,7 @@ export default function FourthStep() {
   async function saveRetreatAttendWrapper() {
     try {
       const { data } = await saveRetreatAttend()
-      alert(data.result)
+      setNotificationMessage(data.result)
       setStep(5)
     } catch (e) {
       setNotificationMessage(

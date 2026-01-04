@@ -29,9 +29,9 @@ export default function Header() {
     },
     { type: "divider" },
     {
-      title: "투표하러 가기",
+      title: "2026 겨울 수련회 신청",
       icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
-      path: "/event/worshipContest/main",
+      path: "/retreat",
       type: "menu",
     },
   ]

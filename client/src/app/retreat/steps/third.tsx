@@ -19,8 +19,8 @@ export default function ThirdStep() {
           수련회비를 위한 항목 입니다.
         </Box>
         <Box fontSize="24px">
-          아래 2개의 항목중 <br />
-          해당하는 항목을 선택해 주세요.
+          아래 2개의 항목 중<br />
+          해당하는 항목을 선택 해 주세요.
         </Box>
       </Stack>
       <Stack width="60%" gap="24px">

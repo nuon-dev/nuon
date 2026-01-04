@@ -116,15 +116,15 @@ export default function FirstStep() {
           value={birthYear}
           onChange={(e) => setBirthYear(e.target.value)}
           style={{
+            textAlign: "center",
             position: "absolute",
-            width: "100px",
+            width: "80%",
             height: "40px",
             background: "transparent",
             border: "none",
             outline: "none",
             color: "white",
             fontSize: "16px",
-            paddingLeft: "40%",
           }}
         />
       </Stack>
