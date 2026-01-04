@@ -9,6 +9,7 @@ import SecondStep from "./steps/second"
 import ThirdStep from "./steps/third"
 import useRetreat from "./hooks/useRetreat"
 import FourthStep from "./steps/fourth"
+import FifthStep from "./steps/fifthStep"
 
 export default function RetreatPage() {
   return (
@@ -66,6 +67,7 @@ function RetreatContent() {
           {step === 2 && <SecondStep />}
           {step === 3 && <ThirdStep />}
           {step === 4 && <FourthStep />}
+          {step === 5 && <FifthStep />}
         </Stack>
       </Stack>
       <Stack height="20%" alignItems="center" justifyContent="center">

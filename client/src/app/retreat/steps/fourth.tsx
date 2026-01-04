@@ -6,10 +6,14 @@ import useAuth from "@/hooks/useAuth"
 import RetreatButton from "../components/Button"
 import { useEffect, useState } from "react"
 import { User } from "@server/entity/user"
+import { useSetAtom } from "jotai"
+import { NotificationMessage } from "@/state/notification"
 
 export default function FourthStep() {
   const [myInfo, setMyInfo] = useState<User | null>(null)
-  const { fetchRetreatAttend, getMyInfo, isWorker, isHalf } = useRetreat()
+  const { saveRetreatAttend, getMyInfo, isWorker, isHalf, setStep } =
+    useRetreat()
+  const setNotificationMessage = useSetAtom(NotificationMessage)
 
   useEffect(() => {
     getMyInfo().then((data) => {
@@ -27,11 +31,24 @@ export default function FourthStep() {
     }
   }
 
+  async function saveRetreatAttendWrapper() {
+    try {
+      const { data } = await saveRetreatAttend()
+      alert(data.result)
+      setStep(5)
+    } catch (e) {
+      setNotificationMessage(
+        "참가 신청에 실패했습니다. 새로고침 후 다시 시도해주세요." +
+          e.toString()
+      )
+    }
+  }
+
   return (
     <Stack justifyContent="center" alignItems="center" px="10%">
       <Stack color="white" textAlign="center" my="30px">
         <Box fontSize="14px" color="#999">
-          입력새주신 내용을 토대로 정리했습니다.
+          입력해주신 내용을 토대로 정리했습니다.
         </Box>
         <Box fontSize="24px">
           아래 내용이 맞는지
@@ -63,7 +80,7 @@ export default function FourthStep() {
         <Stack direction="row" height="40px" gap="24px">
           <Stack flex={2}>
             <RetreatButton
-              label={isHalf ? "토요일 저녁집회 이전" : "토요일 저녁집회 이후"}
+              label={isHalf ? "(토) 집회 이전" : "(토) 집회 이후"}
               onClick={() => {}}
             />
           </Stack>
@@ -82,8 +99,16 @@ export default function FourthStep() {
           justifyContent="center"
           alignItems="center"
         >
-          <RetreatButton label={"확인 했어요"} onClick={() => {}} />
-          <RetreatButton label={"수정할게요"} onClick={() => {}} />
+          <RetreatButton
+            label={"확인 했어요"}
+            onClick={saveRetreatAttendWrapper}
+          />
+          <RetreatButton
+            label={"수정할게요"}
+            onClick={() => {
+              setStep(1)
+            }}
+          />
         </Stack>
       </Stack>
     </Stack>

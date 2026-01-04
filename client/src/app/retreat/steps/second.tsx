@@ -20,7 +20,7 @@ export default function SecondStep() {
         <Box fontSize="24px">
           2026 겨울 수련회
           <br />
-          참석일자를 선택해주세요.
+          참석일시를 선택해주세요.
         </Box>
       </Stack>
       <Stack width="60%" gap="24px">

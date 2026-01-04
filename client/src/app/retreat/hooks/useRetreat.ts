@@ -11,7 +11,7 @@ export default function useRetreat() {
   const [isHalf, setIsHalf] = useAtom(isHalfAtom)
   const [isWorker, setIsWorker] = useAtom(isWorkerAtom)
 
-  const { login, isLogin } = useAuth()
+  const { login, isLogin, authUserData } = useAuth()
 
   interface JoinNuonRequest {
     kakaoId: number
@@ -26,14 +26,19 @@ export default function useRetreat() {
       await axios.post("/retreat/join", request)
       await login(request.kakaoId)
     } else {
-      return axios.post("/auth/edit-my-information", request)
+      return axios.post("/auth/edit-my-information", {
+        ...request,
+        id: authUserData?.id,
+      })
     }
     return
   }
 
-  async function fetchRetreatAttend() {
-    const response = await axios.get("/retreat/attend")
-    return response.data
+  async function saveRetreatAttend() {
+    return await axios.post("/retreat/attend", {
+      isHalf,
+      isWorker,
+    })
   }
 
   async function getMyInfo() {
@@ -49,7 +54,7 @@ export default function useRetreat() {
     isWorker,
     setIsWorker,
     updateNuon,
-    fetchRetreatAttend,
+    saveRetreatAttend,
     getMyInfo,
   }
 }

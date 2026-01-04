@@ -3,7 +3,7 @@
 import { Box, Stack } from "@mui/material"
 import useRetreat from "../hooks/useRetreat"
 import RetreatButton from "../components/Button"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import useAuth from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
 
@@ -12,9 +12,24 @@ export default function FirstStep() {
   const [birthYear, setBirthYear] = useState("")
   const [phone, setPhone] = useState("010  -           -           ")
 
-  const { kakaoToken } = useAuth()
+  const { kakaoToken, isLogin } = useAuth()
   const { setStep, updateNuon, getMyInfo } = useRetreat()
   const { push } = useRouter()
+
+  useEffect(() => {
+    if (!isLogin) return
+    getMyInfo().then((data) => {
+      setName(data.name)
+      setBirthYear(data.yearOfBirth.toString())
+      setPhone(
+        data.phone.slice(0, 3) +
+          "-" +
+          data.phone.slice(3, 7) +
+          "-" +
+          data.phone.slice(7, 11)
+      )
+    })
+  }, [isLogin])
 
   async function handleNextStep(gender: "man" | "woman") {
     if (!kakaoToken) {
