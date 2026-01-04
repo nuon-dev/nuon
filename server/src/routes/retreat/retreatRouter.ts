@@ -1,15 +1,12 @@
 import express from "express"
 import {
-  chatLogDatabase,
   communityDatabase,
-  inOutInfoDatabase,
   retreatAttendDatabase,
+  userDatabase,
 } from "../../model/dataSource"
 import { getUserFromToken } from "../../util/util"
 import adminRouter from "./adminRouter"
 import sharingRouter from "./sharingRouter"
-import { RetreatAttend } from "../../entity/retreat/retreatAttend"
-import { HowToMove, InOutType } from "../../entity/types"
 
 const router = express.Router()
 
@@ -59,143 +56,58 @@ router.get("/", async (req, res) => {
   res.json(retreatAttend)
 })
 
-router.post("/edit-information", async (req, res) => {
-  const foundUser = await getUserFromToken(req)
+interface JoinNuonRequest {
+  kakaoId: string
+  name: string
+  yearOfBirth: number
+  gender: "man" | "woman"
+  phone: string
+}
 
-  if (!foundUser) {
-    res.status(401).send({ result: "fail" })
-    return
-  }
+router.post("/join", async (req, res) => {
+  const retreatAttend: JoinNuonRequest = req.body
 
-  const retreatAttend: RetreatAttend = req.body
-
-  const foundRetreatAttend = await retreatAttendDatabase.findOne({
+  const foundUser = await userDatabase.findOne({
     where: {
-      id: retreatAttend.id,
-      user: {
-        id: foundUser.id,
-      },
-    },
-    relations: {
-      inOutInfos: true,
+      kakaoId: retreatAttend.kakaoId,
     },
   })
 
-  if (!foundRetreatAttend) {
-    res.status(401).send({ result: "fail" })
+  if (foundUser) {
+    res
+      .status(409)
+      .send({ result: "fail", message: "이미 등록된 사용자입니다." })
     return
   }
 
-  if (retreatAttend.id !== foundRetreatAttend.id) {
-    res.status(401).send({ result: "fail" })
-    return
-  }
-
-  await retreatAttendDatabase.save({
-    id: retreatAttend.id,
-    howToGo: retreatAttend.howToGo,
-    howToBack: retreatAttend.howToBack,
-    etc: retreatAttend.etc,
+  const foundUserByPhoneAndName = await userDatabase.findOne({
+    where: {
+      phone: retreatAttend.phone,
+      name: retreatAttend.name,
+      gender: retreatAttend.gender,
+    },
   })
 
-  //카풀이 불가능한 선택하면 자동으로 생성된 이동 정보 제거
-  if (
-    retreatAttend.howToGo === HowToMove.together ||
-    retreatAttend.howToGo === HowToMove.driveCarAlone
-  ) {
-    const autoCreatedInOutInfo = await inOutInfoDatabase.findOne({
-      where: {
-        retreatAttend: retreatAttend,
-        autoCreated: true,
-        inOutType: InOutType.IN,
-      },
-      relations: {
-        userInTheCar: true,
-      },
-    })
-    if (autoCreatedInOutInfo) {
-      const deleteUserInTheCar = autoCreatedInOutInfo.userInTheCar.map(
-        async (userInTheCar) => {
-          userInTheCar.rideCarInfo = null
-          await inOutInfoDatabase.save(userInTheCar)
-        }
-      )
-      await Promise.all(deleteUserInTheCar)
-      await inOutInfoDatabase.remove(autoCreatedInOutInfo)
-    }
-  } else {
-    foundRetreatAttend.inOutInfos.forEach(async (inOutInfo) => {
-      if (!inOutInfo.autoCreated) {
-        return
-      }
-      if (inOutInfo.inOutType === InOutType.IN) {
-        inOutInfo.howToMove = retreatAttend.howToGo
-        await inOutInfoDatabase.save(inOutInfo)
-      }
-    })
+  if (foundUserByPhoneAndName) {
+    foundUserByPhoneAndName.kakaoId = retreatAttend.kakaoId
+    await userDatabase.save(foundUserByPhoneAndName)
+    res.send({ result: "success" })
+    return
   }
 
-  if (
-    retreatAttend.howToBack === HowToMove.together ||
-    retreatAttend.howToBack === HowToMove.driveCarAlone
-  ) {
-    const autoCreatedInOutInfo = await inOutInfoDatabase.findOne({
-      where: {
-        retreatAttend: retreatAttend,
-        autoCreated: true,
-        inOutType: InOutType.OUT,
-      },
-      relations: {
-        userInTheCar: true,
-      },
-    })
-    if (autoCreatedInOutInfo) {
-      const deleteUserInTheCar = autoCreatedInOutInfo.userInTheCar.map(
-        async (userInTheCar) => {
-          userInTheCar.rideCarInfo = null
-          await inOutInfoDatabase.save(userInTheCar)
-        }
-      )
-      await Promise.all(deleteUserInTheCar)
-      await inOutInfoDatabase.remove(autoCreatedInOutInfo)
-    }
-  } else {
-    foundRetreatAttend.inOutInfos.forEach(async (inOutInfo) => {
-      if (!inOutInfo.autoCreated) {
-        return
-      }
-      if (inOutInfo.inOutType === InOutType.OUT) {
-        inOutInfo.howToMove = retreatAttend.howToBack
-        await inOutInfoDatabase.save(inOutInfo)
-      }
-    })
-  }
+  const newUser = await userDatabase.create({
+    kakaoId: retreatAttend.kakaoId,
+    name: retreatAttend.name,
+    yearOfBirth: retreatAttend.yearOfBirth,
+    gender: retreatAttend.gender,
+    phone: retreatAttend.phone,
+  })
+  await userDatabase.save(newUser)
 
   res.send({ result: "success" })
 })
 
-router.post("/chat", async (req, res) => {
-  const foundUser = await getUserFromToken(req)
-
-  if (!foundUser) {
-    res.status(401).send({ result: "fail" })
-    return
-  }
-
-  const { chat, type } = req.body
-
-  const newChat = chatLogDatabase.create({
-    user: foundUser,
-    content: chat,
-    type: type,
-  })
-
-  await chatLogDatabase.save(newChat)
-
-  res.send({ result: "success" })
-})
-
-router.post("/complete", async (req, res) => {
+router.post("/attend", async (req, res) => {
   const foundUser = await getUserFromToken(req)
 
   if (!foundUser) {
@@ -209,32 +121,27 @@ router.post("/complete", async (req, res) => {
         id: foundUser.id,
       },
     },
-    relations: {
-      user: true,
-    },
   })
 
-  if (!foundRetreatAttend) {
-    res.status(401).send({ result: "fail" })
+  if (foundRetreatAttend) {
+    foundRetreatAttend.isHalf = req.body.isHalf
+    foundRetreatAttend.isWorker = req.body.isWorker
+    await retreatAttendDatabase.save(foundRetreatAttend)
+    res.send({ result: "수련회 정보가 수정 되었습니다." })
     return
   }
 
-  if (
-    foundRetreatAttend.isCanceled === true &&
-    !foundRetreatAttend.attendanceNumber
-  ) {
-    foundRetreatAttend.attendanceNumber = await retreatAttendDatabase.count({
-      where: {
-        isCanceled: false,
-      },
-    })
-    foundRetreatAttend.attendanceNumber += 1
-  }
-  foundRetreatAttend.isCanceled = false
-
-  await retreatAttendDatabase.save(foundRetreatAttend)
-
-  res.send({ result: "success" })
+  const { isHalf, isWorker } = req.body
+  const retreatAttend = retreatAttendDatabase.create({
+    user: {
+      id: foundUser.id,
+    },
+    isHalf: isHalf,
+    isWorker: isWorker,
+  })
+  retreatAttend.attendanceNumber = (await retreatAttendDatabase.count()) + 1
+  await retreatAttendDatabase.save(retreatAttend)
+  res.send({ result: "수련회 정보가 등록 되었습니다." })
 })
 
 router.post("/set-postcard-content", async (req, res) => {

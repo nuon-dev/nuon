@@ -25,7 +25,7 @@ export default function RootLayout({
   }
   var title = "새벽이슬"
   if (global.location?.pathname.includes("retreat")) {
-    title = "2025 여름 수련회"
+    title = "2026 겨울 수련회"
   }
 
   return (

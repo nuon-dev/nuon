@@ -38,7 +38,7 @@ export class RetreatAttend {
   @Column({ nullable: true })
   howToBack: HowToMove
 
-  @Column({ default: true })
+  @Column({ default: false })
   isCanceled: boolean
 
   @Column({ nullable: true })
@@ -55,6 +55,12 @@ export class RetreatAttend {
 
   @OneToMany(() => InOutInfo, (inOutInfo) => inOutInfo.retreatAttend)
   inOutInfos: InOutInfo[]
+
+  @Column({ default: true })
+  isWorker: boolean
+
+  @Column({ default: false })
+  isHalf: boolean
 
   @CreateDateColumn({
     type: "timestamp",

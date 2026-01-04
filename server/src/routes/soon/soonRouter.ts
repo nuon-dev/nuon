@@ -8,7 +8,6 @@ import {
 } from "../../model/dataSource"
 import { IsNull } from "typeorm"
 import { checkJwt, getUserFromToken } from "../../util/util"
-import { Role } from "../../util/auth"
 
 const router = express.Router()
 
