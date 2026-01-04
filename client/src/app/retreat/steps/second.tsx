@@ -22,6 +22,11 @@ export default function SecondStep() {
           <br />
           참석일시를 선택해주세요.
         </Box>
+        <Box fontSize="14px" color="#999" mt="8px">
+          *토요일 저녁이후 참석자만
+          <br />
+          부분참석으로 분류되기 때문에 하는 조사합니다.
+        </Box>
       </Stack>
       <Stack width="60%" gap="24px">
         <RetreatButton
