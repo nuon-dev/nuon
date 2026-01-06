@@ -12,10 +12,10 @@ import useAuth from "@/hooks/useAuth"
 //아이콘 주소 https://www.flaticon.com/kr/
 export default function Admin() {
   const router = useRouter()
-  const { isAdminIfNotExit } = useAuth()
+  const { ifNotLoggedGoToLogin } = useAuth()
 
   useEffect(() => {
-    isAdminIfNotExit("/retreat/admin")
+    ifNotLoggedGoToLogin("/retreat/admin")
   }, [])
 
   return (

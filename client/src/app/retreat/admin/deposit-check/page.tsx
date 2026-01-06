@@ -21,9 +21,9 @@ import Header from "@/components/retreat/admin/Header"
 function DepositCheck() {
   const { push } = useRouter()
   const [allUserCount, setAllUserCount] = useState(0)
+  const [allDepositCount, setAllDepositCount] = useState(0)
   const [isShowUnpaid, setIsShowUnpaid] = useState(false)
-  const [depositStudentCount, setDepositStudentCount] = useState(0)
-  const [depositWorkerCount, setDepositWorkerCount] = useState(0)
+  const [depositSum, setDepositSum] = useState(0)
   const [allUserList, setAllUserList] = useState([] as Array<RetreatAttend>)
   const setNotificationMessage = useSetAtom(NotificationMessage)
 
@@ -52,16 +52,31 @@ function DepositCheck() {
     get("/retreat/admin/get-all-user")
       .then((data: RetreatAttend[]) => {
         setAllUserCount(data.length)
-        setDepositStudentCount(
+        setAllDepositCount(
           data.filter(
-            (retreatAttend) => retreatAttend.isDeposited === Deposit.student
+            (retreatAttend) => retreatAttend.isDeposited !== Deposit.none
           ).length
         )
-        setDepositWorkerCount(
+
+        const halfSum =
+          100_000 *
+          data.filter(
+            (retreatAttend) => retreatAttend.isDeposited === Deposit.half
+          ).length
+
+        const workerSum =
+          150_0000 *
           data.filter(
             (retreatAttend) => retreatAttend.isDeposited === Deposit.business
           ).length
-        )
+
+        const studentSum =
+          120_000 *
+          data.filter(
+            (retreatAttend) => retreatAttend.isDeposited === Deposit.student
+          ).length
+
+        setDepositSum(halfSum + workerSum + studentSum)
         if (isShowUnpaid) {
           setAllUserList(data)
           return
@@ -83,6 +98,55 @@ function DepositCheck() {
     setIsShowUnpaid(!isShowUnpaid)
   }
 
+  function DepositStatus({ retreatAttend }: { retreatAttend: RetreatAttend }) {
+    {
+      if (retreatAttend.isDeposited !== Deposit.none) {
+        return (
+          <Button
+            onClick={() => DepositProcessing(retreatAttend.id, Deposit.none)}
+            variant="contained"
+            color="error"
+          >
+            입금 취소 처리
+          </Button>
+        )
+      }
+      if (retreatAttend.isHalf) {
+        return (
+          <Button
+            onClick={() => DepositProcessing(retreatAttend.id, Deposit.half)}
+            variant="contained"
+            color="success"
+          >
+            부분참석
+          </Button>
+        )
+      }
+      if (retreatAttend.isWorker) {
+        return (
+          <Button
+            onClick={() =>
+              DepositProcessing(retreatAttend.id, Deposit.business)
+            }
+            variant="contained"
+            color="success"
+          >
+            직장인
+          </Button>
+        )
+      }
+      return (
+        <Button
+          onClick={() => DepositProcessing(retreatAttend.id, Deposit.student)}
+          variant="contained"
+          color="success"
+        >
+          학생
+        </Button>
+      )
+    }
+  }
+
   useEffect(() => {
     fetchData()
   }, [isShowUnpaid])
@@ -99,15 +163,12 @@ function DepositCheck() {
         }}
       >
         <Stack fontWeight="600" fontSize="20px">
-          전체 / 납부자 ({allUserCount} /{" "}
-          {depositStudentCount + depositWorkerCount})
+          전체 / 납부자 ({allUserCount} / {allDepositCount})
         </Stack>
         <Stack fontWeight="500" fontSize="18px">
           예상 납부 금액 -{" "}
-          {(depositStudentCount * 100000 + depositWorkerCount * 120000)
-            .toString()
-            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-          원 ({depositStudentCount * 10 + depositWorkerCount * 12}만원)
+          {depositSum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}원 (
+          {depositSum / 10000}만원)
         </Stack>
 
         <Button
@@ -158,42 +219,7 @@ function DepositCheck() {
                   {retreatAttend.user.phone}
                 </TableCell>
                 <TableCell style={{ padding: "12px" }}>
-                  {retreatAttend.isDeposited === Deposit.none ? (
-                    <Stack gap="8px">
-                      <Button
-                        onClick={() =>
-                          DepositProcessing(retreatAttend.id, Deposit.student)
-                        }
-                        variant="contained"
-                        color="success"
-                      >
-                        학생
-                      </Button>
-                      <Button
-                        onClick={() =>
-                          DepositProcessing(retreatAttend.id, Deposit.business)
-                        }
-                        variant="contained"
-                        color="success"
-                      >
-                        직장인
-                      </Button>
-                    </Stack>
-                  ) : (
-                    <Button
-                      onClick={() =>
-                        DepositProcessing(retreatAttend.id, Deposit.none)
-                      }
-                      variant="contained"
-                      color="error"
-                    >
-                      {retreatAttend.isDeposited === Deposit.student
-                        ? "학생"
-                        : "직장인"}
-                      <br />
-                      취소 처리
-                    </Button>
-                  )}
+                  <DepositStatus retreatAttend={retreatAttend} />
                 </TableCell>
               </TableRow>
             )

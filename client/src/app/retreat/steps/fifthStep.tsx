@@ -54,7 +54,7 @@ export default function FifthStep() {
             label={"계좌 복사하기"}
             onClick={() => {
               navigator.clipboard.writeText(
-                "3333342703455 성은비 " + calculateRetreatFee()
+                "3333342703455 카카오뱅크 성은비 " + calculateRetreatFee()
               )
               setNotificationMessage("계좌 정보가 복사되었습니다.")
             }}

@@ -49,6 +49,7 @@ export enum Deposit {
   none = "none",
   student = "student",
   business = "business",
+  half = "half",
 }
 
 export enum AttendStatus {

@@ -101,6 +101,8 @@ router.get("/get-all-user", async (req, res) => {
       isDeposited: true,
       createAt: true,
       attendanceNumber: true,
+      isHalf: true,
+      isWorker: true,
       user: {
         name: true,
         phone: true,

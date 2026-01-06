@@ -3,16 +3,6 @@
   src: url("../font/PretendardVariable.woff2");
 }
 
-@font-face {
-  font-family: "Cafe24OhsquareAir";
-  src: url("../font/Cafe24OhsquareAir-v2.0.woff2");
-}
-
-@font-face {
-  font-family: "Cafe24Ohsquare";
-  src: url("../font/Cafe24Ohsquare-v2.0.woff2");
-}
-
 /*
 @font-face {
   font-family: "HandFont";
@@ -21,57 +11,15 @@
 */
 
 @font-face {
-  font-family: "SCDream";
-  src: url("../font/SCDream1.otf");
-  font-weight: 100;
+  font-family: "NEXON_Warhaven_OTF";
+  src: url("../font/NEXON_Warhaven_OTF_Bold.otf");
+  font-weight: bold;
 }
 
 @font-face {
-  font-family: "SCDream";
-  src: url("../font/SCDream2.otf");
-  font-weight: 200;
-}
-
-@font-face {
-  font-family: "SCDream";
-  src: url("../font/SCDream3.otf");
-  font-weight: 300;
-}
-
-@font-face {
-  font-family: "SCDream";
-  src: url("../font/SCDream4.otf");
-  font-weight: 400;
-}
-
-@font-face {
-  font-family: "SCDream";
-  src: url("../font/SCDream5.otf");
-  font-weight: 500;
-}
-
-@font-face {
-  font-family: "SCDream";
-  src: url("../font/SCDream6.otf");
-  font-weight: 600;
-}
-
-@font-face {
-  font-family: "SCDream";
-  src: url("../font/SCDream7.otf");
-  font-weight: 700;
-}
-
-@font-face {
-  font-family: "SCDream";
-  src: url("../font/SCDream8.otf");
-  font-weight: 800;
-}
-
-@font-face {
-  font-family: "SCDream";
-  src: url("../font/SCDream9.otf");
-  font-weight: 900;
+  font-family: "NEXON_Warhaven_OTF";
+  src: url("../font/NEXON_Warhaven_OTF_Regular.otf");
+  font-weight: normal;
 }
 
 body {

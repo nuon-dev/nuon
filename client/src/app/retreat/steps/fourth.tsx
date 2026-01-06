@@ -34,7 +34,7 @@ export default function FourthStep() {
   async function saveRetreatAttendWrapper() {
     try {
       const { data } = await saveRetreatAttend()
-      alert(data.result)
+      setNotificationMessage(data.result)
       setStep(5)
     } catch (e) {
       setNotificationMessage(
@@ -80,7 +80,7 @@ export default function FourthStep() {
         <Stack direction="row" height="40px" gap="24px">
           <Stack flex={2}>
             <RetreatButton
-              label={isHalf ? "(토) 집회 이전" : "(토) 집회 이후"}
+              label={isHalf ? "(토) 집회 이후" : "(토) 집회 이전"}
               onClick={() => {}}
             />
           </Stack>

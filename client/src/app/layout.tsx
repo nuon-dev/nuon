@@ -29,7 +29,7 @@ export default function RootLayout({
   }
 
   return (
-    <html lang="en">
+    <html lang="kr">
       <title>{title}</title>
       <meta name="referrer" content="same-origin" />
       <meta
@@ -38,13 +38,17 @@ export default function RootLayout({
       />
       <meta
         name="viewport"
-        content="initial-scale=1.0,user-scalable=no,maximum-scale=1,width=device-width"
+        content="initial-scale=1.0,user-scalable=no,maximum-scale=1,width=device-width,viewport-fit=cover"
       />
 
       <meta name="title" property="og:title" content={title} />
       <meta name="description" property="og:description" content="" />
-      <meta name="image" property="og:image" content="/retreat_bg.png" />
-      <meta name="url" property="og:url" content="retreat_bg.png" />
+      <meta
+        name="image"
+        property="og:image"
+        content="/retreat/retreat_bg.jpeg"
+      />
+      <meta name="url" property="og:url" content="/retreat/retreat_bg.jpeg" />
       <meta name="format-detection" content="telephone=no" />
       <Provider>
         <body>

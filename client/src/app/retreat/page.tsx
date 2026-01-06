@@ -10,6 +10,8 @@ import ThirdStep from "./steps/third"
 import useRetreat from "./hooks/useRetreat"
 import FourthStep from "./steps/fourth"
 import FifthStep from "./steps/fifthStep"
+import usePageColor from "@/hooks/usePageColor"
+import useBodyOverflowHidden from "@/hooks/useBodyOverflowHidden"
 
 export default function RetreatPage() {
   return (
@@ -20,6 +22,8 @@ export default function RetreatPage() {
 }
 
 function RetreatContent() {
+  useBodyOverflowHidden()
+  usePageColor("#2F3237")
   const searchParams = useSearchParams()
   const isNewUser = searchParams.get("newUser")
   const { isLogin } = useAuth()
@@ -56,22 +60,33 @@ function RetreatContent() {
     <Stack
       width="100vw"
       height="100vh"
-      alignItems="center"
       bgcolor="#2F3237"
-      justifyContent="center"
+      fontFamily="NEXON_Warhaven_OTF"
     >
-      <Stack height="100%" alignItems="center" justifyContent="center" pt="20%">
-        <img src={topImageUrl} alt={`step ${step} top`} width="60%" />
-        <Stack height="100%">
-          {step === 1 && <FirstStep />}
-          {step === 2 && <SecondStep />}
-          {step === 3 && <ThirdStep />}
-          {step === 4 && <FourthStep />}
-          {step === 5 && <FifthStep />}
+      <Stack
+        width="100vw"
+        justifyContent="center"
+        minHeight="100dvh"
+        alignItems="center"
+      >
+        <Stack
+          height="100%"
+          alignItems="center"
+          justifyContent="center"
+          pt="10%"
+        >
+          <img src={topImageUrl} alt={`step ${step} top`} width="60%" />
+          <Stack height="100%">
+            {step === 1 && <FirstStep />}
+            {step === 2 && <SecondStep />}
+            {step === 3 && <ThirdStep />}
+            {step === 4 && <FourthStep />}
+            {step === 5 && <FifthStep />}
+          </Stack>
         </Stack>
-      </Stack>
-      <Stack height="20%" alignItems="center" justifyContent="center">
-        <img src="/retreat/main/bottom.png" alt="first top" width="80px" />
+        <Stack height="20%" alignItems="center" justifyContent="center">
+          <img src="/retreat/main/bottom.png" alt="first top" width="80px" />
+        </Stack>
       </Stack>
     </Stack>
   )
