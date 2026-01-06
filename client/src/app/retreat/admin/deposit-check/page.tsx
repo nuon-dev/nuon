@@ -65,7 +65,7 @@ function DepositCheck() {
           ).length
 
         const workerSum =
-          150_0000 *
+          150_000 *
           data.filter(
             (retreatAttend) => retreatAttend.isDeposited === Deposit.business
           ).length
@@ -168,7 +168,7 @@ function DepositCheck() {
         <Stack fontWeight="500" fontSize="18px">
           예상 납부 금액 -{" "}
           {depositSum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}원 (
-          {depositSum / 10000}만원)
+          {depositSum / 10_0000}만원)
         </Stack>
 
         <Button
