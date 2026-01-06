@@ -29,7 +29,7 @@ export default function RootLayout({
   }
 
   return (
-    <html lang="en">
+    <html lang="kr">
       <title>{title}</title>
       <meta name="referrer" content="same-origin" />
       <meta
