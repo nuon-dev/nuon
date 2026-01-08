@@ -26,6 +26,13 @@ export default function useKakaoHook() {
 
   function getKakaoToken(): Promise<number> {
     return new Promise((resolve, reject) => {
+      if (!Kakao) {
+        alert("카카오 SDK 로딩 실패\n잠시 후 다시 시도해주세요.")
+        if (globalValue.Kakao) {
+          alert("globalValue.Kakao는 불러와짐")
+        }
+        return
+      }
       Kakao.Auth.login({
         success: function (response: Response) {
           Kakao.API.request({
