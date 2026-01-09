@@ -98,7 +98,7 @@ jobs:
             pm2 list || echo "PM2 list failed"
 
             echo "=== Reloading nuon process ==="
-            pm2 reload nuon || pm2 start npm --name "nuon" -- start
+            pm2 reload nuon || pm2 start "sudo npm run start" --name "nuon" --time
 
             echo "=== Final PM2 processes ==="
             pm2 list
