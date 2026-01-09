@@ -41,6 +41,9 @@ jobs:
 
       - name: client build
         working-directory: client
+        env:
+          NEXT_PUBLIC_API_TARGET: dev
+          NEXT_PUBLIC_DEV_SERVER: ${{ secrets.DEV_SERVER_URL }}
         run: npm run build
 
       - name: deploy-client

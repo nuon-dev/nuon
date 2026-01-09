@@ -4,7 +4,6 @@ import { Permission } from "../entity/permission"
 import { RetreatAttend } from "../entity/retreat/retreatAttend"
 import { User } from "../entity/user"
 import { Community } from "../entity/community"
-import { ChatLog } from "../entity/retreat/chatLog"
 import {
   SharingImage,
   SharingText,
@@ -22,7 +21,6 @@ export const permissionDatabase = dataSource.getRepository(Permission)
 export const attendDataDatabase = dataSource.getRepository(AttendData)
 export const worshipScheduleDatabase = dataSource.getRepository(WorshipSchedule)
 
-export const chatLogDatabase = dataSource.getRepository(ChatLog)
 export const inOutInfoDatabase = dataSource.getRepository(InOutInfo)
 export const retreatAttendDatabase = dataSource.getRepository(RetreatAttend)
 

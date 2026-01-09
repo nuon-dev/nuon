@@ -10,7 +10,7 @@ import { Community } from "@server/entity/community"
 import { useRouter } from "next/navigation"
 import { NotificationMessage } from "@/state/notification"
 
-export const JwtInformationAtom = atom<jwtPayload | null>(null)
+export const JwtInformationAtom = atom<jwtPayload | null | undefined>(null)
 
 export interface Role {
   Admin: boolean
@@ -27,7 +27,8 @@ export interface jwtPayload {
   iat: number
   exp: number
 }
-const isLoginAtom = atom((get) => !!get(JwtInformationAtom))
+const isLoginAtom = atom((get) => get(JwtInformationAtom) != null)
+const kakaoTokenAtom = atom<number | null>(null)
 
 export default function useAuth() {
   const { push } = useRouter()
@@ -35,6 +36,7 @@ export default function useAuth() {
   const isLogin = useAtomValue(isLoginAtom)
   const setNotificationMessage = useSetAtom(NotificationMessage)
   const [authUserData, setAuthUserData] = useAtom(JwtInformationAtom)
+  const [kakaoToken, setKakaoToken] = useAtom(kakaoTokenAtom)
 
   useEffect(() => {
     loadFromLocalStorage()
@@ -43,6 +45,7 @@ export default function useAuth() {
   async function loadFromLocalStorage() {
     const token = localStorage.getItem("token")
     if (!token) {
+      setAuthUserData(null)
       return
     }
     const userData = jwtDecode<jwtPayload>(token)
@@ -65,15 +68,21 @@ export default function useAuth() {
     return null
   }
 
-  async function login() {
-    const kakaoId = await getKakaoToken()
-    const { data, status } = await axios.post("/auth/login", {
-      kakaoId: kakaoId,
-    })
-    const { result, accessToken } = data
-    if (status !== 200 || result !== "success") {
-      return false
+  async function login(kakaoId?: number): Promise<jwtPayload> {
+    if (!kakaoId) {
+      kakaoId = await getKakaoToken()
     }
+    setKakaoToken(kakaoId)
+    const { data } = await axios.post(
+      "/auth/login",
+      {
+        kakaoId: kakaoId,
+      },
+      {
+        withCredentials: true,
+      }
+    )
+    const { accessToken } = data
     localStorage.setItem("token", accessToken)
     const userData = jwtDecode<jwtPayload>(accessToken)
     setAuthUserData(userData)
@@ -99,7 +108,7 @@ export default function useAuth() {
 
     if (authUserData.role.Leader === false) {
       push("/")
-      setNotificationMessage("리더 권한이 없습니다.")
+      setNotificationMessage("순장 권한이 없습니다.")
       return false
     }
     return true
@@ -120,6 +129,12 @@ export default function useAuth() {
     return true
   }
 
+  function logout() {
+    localStorage.removeItem("token")
+    setAuthUserData(null)
+    push("/common/login")
+  }
+
   return {
     authUserData,
     isLogin,
@@ -127,5 +142,7 @@ export default function useAuth() {
     ifNotLoggedGoToLogin,
     isLeaderIfNotExit,
     isAdminIfNotExit,
+    logout,
+    kakaoToken,
   }
 }

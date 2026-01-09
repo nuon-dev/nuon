@@ -1,22 +1,38 @@
 "use client"
 
-import { Button, Stack } from "@mui/material"
+import {
+  Button,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@mui/material"
 import { useEffect, useState } from "react"
 import { get, post } from "@/config/api"
+import axios from "@/config/axios"
+import useAuth from "@/hooks/useAuth"
 
 type VoteStatus = "투표불가" | "1부 투표" | "2부 투표"
 
 export default function VotePage() {
   const [currentState, setCurrentState] = useState<VoteStatus>("투표불가")
-  const [results, setResults] = useState<Record<string, number>>()
+  const [results, setResults] =
+    useState<Record<string, Record<string, number>>>()
   const [totalVotes, setTotalVotes] = useState(0)
+  const [firstTermVotes, setFirstTermVotes] = useState(0)
+  const [secondTermVotes, setSecondTermVotes] = useState(0)
+  const [userCount, setUserCount] = useState(0)
+  const { ifNotLoggedGoToLogin } = useAuth()
 
   useEffect(() => {
     get("/event/worship-contest/status").then((data) => {
       setCurrentState(data.currentVoteStatus)
     })
     fetchResults()
-    setInterval(fetchResults, 10 * 1000)
+    const interval = setInterval(fetchResults, 10 * 1000)
+    return () => clearInterval(interval)
   }, [])
 
   function handleVoteStatus(newStatus: VoteStatus) {
@@ -27,11 +43,57 @@ export default function VotePage() {
     )
   }
 
-  function fetchResults() {
-    get("/event/worship-contest/results").then((data) => {
+  async function fetchResults() {
+    try {
+      const { data } = await axios.get("/event/worship-contest/results")
       setResults(data.result)
       setTotalVotes(data.totalVotes)
-    })
+      setFirstTermVotes(data.firstTermVoteCount)
+      setSecondTermVotes(data.secondTermVoteCount)
+      setUserCount(data.userCount)
+    } catch (error) {
+      ifNotLoggedGoToLogin("/admin/event/worshipContest")
+    }
+  }
+
+  function getCommunityRow(
+    communityName: string,
+    data: Record<string, number> | undefined,
+    index: number
+  ) {
+    if (!data) return null
+    const point = calculatePoints(communityName)
+    return (
+      <TableRow key={communityName}>
+        <TableCell>{index + 1}</TableCell>
+        <TableCell>{communityName}</TableCell>
+        <TableCell>{data.term}부</TableCell>
+        <TableCell>{data.first}</TableCell>
+        <TableCell>{data.second}</TableCell>
+        <TableCell>{data.third}</TableCell>
+        <TableCell>{point}</TableCell>
+        <TableCell>{calculateAverage(communityName).toFixed(4)}</TableCell>
+      </TableRow>
+    )
+  }
+
+  function calculatePoints(communityName: string) {
+    if (!results) return 0
+    if (!results[communityName]) return 0
+    const point =
+      results[communityName].first * 5 +
+      results[communityName].second * 3 +
+      results[communityName].third * 1
+    return point
+  }
+
+  function calculateAverage(communityName: string) {
+    if (!results) return 0
+    if (!results[communityName]) return 0
+    const point = calculatePoints(communityName)
+    const termVotes =
+      results[communityName].term === 1 ? firstTermVotes : secondTermVotes
+    return point / termVotes
   }
 
   return (
@@ -49,15 +111,31 @@ export default function VotePage() {
         </Button>
         순위 현황
         <Stack>
-          총 투표 수: {totalVotes}
-          {Object.entries(results || {}).map(([communityId, points], index) => (
-            <Stack key={communityId} direction="row" gap="8px">
-              <span>
-                {index + 1}위 : {communityId}
-              </span>
-              <span>점수: {(points / totalVotes).toFixed(2)}</span>
-            </Stack>
-          ))}
+          유권자수: {userCount} <br />총 투표 수 (1,2부 합산): {totalVotes}
+          <br /> 1부 투표 수:
+          {firstTermVotes}
+          <br /> 2부 투표 수: {secondTermVotes}
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>순위</TableCell>
+                <TableCell>다락방 이름</TableCell>
+                <TableCell>순서</TableCell>
+                <TableCell>1등 투표 수</TableCell>
+                <TableCell>2등 투표 수</TableCell>
+                <TableCell>3등 투표 수</TableCell>
+                <TableCell>총점</TableCell>
+                <TableCell sortDirection="desc">평균</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {Object.entries(results || {})
+                .sort(([a], [b]) => calculateAverage(b) - calculateAverage(a))
+                .map(([communityId, data], index) =>
+                  getCommunityRow(communityId, data, index)
+                )}
+            </TableBody>
+          </Table>
         </Stack>
       </Stack>
     </Stack>

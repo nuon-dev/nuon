@@ -72,16 +72,19 @@ export async function getUserFromToken(req: express.Request) {
   if (!token) {
     return null
   }
-  const { id } = jwt.verify(token, env.JWT_SECRET)
-
-  return await userDatabase.findOne({
-    relations: {
-      community: true,
-    },
-    where: {
-      id: id,
-    },
-  })
+  try {
+    const { id } = jwt.verify(token, env.JWT_SECRET)
+    return await userDatabase.findOne({
+      relations: {
+        community: true,
+      },
+      where: {
+        id: id,
+      },
+    })
+  } catch (e) {
+    return null
+  }
 }
 
 export async function checkJwt(req: express.Request) {

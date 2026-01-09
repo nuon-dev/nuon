@@ -6,6 +6,9 @@ import userModel from "../model/user"
 
 const router = express.Router()
 
+/**
+ * Todo: 클라이언트에서 isSuperUser true 날리면 그냥 해줄겨? 아주 그냥...ㅎ 바꾸기
+ */
 router.post("/edit-my-information", async (req, res) => {
   const me = await getUserFromToken(req)
   if (!me) {
@@ -54,25 +57,32 @@ router.post("/login", async (req, res) => {
 
   const newUserToken = await userModel.loginFromKakaoId(kakaoId)
   if (!newUserToken) {
-    res.status(401).send({ result: "fail" })
+    res.status(404).send({ result: "fail" })
     return
   }
 
+  const twentyOneDays = 1000 * 60 * 60 * 24 * 21
   res
-    .cookie("refreshToken", newUserToken.refreshToken, { httpOnly: true })
+    .header("Access-Control-Allow-Credentials", "true")
+    .cookie("refreshToken", newUserToken.refreshToken, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      expires: new Date(Date.now() + twentyOneDays),
+    })
     .send({ result: "success", accessToken: newUserToken.accessToken })
 })
 
 router.post("/refresh-token", async (req, res) => {
   const refreshToken = req.cookies.refreshToken
   if (!refreshToken) {
-    res.status(401).send({ success: false })
+    res.status(403).send({ success: false })
     return
   }
 
   const tokenResult = await userModel.createNewAccessToken(refreshToken)
   if (!tokenResult.success) {
-    res.status(401).send({ result: "fail" })
+    res.status(404).send({ result: "fail" })
     return
   }
 

@@ -17,13 +17,22 @@ export default function useKakaoHook() {
         }
         return
       }
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 500))
     }
-    alert("필수 라이브러리 로딩 실패, 다른 브라우저를 이용해주세요.")
+    alert(
+      "필수 라이브러리 로딩 실패, 다른 브라우저 또는 빠른 네트워크를 이용해주세요."
+    )
   }
 
   function getKakaoToken(): Promise<number> {
     return new Promise((resolve, reject) => {
+      if (!Kakao) {
+        alert("카카오 SDK 로딩 실패\n잠시 후 다시 시도해주세요.")
+        if (globalValue.Kakao) {
+          alert("globalValue.Kakao는 불러와짐")
+        }
+        return
+      }
       Kakao.Auth.login({
         success: function (response: Response) {
           Kakao.API.request({

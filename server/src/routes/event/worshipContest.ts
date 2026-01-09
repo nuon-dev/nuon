@@ -1,14 +1,15 @@
 import { Router } from "express"
 import {
   communityDatabase,
+  userDatabase,
   worshipContestDatabase,
 } from "../../model/dataSource"
 import { getUserFromToken } from "../../util/util"
-import { IsNull, In } from "typeorm"
+import { IsNull, In, Not } from "typeorm"
 
 const router = Router()
 
-type VoteStatus = "투표불가" | "1부" | "2부"
+type VoteStatus = "투표불가" | "1부 투표" | "2부 투표"
 
 let currentVoteStatus: VoteStatus = "투표불가"
 
@@ -18,7 +19,12 @@ router.get("/status", async (req, res) => {
 
 router.post("/admin/set-status", async (req, res) => {
   const user = await getUserFromToken(req)
-  if (!user || !user.isSuperUser) {
+  if (!user) {
+    res.status(401).json({ message: "로그인후 이용해주세요" })
+    return
+  }
+
+  if (!user.isSuperUser) {
     res.status(403).json({ message: "권한이 없습니다." })
     return
   }
@@ -45,7 +51,7 @@ router.post("/vote", async (req, res) => {
       voteUser: {
         id: user.id,
       },
-      term: currentVoteStatus === "1부" ? 1 : 2,
+      term: currentVoteStatus === "1부 투표" ? 1 : 2,
     },
   })
 
@@ -54,45 +60,116 @@ router.post("/vote", async (req, res) => {
     return
   }
 
-  const { firstCommunity, secondCommunity, thirdCommunity } = req.body
+  const { firstCommunity, secondCommunity, thirdCommunity, state } = req.body
+
+  if (state !== currentVoteStatus) {
+    res
+      .status(400)
+      .json({ message: "투표 용지가 변경되었습니다. 새로고침 해주세요." })
+    return
+  }
+
   const vote = worshipContestDatabase.create({
     voteUser: user,
     firstCommunity: firstCommunity,
     secondCommunity: secondCommunity,
     thirdCommunity: thirdCommunity,
-    term: currentVoteStatus === "1부" ? 1 : 2,
+    term: currentVoteStatus === "1부 투표" ? 1 : 2,
   })
+  if (!vote.firstCommunity || !vote.secondCommunity || !vote.thirdCommunity) {
+    res.status(400).json({ message: "모든 순위를 선택해야 합니다." })
+    return
+  }
   await worshipContestDatabase.save(vote)
 
   res.json({ message: "투표가 완료되었습니다." })
 })
 
 router.get("/results", async (req, res) => {
+  const user = await getUserFromToken(req)
+  if (!user) {
+    res.status(401).json({ message: "로그인후 이용해주세요" })
+    return
+  }
+
+  if (!user.isSuperUser) {
+    res.status(403).json({ message: "권한이 없습니다." })
+    return
+  }
+
   const votes = await worshipContestDatabase.find()
 
-  const tally: Record<number, { points: number; name: string }> = {}
+  let firstTermVoteCount = 0
+  let secondTermVoteCount = 0
 
-  votes.forEach((vote) => {
+  const tally: Record<
+    number,
+    {
+      first: number
+      second: number
+      third: number
+      name: string
+      term: number
+    }
+  > = {}
+
+  for (const vote of votes) {
+    const term = vote.term
+
+    if (term === 1) {
+      firstTermVoteCount++
+    } else if (term === 2) {
+      secondTermVoteCount++
+    }
+
     if (!tally[vote.firstCommunity]) {
-      tally[vote.firstCommunity] = 5
+      tally[vote.firstCommunity] = {
+        first: 1,
+        second: 0,
+        third: 0,
+        name: "",
+        term: term,
+      }
     } else {
-      tally[vote.firstCommunity] += 5
+      tally[vote.firstCommunity].first += 1
     }
-
     if (!tally[vote.secondCommunity]) {
-      tally[vote.secondCommunity] = 3
+      tally[vote.secondCommunity] = {
+        second: 1,
+        first: 0,
+        third: 0,
+        name: "",
+        term: term,
+      }
     } else {
-      tally[vote.secondCommunity] += 3
+      tally[vote.secondCommunity].second += 1
     }
-
     if (!tally[vote.thirdCommunity]) {
-      tally[vote.thirdCommunity] = 1
+      tally[vote.thirdCommunity] = {
+        third: 1,
+        first: 0,
+        second: 0,
+        name: "",
+        term: term,
+      }
     } else {
-      tally[vote.thirdCommunity] += 1
+      tally[vote.thirdCommunity].third += 1
     }
+  }
+
+  const userCount = await userDatabase.count({
+    where: {
+      community: Not(IsNull()),
+    },
   })
 
-  res.json({ result: tally, totalVotes: votes.length })
+  res.json({
+    result: tally,
+    totalVotes: votes.length,
+    firstTermVoteCount,
+    secondTermVoteCount,
+    userCount,
+  })
 })
 
 router.get("/my-village", async (req, res) => {

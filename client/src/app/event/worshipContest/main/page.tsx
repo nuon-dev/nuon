@@ -24,8 +24,10 @@ export default function VotePage() {
     >
       <Stack>
         <Image
-          src="/main_bg.jpeg"
+          src="/event/worshipContest/main_bg.jpeg"
           alt="Worship Contest"
+          width={global.innerWidth}
+          height={0}
           style={{
             width: "100vw",
             height: "auto",
@@ -33,9 +35,11 @@ export default function VotePage() {
           }}
         />
         <Image
-          src="/btn.jpeg"
+          src="/event/worshipContest/btn.jpeg"
           onClick={() => push("/event/worshipContest/vote")}
           alt="Vote Button"
+          width={400}
+          height={0}
           style={{
             width: "40vw",
             height: "auto",

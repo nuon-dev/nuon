@@ -8,7 +8,6 @@ import {
 } from "../../model/dataSource"
 import { IsNull } from "typeorm"
 import { checkJwt, getUserFromToken } from "../../util/util"
-import { Role } from "../../util/auth"
 
 const router = express.Router()
 
@@ -234,13 +233,15 @@ router.post("/register-kakao-login", async (req, res) => {
   if (existingUsers) {
     res
       .status(400)
-      .send({ error: "This Kakao account is already linked to another user." })
+      .send({ error: "이미 등록어 있는 카카오 계정 입니다." + `(${kakaoId})` })
     return
   }
 
   await userDatabase.update({ id: userId }, { kakaoId })
 
-  res.status(200).send({ message: "정상적으로 등록 되었습니다." })
+  res
+    .status(200)
+    .send({ message: "정상적으로 등록 되었습니다.\n창을 닫으셔도 됩니다." })
 })
 
 router.get("/isValid-kakao-login-register", async (req, res) => {

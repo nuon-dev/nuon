@@ -137,8 +137,6 @@ export default function AttendanceAdminPage() {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5" }}>
-      <AdminHeader />
-
       <Box sx={{ p: 2 }}>
         {/* 커뮤니티 네비게이션 & 필터 통합 카드 */}
         <Card sx={{ mb: 3 }}>
@@ -164,7 +162,7 @@ export default function AttendanceAdminPage() {
                 </Box>
               </Stack>
 
-              {/* 하단: 커뮤니티 선택 */}
+              {/* 하단: 다락방 선택 */}
               {filteredCommunities.length > 0 && (
                 <Box>
                   <Typography
@@ -172,7 +170,7 @@ export default function AttendanceAdminPage() {
                     fontWeight="bold"
                     gutterBottom
                   >
-                    커뮤니티 선택
+                    다락방 선택
                   </Typography>
                   <Stack direction="row" gap={2} flexWrap="wrap">
                     {filteredCommunities.map((community) => (
