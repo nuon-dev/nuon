@@ -1,5 +1,5 @@
 import axios from "axios"
-const PORT = 8000
+let PORT = 8000
 
 const getBaseUrl = () => {
   const target = process.env.NEXT_PUBLIC_API_TARGET
@@ -8,6 +8,7 @@ const getBaseUrl = () => {
     case "prod":
       return process.env.NEXT_PUBLIC_PROD_SERVER
     case "dev":
+      PORT = 8001
       return process.env.NEXT_PUBLIC_DEV_SERVER
     case "local":
     default:
