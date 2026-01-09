@@ -1,9 +1,23 @@
 import axios from "axios"
-const PORT = 8000
-const SERVER_URL =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost"
-    : "https://nuon.iubns.net"
+let PORT = 8000
+
+const getBaseUrl = () => {
+  const target = process.env.NEXT_PUBLIC_API_TARGET
+
+  switch (target) {
+    case "prod":
+      return process.env.NEXT_PUBLIC_PROD_SERVER
+    case "dev":
+      PORT = 8001
+      return process.env.NEXT_PUBLIC_DEV_SERVER
+    case "local":
+    default:
+      return process.env.NEXT_PUBLIC_LOCAL_SERVER
+  }
+}
+
+const SERVER_URL = getBaseUrl()
+
 export const SERVER_FULL_PATH = `${SERVER_URL}:${PORT}`
 
 const isBrowser = typeof window !== "undefined"
