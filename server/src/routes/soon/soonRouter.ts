@@ -6,10 +6,28 @@ import {
   userDatabase,
   worshipScheduleDatabase,
 } from "../../model/dataSource"
-import { IsNull } from "typeorm"
 import { checkJwt, getUserFromToken } from "../../util/util"
+import { Community } from "../../entity/community"
+import { User } from "../../entity/user"
 
 const router = express.Router()
+
+async function getAllSoonUsers(community: Community) {
+  const communityWithRelations = await communityDatabase.findOne({
+    where: { id: community.id },
+    relations: { children: true, users: true },
+  })
+  let users: User[] = []
+
+  const childUsersPromise = await communityWithRelations.children.map(
+    async (childCommunity) => {
+      return await getAllSoonUsers(childCommunity)
+    }
+  )
+  const awaitedChildUsers = (await Promise.all(childUsersPromise)).flat()
+
+  return [...communityWithRelations.users, ...awaitedChildUsers]
+}
 
 router.get("/my-group-info", async (req, res) => {
   const user = await getUserFromToken(req)
@@ -17,48 +35,13 @@ router.get("/my-group-info", async (req, res) => {
     res.status(401).send({ error: "Unauthorized" })
     return
   }
-  const group = await communityDatabase.findOne({
-    select: {
-      id: true,
-      name: true,
-      users: {
-        id: true,
-        name: true,
-        yearOfBirth: true,
-        phone: true,
-        gender: true,
-        kakaoId: true,
-      },
-      children: true,
-    },
-    where: [
-      {
-        leader: {
-          id: user.id,
-        },
-        children: {
-          id: IsNull(),
-        },
-      },
-      {
-        deputyLeader: {
-          id: user.id,
-        },
-        children: {
-          id: IsNull(),
-        },
-      },
-    ],
-    relations: {
-      users: true,
-      children: true,
-    },
-  })
+  const group = user.community
   if (!group) {
     res.status(404).send({ error: "Group not found" })
     return
   }
-  group.users = group.users.map(
+  const allUsers = await getAllSoonUsers(group)
+  group.users = allUsers.map(
     (user) =>
       ({
         id: user.id,
