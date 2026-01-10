@@ -1,10 +1,41 @@
 import express from "express"
 import { worshipScheduleDatabase } from "../../model/dataSource"
+import {
+  Between,
+  FindOptionsWhere,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+} from "typeorm"
+import { WorshipSchedule } from "../../entity/worshipSchedule"
 
 const router = express.Router()
 
 router.get("/", async (req, res) => {
+  const { startDate, endDate, kind, canEdit, isVisible } = req.query
+  const where: FindOptionsWhere<WorshipSchedule> = {}
+
+  if (startDate && endDate) {
+    where.date = Between(String(startDate), String(endDate))
+  } else if (startDate) {
+    where.date = MoreThanOrEqual(String(startDate))
+  } else if (endDate) {
+    where.date = LessThanOrEqual(String(endDate))
+  }
+
+  if (kind) {
+    where.kind = Number(kind)
+  }
+
+  if (canEdit !== undefined) {
+    where.canEdit = canEdit === "true"
+  }
+
+  if (isVisible !== undefined) {
+    where.isVisible = isVisible === "true"
+  }
+
   const data = await worshipScheduleDatabase.find({
+    where,
     order: {
       date: "DESC",
     },
