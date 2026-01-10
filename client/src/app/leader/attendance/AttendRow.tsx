@@ -19,18 +19,23 @@ import { AttendStatus } from "@server/entity/types"
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"
 import CancelIcon from "@mui/icons-material/Cancel"
 import HelpIcon from "@mui/icons-material/Help"
+import { AttendData } from "@server/entity/attendData"
 
-export default function AttendRow({ user }: { user: User }) {
-  const { soonAttendData, setSoonAttendData } = useAttendance()
+export default function AttendRow({
+  user,
+  soonAttendData,
+  setSoonAttendData,
+}: {
+  user: User
+  soonAttendData: Array<AttendData>
+  setSoonAttendData: React.Dispatch<React.SetStateAction<AttendData[]>>
+}) {
   const attendData = soonAttendData.find((data) => data.user.id === user.id)
   if (!attendData) return null
 
   const isAttend = attendData.isAttend
 
-  function handleAttendChange(
-    event: SelectChangeEvent<string>,
-    child: React.ReactNode
-  ) {
+  function handleAttendChange(event: SelectChangeEvent<string>) {
     const newAttendStatus = event.target.value as AttendStatus
     if (!attendData) return
     const newAttendData = { ...attendData, isAttend: newAttendStatus }

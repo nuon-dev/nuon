@@ -9,6 +9,7 @@ import {
 import { checkJwt, getUserFromToken } from "../../util/util"
 import { Community } from "../../entity/community"
 import { User } from "../../entity/user"
+import { In } from "typeorm"
 
 const router = express.Router()
 
@@ -128,10 +129,14 @@ router.get("/attendance", async (req, res) => {
     return
   }
   const scheduleId = parseInt(req.query.scheduleId as string, 10)
+
   if (isNaN(scheduleId)) {
     res.status(400).send({ error: "Invalid schedule ID" })
     return
   }
+
+  const childrenUsers = await getAllSoonUsers(user.community)
+  const userIds = childrenUsers.map((user) => user.id)
 
   const attendDataList = await attendDataDatabase.find({
     where: {
@@ -139,9 +144,7 @@ router.get("/attendance", async (req, res) => {
         id: scheduleId,
       },
       user: {
-        community: {
-          id: user.community.id,
-        },
+        id: In(userIds),
       },
     },
     relations: {

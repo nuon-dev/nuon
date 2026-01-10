@@ -15,7 +15,7 @@ import {
   CircularProgress,
 } from "@mui/material"
 import { useSetAtom } from "jotai"
-import { get } from "@/config/api"
+import axios from "@/config/axios"
 import useAuth from "@/hooks/useAuth"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -95,7 +95,7 @@ function index() {
 
   async function fetchDashboardData() {
     try {
-      const data = await get("/admin/dashboard")
+      const { data } = await axios.get("/admin/dashboard")
       setDashboardData(data)
     } catch (err) {
       setError("대시보드 데이터를 불러오는 중 오류가 발생했습니다.")

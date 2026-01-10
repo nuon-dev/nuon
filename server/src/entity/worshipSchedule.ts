@@ -9,6 +9,7 @@ import {
 export enum WorshipKind {
   SundayService = 1,
   FridayService = 2,
+  Etc = 3,
 }
 
 @Entity()
