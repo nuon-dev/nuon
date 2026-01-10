@@ -18,6 +18,8 @@ import {
   Paper,
   Chip,
   Divider,
+  FormControl,
+  InputLabel,
 } from "@mui/material"
 import { useSetAtom } from "jotai"
 import { worshipKr } from "@/util/worship"
@@ -26,16 +28,30 @@ import AddIcon from "@mui/icons-material/Add"
 import EditIcon from "@mui/icons-material/Edit"
 import SaveIcon from "@mui/icons-material/Save"
 import DeleteIcon from "@mui/icons-material/Delete"
+import SearchIcon from "@mui/icons-material/Search"
 import { NotificationMessage } from "@/state/notification"
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth"
 import { WorshipKind, WorshipSchedule } from "@server/entity/worshipSchedule"
 import axios from "@/config/axios"
+import dayjs from "dayjs"
 
 export default function WorshipSchedulePage() {
   const setNotificationMessage = useSetAtom(NotificationMessage)
   const [worshipScheduleList, setWorshipScheduleList] = useState<
     WorshipSchedule[]
   >([])
+
+  // Filter lists
+  const [filterStartDate, setFilterStartDate] = useState(
+    dayjs().add(-1, "month").format("YYYY-MM-DD")
+  )
+  const [filterEndDate, setFilterEndDate] = useState(
+    dayjs().format("YYYY-MM-DD")
+  )
+  const [filterKind, setFilterKind] = useState<string>("")
+  const [filterCanEdit, setFilterCanEdit] = useState<string>("")
+  const [filterIsVisible, setFilterIsVisible] = useState<string>("")
+
   const [selectedWorship, setSelectedWorship] = useState<WorshipSchedule>({
     date: "",
     kind: WorshipKind.SundayService,
@@ -55,8 +71,16 @@ export default function WorshipSchedulePage() {
   }
 
   async function fetchWorshipSchedules() {
+    const params: any = {}
+    if (filterStartDate) params.startDate = filterStartDate
+    if (filterEndDate) params.endDate = filterEndDate
+    if (filterKind) params.kind = filterKind
+    if (filterCanEdit) params.canEdit = filterCanEdit
+    if (filterIsVisible) params.isVisible = filterIsVisible
+
     const { data: worshipScheduleList } = await axios.get(
-      "/admin/worship-schedule"
+      "/admin/worship-schedule",
+      { params }
     )
     setWorshipScheduleList(worshipScheduleList)
   }
@@ -114,6 +138,87 @@ export default function WorshipSchedulePage() {
                   variant="outlined"
                 />
               </Stack>
+
+              <Paper
+                elevation={0}
+                sx={{ p: 2, mb: 2, bgcolor: "#f8f9fa", borderRadius: 2 }}
+              >
+                <Stack
+                  direction="row"
+                  spacing={2}
+                  alignItems="center"
+                  flexWrap="wrap"
+                  useFlexGap
+                  sx={{ "& > *": { mb: { xs: 1, md: 0 } } }}
+                >
+                  <TextField
+                    label="시작 날짜"
+                    type="date"
+                    size="small"
+                    value={filterStartDate}
+                    onChange={(e) => setFilterStartDate(e.target.value)}
+                    sx={{ width: 150 }}
+                  />
+                  <TextField
+                    label="종료 날짜"
+                    type="date"
+                    size="small"
+                    value={filterEndDate}
+                    onChange={(e) => setFilterEndDate(e.target.value)}
+                    sx={{ width: 150 }}
+                  />
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>예배 종류</InputLabel>
+                    <Select
+                      value={filterKind}
+                      label="예배 종류"
+                      onChange={(e) => setFilterKind(e.target.value)}
+                    >
+                      <MenuItem value="">전체</MenuItem>
+                      <MenuItem value={WorshipKind.SundayService}>
+                        {worshipKr(WorshipKind.SundayService)}
+                      </MenuItem>
+                      <MenuItem value={WorshipKind.FridayService}>
+                        {worshipKr(WorshipKind.FridayService)}
+                      </MenuItem>
+                      <MenuItem value={WorshipKind.Etc}>
+                        {worshipKr(WorshipKind.Etc)}
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>수정 가능</InputLabel>
+                    <Select
+                      value={filterCanEdit}
+                      label="수정 가능"
+                      onChange={(e) => setFilterCanEdit(e.target.value)}
+                    >
+                      <MenuItem value="">전체</MenuItem>
+                      <MenuItem value="true">가능</MenuItem>
+                      <MenuItem value="false">불가능</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>조회 여부</InputLabel>
+                    <Select
+                      value={filterIsVisible}
+                      label="조회 여부"
+                      onChange={(e) => setFilterIsVisible(e.target.value)}
+                    >
+                      <MenuItem value="">전체</MenuItem>
+                      <MenuItem value="true">공개</MenuItem>
+                      <MenuItem value="false">비공개</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Button
+                    variant="contained"
+                    startIcon={<SearchIcon />}
+                    onClick={fetchWorshipSchedules}
+                  >
+                    조회
+                  </Button>
+                </Stack>
+              </Paper>
 
               <Paper
                 elevation={0}
@@ -256,6 +361,9 @@ export default function WorshipSchedulePage() {
                     </MenuItem>
                     <MenuItem value={WorshipKind.FridayService}>
                       {worshipKr(WorshipKind.FridayService)}
+                    </MenuItem>
+                    <MenuItem value={WorshipKind.Etc}>
+                      {worshipKr(WorshipKind.Etc)}
                     </MenuItem>
                   </Select>
                 </Stack>

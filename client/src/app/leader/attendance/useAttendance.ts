@@ -3,7 +3,7 @@
 import { AttendData } from "@server/entity/attendData"
 import { Community } from "@server/entity/community"
 import { WorshipSchedule } from "@server/entity/worshipSchedule"
-import { get } from "@/config/api"
+import axios from "@/config/axios"
 import { useEffect } from "react"
 import { atom, useAtom } from "jotai"
 import { AttendStatus } from "@server/entity/types"
@@ -34,7 +34,8 @@ export default function useAttendance() {
   }, [selectedScheduleId])
 
   async function getAttendData(scheduleId: number) {
-    const data: Array<AttendData> = await get(
+    const usersIds = groupInfo?.users.map((user) => user.id) || []
+    const { data } = await axios.get<AttendData[]>(
       `/soon/attendance/?scheduleId=${scheduleId}`
     )
     groupInfo?.users.forEach((user) => {
@@ -54,9 +55,13 @@ export default function useAttendance() {
   }
 
   async function fetchData() {
-    const groupInfo = await get("/soon/my-group-info")
+    const { data: groupInfo } = await axios.get<Community>(
+      "/soon/my-group-info"
+    )
     setGroupInfo(groupInfo)
-    const worshipScheduleList = await get("/soon/worship-schedule")
+    const { data: worshipScheduleList } = await axios.get<WorshipSchedule[]>(
+      "/soon/worship-schedule"
+    )
     setWorshipScheduleList(worshipScheduleList)
     if (worshipScheduleList.length > 0) {
       setSelectedScheduleId(worshipScheduleList[0].id as number)
