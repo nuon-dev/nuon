@@ -14,7 +14,7 @@ import {
   InputLabel,
   Chip,
 } from "@mui/material"
-import { post } from "@/config/api"
+import axios from "@/config/axios"
 import { worshipKr } from "@/util/worship"
 import useAttendance from "./useAttendance"
 import AttendRow from "./AttendRow"
@@ -32,6 +32,7 @@ export default function SoonAttendance() {
     setSelectedScheduleId,
     worshipScheduleList,
     groupInfo,
+    setSoonAttendData,
   } = useAttendance()
   const { isLeaderIfNotExit } = useAuth()
 
@@ -40,7 +41,7 @@ export default function SoonAttendance() {
   }, [])
 
   async function saveAttendData() {
-    await post("/soon/attendance", {
+    await axios.post("/soon/attendance", {
       scheduleId: selectedScheduleId,
       attendData: soonAttendData,
     })
@@ -138,7 +139,12 @@ export default function SoonAttendance() {
                   </Typography>
                   <Stack spacing={2}>
                     {groupInfo.users.map((user) => (
-                      <AttendRow key={user.id} user={user} />
+                      <AttendRow
+                        key={user.id}
+                        user={user}
+                        soonAttendData={soonAttendData}
+                        setSoonAttendData={setSoonAttendData}
+                      />
                     ))}
                   </Stack>
                 </Stack>
