@@ -35,6 +35,7 @@ interface DashboardData {
       etcCount: number
       attendPercent: number
       genderRatio: { male: number; female: number }
+      genderCount: { male: number; female: number }
       newFamilyPercent: number
     }
     monthly: {
@@ -43,16 +44,20 @@ interface DashboardData {
       etcCount: number
       attendPercent: number
       genderRatio: { male: number; female: number }
+      genderCount: { male: number; female: number }
       newFamilyPercent: number
     }
+    last4Weeks: Array<{
+      date: string
+      attendCount: number
+      absentCount: number
+      etcCount: number
+      attendPercent: number
+      genderRatio: { male: number; female: number }
+      genderCount: { male: number; female: number }
+      newFamilyPercent: number
+    }>
   }
-  communityStats: Array<{
-    communityName: string
-    parentName: string
-    attendCount: number
-    totalMembers: number
-    attendanceRate: number
-  }>
   recentAbsentees: Array<{
     name: string
     yearOfBirth: number
@@ -232,166 +237,134 @@ function index() {
         </Stack>
 
         <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
-          {/* 주간/월간 통계 */}
           <Card sx={{ flex: 1 }}>
             <CardContent>
               <Typography variant="h6" fontWeight="bold" gutterBottom>
-                출석 통계
+                출석 현황 (최근 4주)
               </Typography>
+              <Stack
+                direction="row"
+                spacing={2}
+                justifyContent="space-around"
+                height={300}
+              >
+                {dashboardData.statistics.last4Weeks.map((week, index) => {
+                  const maxCount = Math.max(
+                    ...dashboardData.statistics.last4Weeks.flatMap((w) => [
+                      w.genderCount.male,
+                      w.genderCount.female,
+                    ]),
+                    1
+                  )
 
-              <Stack spacing={3}>
-                {/* 이번 주 통계 */}
-                <Box>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    color="primary"
-                  >
-                    이번 주
-                  </Typography>
-                  <Stack
-                    direction="row"
-                    spacing={2}
-                    sx={{ mt: 1 }}
-                    flexWrap="wrap"
-                  >
-                    <Chip
-                      label={`출석 ${dashboardData.statistics.weekly.attendCount}명`}
-                      color="success"
-                      variant="outlined"
-                    />
-                    <Chip
-                      label={`결석 ${dashboardData.statistics.weekly.absentCount}명`}
-                      color="error"
-                      variant="outlined"
-                    />
-                    <Chip
-                      label={`기타 ${dashboardData.statistics.weekly.etcCount}명`}
-                      color="warning"
-                      variant="outlined"
-                    />
-                  </Stack>
-                  <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
-                    <Chip
-                      label={`남성 ${dashboardData.statistics.weekly.genderRatio.male}%`}
-                      color="info"
-                      size="small"
-                    />
-                    <Chip
-                      label={`여성 ${dashboardData.statistics.weekly.genderRatio.female}%`}
-                      color="secondary"
-                      size="small"
-                    />
-                  </Stack>
-                </Box>
-
-                <Divider />
-
-                {/* 이번 달 통계 */}
-                <Box>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    color="secondary"
-                  >
-                    이번 달
-                  </Typography>
-                  <Stack
-                    direction="row"
-                    spacing={2}
-                    sx={{ mt: 1 }}
-                    flexWrap="wrap"
-                  >
-                    <Chip
-                      label={`출석 ${dashboardData.statistics.monthly.attendCount}명`}
-                      color="success"
-                      variant="outlined"
-                    />
-                    <Chip
-                      label={`결석 ${dashboardData.statistics.monthly.absentCount}명`}
-                      color="error"
-                      variant="outlined"
-                    />
-                    <Chip
-                      label={`기타 ${dashboardData.statistics.monthly.etcCount}명`}
-                      color="warning"
-                      variant="outlined"
-                    />
-                  </Stack>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: 1 }}
-                  >
-                    출석률: {dashboardData.statistics.monthly.attendPercent}%
-                  </Typography>
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          {/* 다락방별 출석 현황 */}
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>
-                다락방별 출석 현황 (이번 주)
-              </Typography>
-              <List dense sx={{ maxHeight: 400, overflow: "auto" }}>
-                {dashboardData.communityStats.map((community, index) => (
-                  <ListItem key={index} divider>
-                    <Box sx={{ width: "100%" }}>
-                      {/* 첫 번째 줄: 다락방 이름과 출석 인원 */}
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          mb: 0.5,
-                        }}
+                  return (
+                    <Stack key={index} alignItems="center" spacing={1} flex={1}>
+                      <Typography
+                        variant="caption"
+                        fontWeight="bold"
+                        fontSize="16px"
                       >
-                        <Typography
-                          variant="subtitle2"
-                          fontWeight="bold"
-                          sx={{ flex: 1, pr: 1 }}
+                        {week.date}
+                      </Typography>
+                      <Stack
+                        spacing={1}
+                        width="50%"
+                        height="100%"
+                        direction="row"
+                        alignItems="flex-end"
+                        justifyContent="center"
+                      >
+                        {/* Man Bar */}
+                        <Stack
+                          alignItems="center"
+                          justifyContent="flex-end"
+                          height="100%"
+                          flex={1}
                         >
-                          {community.communityName}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ minWidth: "70px", textAlign: "right" }}
-                        >
-                          {community.attendCount}/{community.totalMembers}명
-                        </Typography>
-                      </Box>
-
-                      {/* 두 번째 줄: 부모 커뮤니티와 출석률, 진행률 바 */}
-                      <Box>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            mb: 0.5,
-                          }}
-                        >
-                          <Typography variant="caption" color="text.secondary">
-                            {community.parentName}
+                          <Typography
+                            height="40px"
+                            variant="caption"
+                            fontWeight="bold"
+                            fontSize="18px"
+                            color="primary"
+                            gutterBottom
+                          >
+                            {week.genderCount.male}
                           </Typography>
-                          <Typography variant="caption" fontWeight="bold">
-                            {community.attendanceRate}%
+                          <Box
+                            sx={{
+                              width: "100%",
+                              height: `${
+                                (week.genderCount.male / maxCount) * 100
+                              }%`,
+                              bgcolor: "#1976d2",
+                              borderRadius: "4px 4px 0 0",
+                              transition: "height 0.5s ease-in-out",
+                              minHeight:
+                                week.genderCount.male > 0 ? "4px" : "0px",
+                            }}
+                          />
+                        </Stack>
+                        {/* Woman Bar */}
+                        <Stack
+                          alignItems="center"
+                          justifyContent="flex-end"
+                          height="100%"
+                          flex={1}
+                        >
+                          <Typography
+                            height="40px"
+                            variant="caption"
+                            fontWeight="bold"
+                            color="secondary"
+                            fontSize="18px"
+                            gutterBottom
+                          >
+                            {week.genderCount.female}
                           </Typography>
-                        </Box>
-                        <LinearProgress
-                          variant="determinate"
-                          value={community.attendanceRate}
-                          sx={{ height: 6, borderRadius: 3 }}
-                        />
-                      </Box>
-                    </Box>
-                  </ListItem>
-                ))}
-              </List>
+                          <Box
+                            sx={{
+                              width: "100%",
+                              height: `${
+                                (week.genderCount.female / maxCount) * 100
+                              }%`,
+                              bgcolor: "#9c27b0",
+                              borderRadius: "4px 4px 0 0",
+                              transition: "height 0.5s ease-in-out",
+                              minHeight:
+                                week.genderCount.female > 0 ? "4px" : "0px",
+                            }}
+                          />
+                        </Stack>
+                      </Stack>
+                    </Stack>
+                  )
+                })}
+              </Stack>
+              <Stack direction="row" justifyContent="center" spacing={2} mt={2}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      bgcolor: "#1976d2",
+                      borderRadius: 1,
+                    }}
+                  />
+                  <Typography variant="caption">남성</Typography>
+                </Stack>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      bgcolor: "#9c27b0",
+                      borderRadius: 1,
+                    }}
+                  />
+                  <Typography variant="caption">여성</Typography>
+                </Stack>
+              </Stack>
             </CardContent>
           </Card>
         </Stack>
