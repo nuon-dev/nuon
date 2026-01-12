@@ -50,6 +50,7 @@ router.post("/receipt-record", async (req, res) => {
     .send({ result: "success", accessToken: createdUserToken.accessToken })
 })
 
+const twentyOneDays = 1000 * 60 * 60 * 24 * 21
 router.post("/login", async (req, res) => {
   const body = req.body
 
@@ -61,13 +62,13 @@ router.post("/login", async (req, res) => {
     return
   }
 
-  const twentyOneDays = 1000 * 60 * 60 * 24 * 21
   res
     .header("Access-Control-Allow-Credentials", "true")
     .cookie("refreshToken", newUserToken.refreshToken, {
       httpOnly: true,
       sameSite: "none",
       secure: true,
+      maxAge: twentyOneDays,
       expires: new Date(Date.now() + twentyOneDays),
     })
     .send({ result: "success", accessToken: newUserToken.accessToken })
@@ -87,7 +88,13 @@ router.post("/refresh-token", async (req, res) => {
   }
 
   res
-    .cookie("refreshToken", tokenResult.refreshToken, { httpOnly: true })
+    .cookie("refreshToken", tokenResult.refreshToken, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      maxAge: twentyOneDays,
+      expires: new Date(Date.now() + twentyOneDays),
+    })
     .send({ result: "success", accessToken: tokenResult.accessToken })
 })
 
