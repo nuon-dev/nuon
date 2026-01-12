@@ -2,10 +2,12 @@ import jwt from "jsonwebtoken"
 import { User } from "../entity/user"
 import { REFRESH_TOKEN_EXPIRE_DAYS } from "../model/user"
 import { Community } from "../entity/community"
+import { communityDatabase } from "../model/dataSource"
 
 export interface Role {
   Admin: boolean
   Leader: boolean
+  VillageLeader: boolean
 }
 
 export interface jwtPayload {
@@ -28,8 +30,8 @@ export function generateRefreshToken(user: User) {
   })
 }
 
-export function generateAccessToken(user: User) {
-  let role = getRole(user)
+export async function generateAccessToken(user: User) {
+  let role = await getRole(user)
 
   const payload = {
     id: user.id,
@@ -46,10 +48,8 @@ export function generateAccessToken(user: User) {
   })
 }
 
-function getRole(user: User): Role {
-  let isAdmin = user.isSuperUser
+async function getRole(user: User): Promise<Role> {
   let isLeader = false
-
   if (user.community) {
     if (user.community.leader && user.community.leader.id === user.id) {
       isLeader = true
@@ -61,5 +61,20 @@ function getRole(user: User): Role {
     }
   }
 
-  return { Admin: isAdmin, Leader: isLeader }
+  let villageLeader = false
+  const myCommunity = await communityDatabase.findOne({
+    where: { id: user.community?.id },
+    relations: {
+      children: true,
+    },
+  })
+  if (myCommunity.children.length > 0) {
+    villageLeader = true
+  }
+
+  return {
+    Admin: user.isSuperUser,
+    Leader: isLeader,
+    VillageLeader: villageLeader,
+  }
 }

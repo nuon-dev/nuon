@@ -30,7 +30,7 @@ async function loginFromKakaoId(kakaoId: string): Promise<{
   foundUser.expire = expireDay
   await userDatabase.save(foundUser)
 
-  const newAccessToken = generateAccessToken(foundUser)
+  const newAccessToken = await generateAccessToken(foundUser)
 
   return {
     accessToken: newAccessToken,
@@ -52,7 +52,7 @@ async function registerNewUser(
     now.setDate(now.getDate() + REFRESH_TOKEN_EXPIRE_DAYS)
   )
   await userDatabase.save(createUser)
-  const newAccessToken = generateAccessToken(createUser)
+  const newAccessToken = await generateAccessToken(createUser)
   return {
     accessToken: newAccessToken,
     refreshToken: newRefreshToken,
@@ -90,7 +90,7 @@ async function createNewAccessToken(currentToken: string): Promise<{
   foundUser.expire = expireDay
   await userDatabase.save(foundUser)
 
-  const newAccessToken = generateAccessToken(foundUser)
+  const newAccessToken = await generateAccessToken(foundUser)
 
   return {
     success: true,
