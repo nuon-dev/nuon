@@ -65,12 +65,14 @@ export default function AdminHeader() {
     {
       type: "divider",
     },
+    /* Todo: 지울지, 유지할지 결정 필요
     {
       title: "워십 콘테스트",
       icon: <EventIcon fontSize="small" />,
       path: "/admin/event/worshipContest",
       type: "menu",
     },
+    */
   ]
 
   return (

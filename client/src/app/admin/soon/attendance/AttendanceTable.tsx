@@ -36,16 +36,16 @@ export default function AttendanceTable({
         sx={{
           border: "1px solid #e0e0e0",
           borderRadius: 2,
-          overflow: "hidden",
+          overflow: "auto",
         }}
       >
         {/* Table Header */}
         <Stack
           direction="row"
           sx={{
+            minWidth: "fit-content",
             bgcolor: "#f5f5f5",
             borderBottom: "2px solid #e0e0e0",
-            position: "sticky",
             top: 0,
             zIndex: 1,
           }}
@@ -131,6 +131,7 @@ export default function AttendanceTable({
               key={user.id}
               direction="row"
               sx={{
+                minWidth: "fit-content",
                 bgcolor: isLeader
                   ? "#e3f2fd"
                   : isDeputyLeader
