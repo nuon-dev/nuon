@@ -39,7 +39,7 @@ export default function Header() {
 
   if (authUserData?.role.VillageLeader) {
     menu.push({
-      title: "전체 출석 관리",
+      title: "전체 출석 조회",
       icon: <EventNoteIcon fontSize="small" sx={{ color: "#43e97b" }} />,
       path: "/leader/all-attendance",
       type: "menu",
