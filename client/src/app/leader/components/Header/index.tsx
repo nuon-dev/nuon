@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation"
 import { Button, Stack } from "@mui/material"
 import MenuIcon from "@mui/icons-material/Menu"
 import PeopleIcon from "@mui/icons-material/People"
-import HeaderDrawer from "@/components/Header/Drawer"
+import HeaderDrawer, { DrawerItemsType } from "@/components/Header/Drawer"
 import EventNoteIcon from "@mui/icons-material/EventNote"
+import useAuth from "@/hooks/useAuth"
 
 export default function Header() {
   const { push } = useRouter()
+  const { authUserData } = useAuth()
   const [isOpen, setOpen] = useState(false)
 
   function toggleDrawer(value: boolean) {
@@ -18,6 +20,30 @@ export default function Header() {
 
   function goToHome() {
     push("/leader")
+  }
+
+  const menu: DrawerItemsType[] = [
+    {
+      title: "순원 관리",
+      icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
+      path: "/leader/management",
+      type: "menu",
+    },
+    {
+      title: "출석 관리",
+      icon: <EventNoteIcon fontSize="small" sx={{ color: "#4facfe" }} />,
+      path: "/leader/attendance",
+      type: "menu",
+    },
+  ]
+
+  if (authUserData?.role.VillageLeader) {
+    menu.push({
+      title: "전체 출석 관리",
+      icon: <EventNoteIcon fontSize="small" sx={{ color: "#43e97b" }} />,
+      path: "/leader/all-attendance",
+      type: "menu",
+    })
   }
 
   return (
@@ -57,20 +83,7 @@ export default function Header() {
       <HeaderDrawer
         isOpen={isOpen}
         toggleDrawer={toggleDrawer}
-        DrawerItems={[
-          {
-            title: "순원 관리",
-            icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
-            path: "/leader/management",
-            type: "menu",
-          },
-          {
-            title: "출석 관리",
-            icon: <EventNoteIcon fontSize="small" sx={{ color: "#4facfe" }} />,
-            path: "/leader/attendance",
-            type: "menu",
-          },
-        ]}
+        DrawerItems={menu}
       />
     </Stack>
   )
