@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { Request, Response } from "express"
-import { Between, In, Not, IsNull } from "typeorm"
+import { Between, In, Not, IsNull, LessThanOrEqual } from "typeorm"
 import { AttendData } from "../../entity/attendData"
 import { AttendStatus } from "../../entity/types"
 import {
@@ -113,25 +113,28 @@ router.get("/", async (req: Request, res: Response) => {
 
     // 통계 계산 함수
     const calculateStats = (attendanceData: AttendData[]) => {
-      const attendCount = attendanceData.filter(
+      // 유효한 사용자 데이터만 필터링
+      const validAttendanceData = attendanceData.filter((a) => a.user)
+
+      const attendCount = validAttendanceData.filter(
         (a) => a.isAttend === AttendStatus.ATTEND
       ).length
-      const absentCount = attendanceData.filter(
+      const absentCount = validAttendanceData.filter(
         (a) => a.isAttend === AttendStatus.ABSENT
       ).length
-      const etcCount = attendanceData.filter(
+      const etcCount = validAttendanceData.filter(
         (a) => a.isAttend === AttendStatus.ETC
       ).length
-      const total = attendanceData.length
+      const total = validAttendanceData.length
 
       const attendPercent =
         total > 0 ? Math.round((attendCount / total) * 100) : 0
 
       // 성비 계산
-      const maleCount = attendanceData.filter(
+      const maleCount = validAttendanceData.filter(
         (a) => a.user.gender === "man"
       ).length
-      const femaleCount = attendanceData.filter(
+      const femaleCount = validAttendanceData.filter(
         (a) => a.user.gender === "woman"
       ).length
       const genderTotal = maleCount + femaleCount
@@ -141,7 +144,7 @@ router.get("/", async (req: Request, res: Response) => {
         genderTotal > 0 ? Math.round((femaleCount / genderTotal) * 100) : 0
 
       // 새가족 비율
-      const newFamilyCount = attendanceData.filter((a) =>
+      const newFamilyCount = validAttendanceData.filter((a) =>
         isNewFamily(a.user.createAt)
       ).length
       const newFamilyPercent =
@@ -153,6 +156,7 @@ router.get("/", async (req: Request, res: Response) => {
         etcCount,
         attendPercent,
         genderRatio: { male: malePercent, female: femalePercent },
+        genderCount: { male: maleCount, female: femaleCount },
         newFamilyPercent,
       }
     }
@@ -160,53 +164,41 @@ router.get("/", async (req: Request, res: Response) => {
     const weeklyStats = calculateStats(weeklyAttendance)
     const monthlyStats = calculateStats(monthlyAttendance)
 
-    // 다락방별 출석 현황 (부모가 있는 커뮤니티만)
-    const communities = await communityDatabase.find({
-      relations: ["users", "parent"],
+    // 최근 4주간 예배 일정 조회 for Trend
+    const last4WeeksSchedules = await worshipScheduleDatabase.find({
       where: {
-        parent: Not(IsNull()),
+        date: LessThanOrEqual(now.toISOString().split("T")[0]),
       },
+      order: {
+        date: "DESC",
+      },
+      take: 4,
     })
 
-    const communityStats = await Promise.all(
-      communities.map(async (community) => {
-        // 해당 커뮤니티의 이번 주 출석 데이터
-        const communityAttendance =
-          weeklySchedules.length > 0
-            ? await attendDataDatabase.find({
-                relations: ["worshipSchedule", "user", "user.community"],
-                where: {
-                  worshipSchedule: {
-                    id: In(weeklySchedules.map((s) => s.id)),
-                  },
-                  user: {
-                    community: {
-                      id: community.id,
-                    },
-                  },
-                },
-              })
-            : []
+    // Sort to chronological order
+    last4WeeksSchedules.sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    )
 
-        const attendCount = communityAttendance.filter(
-          (a) => a.isAttend === AttendStatus.ATTEND
-        ).length
-        const totalMembers = community.users.length
-
+    const last4WeeksStats = await Promise.all(
+      last4WeeksSchedules.map(async (schedule) => {
+        const attendance = await attendDataDatabase.find({
+          relations: ["worshipSchedule", "user"],
+          where: {
+            worshipSchedule: {
+              id: schedule.id,
+            },
+          },
+        })
+        const stats = calculateStats(attendance)
         return {
-          communityName: community.name,
-          parentName: community.parent?.name,
-          attendCount,
-          totalMembers,
-          attendanceRate:
-            totalMembers > 0
-              ? Math.round((attendCount / totalMembers) * 100)
-              : 0,
+          date: schedule.date,
+          ...stats,
         }
       })
     )
 
-    // 최근 3주간 예배 일정 조회
+    // 최근 3주간 예배 일정 조회 (For Absentees - keeping existing logic)
     const recentSchedules = await worshipScheduleDatabase.find({
       where: {
         date: Between(
@@ -239,14 +231,16 @@ router.get("/", async (req: Request, res: Response) => {
         : []
 
     // 결석자 정보 정리
-    const absenteeInfo = recentAbsentees.map((attend) => ({
-      name: attend.user.name,
-      yearOfBirth: attend.user.yearOfBirth,
-      gender: attend.user.gender,
-      community: attend.user.community?.name,
-      date: attend.worshipSchedule.date,
-      memo: attend.memo,
-    }))
+    const absenteeInfo = recentAbsentees
+      .filter((attend) => attend.user)
+      .map((attend) => ({
+        name: attend.user.name,
+        yearOfBirth: attend.user.yearOfBirth,
+        gender: attend.user.gender,
+        community: attend.user.community?.name,
+        date: attend.worshipSchedule.date,
+        memo: attend.memo,
+      }))
 
     const dashboardData = {
       totalUsers,
@@ -254,8 +248,8 @@ router.get("/", async (req: Request, res: Response) => {
       statistics: {
         weekly: weeklyStats,
         monthly: monthlyStats,
+        last4Weeks: last4WeeksStats,
       },
-      communityStats,
       recentAbsentees: absenteeInfo,
       lastUpdated: new Date().toISOString(),
     }
