@@ -78,8 +78,8 @@ if [ $? -eq 0 ]; then
     echo "완료 시간: $(date)"
     
     # 백업 파일 압축
-    gzip $BACKUP_FILE
-    echo "✅ 압축 완료: ${BACKUP_FILE}.gz"
+    #gzip $BACKUP_FILE
+    #echo "✅ 압축 완료: ${BACKUP_FILE}.gz"
     
     # 7일 이상 된 백업 파일 삭제
     find $BACKUP_DIR -name "*.sql.gz" -mtime +7 -delete

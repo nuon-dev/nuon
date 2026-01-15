@@ -7,6 +7,7 @@ import MenuIcon from "@mui/icons-material/Menu"
 import PeopleIcon from "@mui/icons-material/People"
 import HeaderDrawer, { DrawerItemsType } from "@/components/Header/Drawer"
 import EventNoteIcon from "@mui/icons-material/EventNote"
+import HowToRegIcon from "@mui/icons-material/HowToReg"
 import useAuth from "@/hooks/useAuth"
 
 export default function Header() {
@@ -31,8 +32,14 @@ export default function Header() {
     },
     {
       title: "출석 관리",
-      icon: <EventNoteIcon fontSize="small" sx={{ color: "#4facfe" }} />,
+      icon: <EventNoteIcon fontSize="small" sx={{ color: "#667eea" }} />,
       path: "/leader/attendance",
+      type: "menu",
+    },
+    {
+      title: "순원 수련회 접수 조회",
+      icon: <HowToRegIcon fontSize="small" sx={{ color: "#667eea" }} />,
+      path: "/leader/retreat-attendance",
       type: "menu",
     },
   ]
@@ -40,7 +47,7 @@ export default function Header() {
   if (authUserData?.role.VillageLeader) {
     menu.push({
       title: "전체 출석 조회",
-      icon: <EventNoteIcon fontSize="small" sx={{ color: "#43e97b" }} />,
+      icon: <EventNoteIcon fontSize="small" sx={{ color: "#667eea" }} />,
       path: "/leader/all-attendance",
       type: "menu",
     })
