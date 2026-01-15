@@ -318,4 +318,53 @@ router.get("/existing-users", async (req, res) => {
     kakaoId: existingUser.kakaoId,
   })
 })
+
+router.get("/retreat-attendance-records", async (req, res) => {
+  const user = await checkJwt(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+  if (!user.role.Leader) {
+    res.status(403).send({ error: "Forbidden" })
+    return
+  }
+
+  const childrenUsers = await getAllSoonUsers(user.community)
+  const userIds = childrenUsers.map((user) => user.id)
+
+  let attendDataList = await userDatabase.find({
+    where: {
+      id: In(userIds),
+    },
+    select: {
+      id: true,
+      name: true,
+      yearOfBirth: true,
+      gender: true,
+      phone: true,
+      retreatAttend: {
+        id: true,
+        isWorker: true,
+        isHalf: true,
+        createAt: true,
+      },
+    },
+    relations: {
+      retreatAttend: true,
+    },
+  })
+
+  attendDataList = attendDataList.filter((soon) => {
+    if (!soon.retreatAttend) {
+      return true
+    }
+    if (soon.retreatAttend.isCanceled) {
+      return false
+    }
+    return true
+  })
+  res.status(200).send(attendDataList)
+})
+
 export default router
