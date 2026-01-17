@@ -1,10 +1,11 @@
 "use client"
 
-import useAuth from "@/hooks/useAuth"
-import { Button, Stack, TextField } from "@mui/material"
-import useAiChat from "./useAiChat"
-import { AIChat } from "@server/entity/ai/aiChat"
 import { useState } from "react"
+import useAiChat from "./useAiChat"
+import { marked } from "marked"
+import useAuth from "@/hooks/useAuth"
+import { AIChat } from "@server/entity/ai/aiChat"
+import { Button, Stack, TextField } from "@mui/material"
 
 export enum ChatType {
   USER = "user",
@@ -18,9 +19,14 @@ export default function AdminAIChatComponent() {
   const { selectedChatRoom, sendMessageToAi } = useAiChat()
 
   return (
-    <Stack gap="12px" padding={2} border="1px solid #eee" flex={1}>
+    <Stack flex={1} gap="12px" padding={2} border="1px solid #eee">
       <Stack>{authUserData?.name}님</Stack>
-      <Stack gap="12px" display="flex">
+      <Stack
+        gap="12px"
+        display="flex"
+        overflow="auto"
+        maxHeight="calc(100vh - 300px)"
+      >
         {selectedChatRoom &&
           selectedChatRoom.chats &&
           selectedChatRoom.chats.map((chat) => (
@@ -55,7 +61,7 @@ function ChatComponent({ chat }: { chat: AIChat }) {
         bgcolor={chat.type === ChatType.USER ? "#daf1da" : "#f1f1f1"}
         textAlign={chat.type === ChatType.USER ? "right" : "left"}
       >
-        {chat.message}
+        <div dangerouslySetInnerHTML={{ __html: marked.parse(chat.message) }} />
       </Stack>
     </Stack>
   )

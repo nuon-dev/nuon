@@ -61,6 +61,10 @@ const AiModel = {
   async requestChatAI(messages: AIChat[]) {
     // Separate system prompt (assumed to be the first message if it's SYSTEM type)
     let systemPrompt = await getSystemPrompt()
+    const SIZE_LIMIT = 8
+    if (messages.length > SIZE_LIMIT) {
+      messages = messages.slice(messages.length - SIZE_LIMIT, messages.length)
+    }
     let chatMessages = [...messages]
 
     const body = {
@@ -93,7 +97,6 @@ const AiModel = {
       }),
     }
 
-    console.log("AI 요청 본문:", JSON.stringify(body, null, 2))
     const response = await fetch(
       "https://factchat-cloud.mindlogic.ai/v1/api/anthropic/messages",
       {
@@ -106,7 +109,6 @@ const AiModel = {
       }
     )
     const data = (await response.json()) as AiChatResponse
-    console.log("AI 응답 전체:", data)
 
     if (!data.content || data.content.length === 0) {
       console.error("AI returned empty content", data)
