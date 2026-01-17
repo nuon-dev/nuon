@@ -6,6 +6,7 @@ export class CreateAiChat1768640534507 implements MigrationInterface {
       CREATE TABLE \`ai_chat_room\` (
         \`id\` varchar(36) NOT NULL,
         \`userId\` varchar(36) COLLATE utf8mb4_general_ci NULL,
+        \`title\` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
         \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (\`id\`),
         CONSTRAINT \`FK_ai_chat_room_user\` FOREIGN KEY (\`userId\`) REFERENCES \`user\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION

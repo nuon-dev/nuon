@@ -2,7 +2,7 @@
 
 import { Stack } from "@mui/material"
 import AdminAIChatComponent from "./Chat"
-import AdminAIChatLeftComponent from "./leftList"
+import AdminAIChatLeftComponent from "../LeftList"
 
 export default function AdminAIChatPage() {
   return (

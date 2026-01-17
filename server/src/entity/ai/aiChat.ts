@@ -13,7 +13,7 @@ export class AIChat {
   id: string
 
   @ManyToOne(() => AIChatRoom, (room) => room.id)
-  roomId: string
+  room: AIChatRoom
 
   @Column({ type: "enum", enum: ChatType })
   type: ChatType
