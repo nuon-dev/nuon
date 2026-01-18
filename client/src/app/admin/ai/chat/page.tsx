@@ -7,6 +7,7 @@ import {
   IconButton,
   Paper,
   Typography,
+  Alert,
 } from "@mui/material"
 import AdminAIChatComponent from "./Chat"
 import AdminAIChatLeftComponent from "../LeftList"
@@ -46,19 +47,17 @@ export default function AdminAIChatPage() {
               borderTop: "1px solid #e0e0e0",
             }}
           >
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="center"
-              gap={0.5}
-            >
-              <InfoOutlinedIcon
-                sx={{ fontSize: 16, color: "text.secondary" }}
-              />
-              <Typography variant="caption" color="text.secondary">
-                사용가능한 토큰이 무제한이 아닙니다.
+            <Alert severity="info" sx={{ width: "100%", py: 0.5 }}>
+              <Typography variant="caption" display="block">
+                • 현재 시범 운영 중인 기능입니다.
               </Typography>
-            </Stack>
+              <Typography variant="caption" display="block">
+                • 제공되는 토큰이 한정되어 있어 필요한 만큼만 질문해 주세요.
+              </Typography>
+              <Typography variant="caption" display="block">
+                • AI의 답변은 참고용으로만 활용 부탁드립니다.
+              </Typography>
+            </Alert>
             <Stack direction="row" gap={1} alignItems="center" width="100%">
               <TextField
                 fullWidth
