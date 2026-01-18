@@ -109,7 +109,6 @@ const AiModel = {
       },
     )
     const data = (await response.json()) as AiChatResponse
-    console.log("AI Response:", data)
 
     if (!data.content || data.content.length === 0) {
       console.error("AI returned empty content", data)
