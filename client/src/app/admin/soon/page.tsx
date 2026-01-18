@@ -150,7 +150,7 @@ export default function Soon() {
   const filteredUsers = orderingUserList()
 
   return (
-    <Stack minHeight="100vh">
+    <Stack>
       <Stack direction="row" p="12px" gap="12px">
         <UserTable
           userList={userList}

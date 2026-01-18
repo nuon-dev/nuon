@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
 import useAiChat from "./useAiChat"
 import { marked } from "marked"
-import useAuth from "@/hooks/useAuth"
 import { AIChat } from "@server/entity/ai/aiChat"
-import { Button, Stack, TextField } from "@mui/material"
+import { Box, Stack, Typography, Avatar } from "@mui/material"
+import SmartToyIcon from "@mui/icons-material/SmartToy"
+import PersonIcon from "@mui/icons-material/Person"
 
 export enum ChatType {
   USER = "user",
@@ -14,55 +14,73 @@ export enum ChatType {
 }
 
 export default function AdminAIChatComponent() {
-  const { authUserData } = useAuth()
-  const [message, setMessage] = useState("")
-  const { selectedChatRoom, sendMessageToAi } = useAiChat()
+  const { selectedChatRoom } = useAiChat()
 
   return (
-    <Stack flex={1} gap="12px" padding={2} border="1px solid #eee">
-      <Stack>{authUserData?.name}님</Stack>
-      <Stack
-        gap="12px"
-        display="flex"
-        overflow="auto"
-        maxHeight="calc(100vh - 300px)"
-      >
-        {selectedChatRoom &&
-          selectedChatRoom.chats &&
-          selectedChatRoom.chats.map((chat) => (
-            <ChatComponent key={chat.id} chat={chat} />
-          ))}
-      </Stack>
-      <Stack direction="row" gap="12px">
-        <TextField
-          fullWidth
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-        <Button onClick={() => sendMessageToAi(message)} variant="contained">
-          전송
-        </Button>
-      </Stack>
+    <Stack gap={2} padding={2} minHeight="100%" bgcolor="#f5f7f9">
+      {selectedChatRoom &&
+        selectedChatRoom.chats &&
+        selectedChatRoom.chats.map((chat) => (
+          <ChatComponent key={chat.id} chat={chat} />
+        ))}
     </Stack>
   )
 }
 
 function ChatComponent({ chat }: { chat: AIChat }) {
+  const isUser = chat.type === ChatType.USER
+
   return (
     <Stack
-      direction="row"
-      justifyContent={chat.type === ChatType.USER ? "flex-end" : "flex-start"}
+      direction={isUser ? "row-reverse" : "row"}
+      alignItems="flex-start"
+      gap={2}
     >
-      <Stack
-        maxWidth="70%"
-        padding="12px"
-        borderRadius="8px"
-        border="1px solid #eee"
-        bgcolor={chat.type === ChatType.USER ? "#daf1da" : "#f1f1f1"}
-        textAlign={chat.type === ChatType.USER ? "right" : "left"}
+      <Avatar
+        sx={{
+          bgcolor: isUser ? "primary.main" : "secondary.main",
+          width: 32,
+          height: 32,
+        }}
       >
-        <div dangerouslySetInnerHTML={{ __html: marked.parse(chat.message) }} />
-      </Stack>
+        {isUser ? (
+          <PersonIcon fontSize="small" />
+        ) : (
+          <SmartToyIcon fontSize="small" />
+        )}
+      </Avatar>
+
+      <Box
+        maxWidth="70%"
+        sx={{
+          py: 1.5,
+          px: 2,
+          borderRadius: 2,
+          bgcolor: isUser ? "primary.main" : "white",
+          color: isUser ? "white" : "text.primary",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)", // 부드러운 그림자
+          borderTopRightRadius: isUser ? 0 : 2, // 말풍선 꼬리 느낌 (선택)
+          borderTopLeftRadius: !isUser ? 0 : 2,
+          "& a": { color: isUser ? "#fff" : "primary.main" }, // 링크 색상 조정
+          "& code": {
+            fontFamily: "monospace",
+            bgcolor: isUser ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.05)",
+            borderRadius: 1,
+            px: 0.5,
+          },
+          "& pre": {
+            bgcolor: isUser ? "rgba(0,0,0,0.2)" : "#f5f5f5",
+            p: 1,
+            borderRadius: 1,
+            overflow: "auto",
+          },
+        }}
+      >
+        <div
+          dangerouslySetInnerHTML={{ __html: marked.parse(chat.message) }}
+          style={{ lineHeight: 1.6, fontSize: "0.95rem" }}
+        />
+      </Box>
     </Stack>
   )
 }
