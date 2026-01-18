@@ -1,22 +1,25 @@
 "use client"
 
 import useAuth from "@/hooks/useAuth"
-import { Stack, Typography, Box } from "@mui/material"
+import { Stack, Typography, Box, Button } from "@mui/material"
 import useAiChat from "./chat/useAiChat"
 import { useEffect, useState } from "react"
 import { AIChatRoom } from "@server/entity/ai/aiChatRoom"
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline"
 import dayjs from "dayjs"
 
 export default function AdminAIChatLeftComponent() {
   const { authUserData } = useAuth()
-  const { getChatRooms, selectedChatRoomId, setSelectedChatRoomId } =
-    useAiChat()
-  const [chatRooms, setChatRooms] = useState<AIChatRoom[]>([])
+  const {
+    getChatRooms,
+    selectedChatRoomId,
+    setSelectedChatRoomId,
+    setSelectedChatRoom,
+    chatRooms,
+  } = useAiChat()
 
   useEffect(() => {
-    getChatRooms().then((res) => {
-      setChatRooms(res.data)
-    })
+    getChatRooms()
   }, [])
 
   return (
@@ -44,15 +47,19 @@ export default function AdminAIChatLeftComponent() {
       </Stack>
 
       <Stack flex="1" overflow="auto" p={2} gap={1}>
-        {/* 새 채팅 만들기 버튼 예시 (기능은 연결 안 함) */}
-        {/* <Button
+        {/* 새 채팅 만들기 버튼 */}
+        <Button
           startIcon={<AddCircleOutlineIcon />}
           fullWidth
           variant="outlined"
-          sx={{ mb: 1, borderRadius: 2 }}
+          sx={{ mb: 1, borderRadius: 2, bgcolor: "white" }}
+          onClick={() => {
+            setSelectedChatRoomId("")
+            setSelectedChatRoom(null)
+          }}
         >
           새 채팅
-        </Button> */}
+        </Button>
 
         {chatRooms.map((room) => (
           <Box

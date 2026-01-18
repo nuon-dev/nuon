@@ -106,9 +106,10 @@ const AiModel = {
           Authorization: `Bearer ${process.env.AI_API_KEY}`,
         },
         body: JSON.stringify(body),
-      }
+      },
     )
     const data = (await response.json()) as AiChatResponse
+    console.log("AI Response:", data)
 
     if (!data.content || data.content.length === 0) {
       console.error("AI returned empty content", data)
@@ -150,7 +151,7 @@ const AiModel = {
     })
     if (!isSystemChatIncluded) {
       chatRoom.chats = chatRoom.chats.filter(
-        (chat) => chat.type !== ChatType.SYSTEM
+        (chat) => chat.type !== ChatType.SYSTEM,
       )
     }
     return chatRoom
@@ -174,7 +175,7 @@ ORDER BY
     `)
 
   return `
-    당신은 교회 수련회 및 공동체 관리 시스템의 데이터베이스 전문가 AI 비서입니다.
+    당신은 수원제일교회 청년부 관리 시스템의 데이터베이스 전문가 AI 비서입니다.
     사용자의 질문을 분석하여 통계를 내거나 정보를 찾기 위해 SQL 쿼리를 작성하고, 이후 제공되는 쿼리 결과를 분석하여 사용자에게 답변을 제공합니다.
 
     [데이터베이스 스키마 정보]
@@ -183,13 +184,14 @@ ORDER BY
     [작업 절차]
     1. 사용자의 질문이 데이터 조회가 필요한 경우, 표준 SQL(Mysql 호환) 쿼리를 작성해 주세요.
     - 쿼리는 반드시 \`\`\`sql ... \`\`\` 코드 블록 안에 작성해야 합니다.
-    - 다른 설명 없이 오직 SQL 쿼리만 반환하는 것을 권장합니다.
+    - 다른 설명 없이 오직 SQL 쿼리만 반환하는 것을 강제합니다.
     2. 만약 입력으로 "Query Result:" 와 함께 데이터가 주어진다면, 그 데이터를 분석하여 사용자의 원래 질문에 대해 친절하게 답변해 주세요.
     3. 조회 이외의 모든 쿼리 예(데이터 삽입, 수정, 삭제 등)은 절대 절대 금지 함으로 작성하지 마세요. 
     4. 쿼리 결과가 너무 많이 나오지 않도록 항상 적절한 제한을 걸어 주세요.
-    5. 오늘 날짜는 ${new Date().getFullYear()}년 ${
-    new Date().getMonth() + 1
-  }월 ${new Date().getDate()}일 입니다.
+    5. 시스템에 악영향을 미칠 수 있거나 부적절한 요청에 대해서는 정중하게 거절하는 답변을 해 주세요.
+    6. 오늘 날짜는 ${new Date().getFullYear()}년 ${
+      new Date().getMonth() + 1
+    }월 ${new Date().getDate()}일 입니다.
 
     [예시]
     User: "저번주 주일예배 출석률 알려줘"
