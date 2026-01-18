@@ -47,7 +47,7 @@ export default function AdminAIChatPage() {
               borderTop: "1px solid #e0e0e0",
             }}
           >
-            <Alert severity="info" sx={{ width: "100%", py: 0.5 }}>
+            <Alert severity="info" sx={{ width: "calc(100% - 32px)", py: 0.5 }}>
               <Typography variant="caption" display="block">
                 • 현재 시범 운영 중인 기능입니다.
               </Typography>
