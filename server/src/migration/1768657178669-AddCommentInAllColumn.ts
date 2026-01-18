@@ -65,8 +65,8 @@ export class AddCommentInAllColumn1768657178669 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE \`community\` MODIFY COLUMN \`lastModifiedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '마지막 정보 수정 일시'`,
     )
-    // await queryRunner.query(`ALTER TABLE \`community\` MODIFY COLUMN \`leaderId\` varchar(36) NULL COMMENT '리더(순장/조장) 사용자 ID (FK)'`);
-    // await queryRunner.query(`ALTER TABLE \`community\` MODIFY COLUMN \`deputyLeaderId\` varchar(36) NULL COMMENT '부리더(부순장/부조장) 사용자 ID (FK)'`);
+    // await queryRunner.query(`ALTER TABLE \`community\` MODIFY COLUMN \`leaderId\` varchar(36) NULL COMMENT '리더(순장/마을장) 사용자 ID (FK)'`);
+    // await queryRunner.query(`ALTER TABLE \`community\` MODIFY COLUMN \`deputyLeaderId\` varchar(36) NULL COMMENT '부리더(부순장) 사용자 ID (FK)'`);
     await queryRunner.query(
       `ALTER TABLE \`community\` MODIFY COLUMN \`x\` int NOT NULL DEFAULT 0 COMMENT '조직도 시각화용 X 좌표'`,
     )
