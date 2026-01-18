@@ -1,36 +1,99 @@
 import { Router } from "express"
+import { getUserFromToken, hasPermissionFromReq } from "../../util/util"
+import AiModel from "../../model/ai"
+import { AIChat, ChatType } from "../../entity/ai/aiChat"
+import { aiChatRoomDatabase } from "../../model/dataSource"
+import { PermissionType } from "../../entity/types"
 
 const router = Router()
 
 router.post("/ask", async (req, res) => {
-  // AI 질문 처리 로직 구현
-
-  const body = {
-    model: "claude-sonnet-4-5-20250929",
-    max_tokens: 1024,
-    messages: [
-      {
-        role: "user",
-        content: "Say this is a test!",
-      },
-    ],
+  const user = await getUserFromToken(req)
+  if (!user) {
+    res.status(401).json({ message: "Unauthorized" })
+    return
   }
 
-  const response = await fetch(
-    "https://factchat-cloud.mindlogic.ai/v1/api/anthropic/messages",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.AI_API_KEY}`,
-      },
-      body: JSON.stringify(body),
-    }
-  )
-  const data = (await response.json()) as any
+  const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+  if (!isAdmin) {
+    res.status(403).json({ message: "Forbidden" })
+    return
+  }
 
-  console.log("AI response data:", data)
-  res.json(data.content)
+  const userRequestMessage = req.body.message
+  let roomId: string = req.body.roomId
+  if (!roomId) {
+    const newRoom = await AiModel.createNewRoom(user, userRequestMessage)
+    roomId = newRoom.id
+  }
+
+  const chatRoom = await AiModel.getChatRoom(roomId, true)
+
+  const requestChat = new AIChat()
+  requestChat.room = chatRoom
+  requestChat.type = ChatType.USER
+  requestChat.message = userRequestMessage
+  requestChat.createdAt = new Date()
+  chatRoom.chats.push(requestChat)
+
+  let responseChat: AIChat
+  do {
+    responseChat = await AiModel.requestChatAI(chatRoom.chats)
+    responseChat.room = chatRoom
+    responseChat.createdAt = new Date()
+    if (responseChat.message.includes("```sql")) {
+      console.log("query:", responseChat.message)
+      responseChat.type = ChatType.SYSTEM // 쿼리는 시스템으로 저장
+      chatRoom.chats.push(responseChat)
+      const sqlResult = await AiModel.callSql(responseChat.message)
+      const queryResult = JSON.stringify(sqlResult, null, 2).slice(0, 3000)
+      const queryChat = new AIChat()
+      queryChat.room = chatRoom
+      queryChat.type = ChatType.SYSTEM
+      queryChat.message = `Query Result:\n${queryResult}`
+      queryChat.createdAt = new Date()
+      chatRoom.chats.push(queryChat)
+      continue
+    }
+    responseChat.type = ChatType.AI
+    chatRoom.chats.push(responseChat)
+  } while (responseChat.message.includes("```sql"))
+
+  await aiChatRoomDatabase.save(chatRoom)
+
+  const savedChatRoom = await AiModel.getChatRoom(roomId, false)
+  savedChatRoom.chats.forEach((chat) => {
+    delete chat.room
+  })
+  res.json(savedChatRoom)
+})
+
+router.get("/my-rooms", async (req, res) => {
+  const user = await getUserFromToken(req)
+  if (!user) {
+    res.status(401).json({ message: "Unauthorized" })
+    return
+  }
+
+  const rooms = await AiModel.getUserRooms(user)
+  res.json(rooms)
+})
+
+router.get("/room/:roomId", async (req, res) => {
+  const user = await getUserFromToken(req)
+  if (!user) {
+    res.status(401).json({ message: "Unauthorized" })
+    return
+  }
+
+  const roomId: string = req.params.roomId as string
+  const chatRoom = await AiModel.getChatRoom(roomId)
+  if (chatRoom.user.id !== user.id) {
+    res.status(403).json({ message: "Forbidden" })
+    return
+  }
+
+  res.json(chatRoom)
 })
 
 export default router
