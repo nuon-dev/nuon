@@ -5,7 +5,7 @@ export class WorshipContest1765814621862 implements MigrationInterface {
     await queryRunner.query(`
             CREATE TABLE \`worship_contest\` (
                 \`id\` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                \`voteUserId\` CHAR(36),
+                \`voteUserId\` VARCHAR(36) NOT NULL,
                 \`firstCommunity\` VARCHAR(255) NOT NULL,
                 \`secondCommunity\` VARCHAR(255) NOT NULL,
                 \`thirdCommunity\` VARCHAR(255) NOT NULL,
