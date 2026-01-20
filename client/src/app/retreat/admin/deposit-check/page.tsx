@@ -33,7 +33,7 @@ function DepositCheck() {
 
   async function DepositProcessing(
     retreatAttendId: string,
-    isDeposited: Deposit
+    isDeposited: Deposit,
   ) {
     const result = await post("/retreat/admin/deposit-processing", {
       retreatAttendId,
@@ -54,26 +54,26 @@ function DepositCheck() {
         setAllUserCount(data.length)
         setAllDepositCount(
           data.filter(
-            (retreatAttend) => retreatAttend.isDeposited !== Deposit.none
-          ).length
+            (retreatAttend) => retreatAttend.isDeposited !== Deposit.none,
+          ).length,
         )
 
         const halfSum =
           100_000 *
           data.filter(
-            (retreatAttend) => retreatAttend.isDeposited === Deposit.half
+            (retreatAttend) => retreatAttend.isDeposited === Deposit.half,
           ).length
 
         const workerSum =
           150_000 *
           data.filter(
-            (retreatAttend) => retreatAttend.isDeposited === Deposit.business
+            (retreatAttend) => retreatAttend.isDeposited === Deposit.business,
           ).length
 
         const studentSum =
           120_000 *
           data.filter(
-            (retreatAttend) => retreatAttend.isDeposited === Deposit.student
+            (retreatAttend) => retreatAttend.isDeposited === Deposit.student,
           ).length
 
         setDepositSum(halfSum + workerSum + studentSum)
@@ -83,8 +83,8 @@ function DepositCheck() {
         }
         setAllUserList(
           data.filter(
-            (retreatAttend) => retreatAttend.isDeposited === Deposit.none
-          )
+            (retreatAttend) => retreatAttend.isDeposited === Deposit.none,
+          ),
         )
       })
       .catch(() => {
@@ -168,7 +168,7 @@ function DepositCheck() {
         <Stack fontWeight="500" fontSize="18px">
           예상 납부 금액 -{" "}
           {depositSum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}원 (
-          {depositSum / 10_0000}만원)
+          {depositSum / 10_000}만원)
         </Stack>
 
         <Button
