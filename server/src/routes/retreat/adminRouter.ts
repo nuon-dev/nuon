@@ -60,7 +60,7 @@ router.post("/get-user-permission-info", async (req, res) => {
   const data = req.body
   const hasPermission = await hasPermissionFromReq(
     req,
-    PermissionType.permissionManage
+    PermissionType.permissionManage,
   )
   if (!hasPermission) {
     res.sendStatus(401)
@@ -116,6 +116,9 @@ router.get("/get-all-user", async (req, res) => {
     relations: {
       user: true,
     },
+    order: {
+      createAt: "ASC",
+    },
   })
 
   res.send(userList)
@@ -126,7 +129,7 @@ router.post("/set-user-permission", async (req, res) => {
 
   const hasPermission = await hasPermissionFromReq(
     req,
-    PermissionType.permissionManage
+    PermissionType.permissionManage,
   )
   if (!hasPermission) {
     res.sendStatus(401)
@@ -148,7 +151,7 @@ router.post("/set-user-permission", async (req, res) => {
   }
 
   const targetPermission = user.permissions.find(
-    (permission) => permission.permissionType === data.permissionType
+    (permission) => permission.permissionType === data.permissionType,
   )
   if (targetPermission) {
     targetPermission.have = data.have
