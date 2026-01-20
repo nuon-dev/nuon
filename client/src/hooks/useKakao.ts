@@ -4,7 +4,21 @@ export default function useKakaoHook() {
   const globalValue: any = global
   var Kakao: any = globalValue.Kakao
   useEffect(() => {
-    loadKakao()
+    loadKakao().then((loaded) => {
+      if (!loaded) {
+        const script = document.createElement("script")
+        script.src = "https://developers.kakao.com/sdk/js/kakao.js"
+        script.async = true
+        document.head.appendChild(script)
+        loadKakao().then((loaded) => {
+          if (!loaded) {
+            alert(
+              "네트워크 문제로 카카오 SDK 로딩에 실패했습니다. 잠시 후 다시 시도해주세요.",
+            )
+          }
+        })
+      }
+    })
   }, [])
 
   async function loadKakao() {
@@ -15,19 +29,18 @@ export default function useKakaoHook() {
         if (!Kakao.isInitialized()) {
           Kakao.init("24c68e47fc07af3735433d60a3c4f4b3") // 발급받은 키 중 javascript키를 사용해준다.
         }
-        return
+        return true
       }
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 100))
     }
-    alert(
-      "필수 라이브러리 로딩 실패, 다른 브라우저 또는 빠른 네트워크를 이용해주세요."
-    )
+
+    return false
   }
 
   function getKakaoToken(): Promise<number> {
     return new Promise((resolve, reject) => {
       if (!Kakao) {
-        alert("카카오 SDK 로딩 실패\n잠시 후 다시 시도해주세요.")
+        alert("카카오 SDK가 로딩되지 않았습니다.\n잠시후 다시 눌러주세요.")
         if (globalValue.Kakao) {
           alert("globalValue.Kakao는 불러와짐")
         }
