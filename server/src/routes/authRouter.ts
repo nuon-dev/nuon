@@ -3,6 +3,7 @@ import { getUserFromToken } from "../util/util"
 import { communityDatabase } from "../model/dataSource"
 import { User } from "../entity/user"
 import userModel from "../model/user"
+import { getKakaoIdFromAuthCode } from "../util/auth"
 
 const router = express.Router()
 
@@ -27,11 +28,6 @@ router.post("/edit-my-information", async (req, res) => {
   res.send({ result: "success" })
 })
 
-router.get("/community", async (req, res) => {
-  const communityList = await communityDatabase.find()
-  res.send(communityList)
-})
-
 router.post("/receipt-record", async (req, res) => {
   const body = req.body
 
@@ -51,10 +47,14 @@ router.post("/receipt-record", async (req, res) => {
 })
 
 const twentyOneDays = 1000 * 60 * 60 * 24 * 21
-router.post("/login", async (req, res) => {
-  const body = req.body
+router.get("/login", async (req, res) => {
+  const { code } = req.query
 
-  const kakaoId = body.kakaoId
+  const kakaoId = await getKakaoIdFromAuthCode(code as string)
+  if (!kakaoId) {
+    res.status(404).send({ result: "fail" })
+    return
+  }
 
   const newUserToken = await userModel.loginFromKakaoId(kakaoId)
   if (!newUserToken) {
@@ -71,7 +71,15 @@ router.post("/login", async (req, res) => {
       maxAge: twentyOneDays,
       expires: new Date(Date.now() + twentyOneDays),
     })
-    .send({ result: "success", accessToken: newUserToken.accessToken })
+    .cookie("accessToken", newUserToken.accessToken, {
+      httpOnly: false,
+      sameSite: "none",
+      secure: true,
+      maxAge: twentyOneDays,
+      expires: new Date(Date.now() + twentyOneDays),
+    })
+    .redirect(`history.back()`)
+  //.send({ result: "success", accessToken: newUserToken.accessToken })
 })
 
 router.post("/refresh-token", async (req, res) => {

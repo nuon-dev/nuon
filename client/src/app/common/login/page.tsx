@@ -32,7 +32,8 @@ function Login() {
   async function handleLogin() {
     try {
       await login()
-    } catch {
+    } catch (error) {
+      console.error(error)
       setNotificationMessage("등록되지 않은 사용자 입니다.")
     }
   }
