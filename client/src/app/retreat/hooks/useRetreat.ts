@@ -14,7 +14,7 @@ export default function useRetreat() {
   const { login, isLogin, authUserData } = useAuth()
 
   interface JoinNuonRequest {
-    kakaoId: number
+    kakaoToken: string
     name: string
     yearOfBirth: number
     gender: "man" | "woman"
@@ -24,7 +24,7 @@ export default function useRetreat() {
   async function updateNuon(request: JoinNuonRequest) {
     if (!isLogin) {
       await axios.post("/retreat/join", request)
-      await login(request.kakaoId)
+      await login(request.kakaoToken)
     } else {
       return axios.post("/auth/edit-my-information", {
         ...request,

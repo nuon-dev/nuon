@@ -26,7 +26,7 @@ export default function FirstStep() {
           "-" +
           data.phone.slice(3, 7) +
           "-" +
-          data.phone.slice(7, 11)
+          data.phone.slice(7, 11),
       )
     })
   }, [isLogin])
@@ -43,7 +43,7 @@ export default function FirstStep() {
     }
     try {
       await updateNuon({
-        kakaoId: kakaoToken,
+        kakaoToken: kakaoToken,
         name,
         yearOfBirth: parseInt(birthYear),
         phone: phone.replaceAll("-", ""),
@@ -51,7 +51,8 @@ export default function FirstStep() {
       })
     } catch (e) {
       alert(
-        "정보 등록에 실패했습니다. 새로고침후 다시 시도해주세요." + e.toString()
+        "정보 등록에 실패했습니다. 새로고침후 다시 시도해주세요." +
+          e.toString(),
       )
       return
     }

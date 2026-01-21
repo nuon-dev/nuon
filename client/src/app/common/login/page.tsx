@@ -7,6 +7,7 @@ import useAuth from "@/hooks/useAuth"
 import { Button, Stack } from "@mui/material"
 import { NotificationMessage } from "@/state/notification"
 import { useRouter, useSearchParams } from "next/navigation"
+import useKakaoHook from "@/hooks/useKakao"
 
 export default function LoginPage() {
   return (
@@ -19,22 +20,32 @@ export default function LoginPage() {
 function Login() {
   const { push } = useRouter()
   const searchParams = useSearchParams()
-  const { isLogin, login } = useAuth()
+  const { getKakaoTokenFromAuthCode, login, isLogin } = useAuth()
+  const { executeKakaoLogin } = useKakaoHook()
   const setNotificationMessage = useSetAtom(NotificationMessage)
 
   useEffect(() => {
-    const returnUrl = searchParams.get("returnUrl") || "/"
-    if (isLogin) {
-      push(returnUrl)
+    const code = searchParams.get("code")
+    if (code) {
+      //카카오에서 리다이렉트된 경우
+      getKakaoTokenFromAuthCode(code).then((kakaoToken) => {
+        login(kakaoToken).then(() => {
+          const returnUrl = searchParams.get("state")
+          push(returnUrl || "/")
+        })
+      })
+    } else if (isLogin) {
+      const returnUrl = searchParams.get("returnUrl")
+      push(returnUrl || "/")
     }
-  }, [isLogin])
+  }, [searchParams.get("code"), isLogin])
 
   async function handleLogin() {
     try {
-      await login()
+      const returnUrl = searchParams.get("returnUrl") || "/"
+      await executeKakaoLogin(returnUrl)
     } catch (error) {
-      console.error(error)
-      setNotificationMessage("등록되지 않은 사용자 입니다.")
+      setNotificationMessage("카카오 로그인 실패")
     }
   }
 

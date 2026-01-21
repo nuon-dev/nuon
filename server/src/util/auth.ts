@@ -79,7 +79,7 @@ async function getRole(user: User): Promise<Role> {
   }
 }
 
-export async function getKakaoIdFromAuthCode(code: string): Promise<string> {
+export async function getKakaoTokenFromAuthCode(code: string): Promise<string> {
   const response = await fetch("https://kauth.kakao.com/oauth/token", {
     method: "POST",
     headers: {
@@ -88,7 +88,7 @@ export async function getKakaoIdFromAuthCode(code: string): Promise<string> {
     body: new URLSearchParams({
       grant_type: "authorization_code",
       client_id: process.env.KAKAO_REST_API_KEY || "",
-      redirect_uri: `${getServerUrl()}/auth/login`,
+      redirect_uri: `${getServerUrl()}/common/login`,
       code: code,
     }),
   })
@@ -100,9 +100,12 @@ export async function getKakaoIdFromAuthCode(code: string): Promise<string> {
     refresh_token_expires_in: number
     scope: string
   }
-  // 만약, 카카오의 다른 API를 사용하고 싶다면 access token을 DB에 저장해야 함
-  const accessToken = tokenData.access_token
+  return tokenData.access_token
+}
 
+export async function getKakaoIdFromAccessToken(
+  accessToken: string,
+): Promise<string> {
   const userResponse = await fetch("https://kapi.kakao.com/v2/user/me", {
     method: "GET",
     headers: {
@@ -113,19 +116,18 @@ export async function getKakaoIdFromAuthCode(code: string): Promise<string> {
   return userData.id
 }
 
+//Todo: cors에 있는 것도 그렇고, 어떻게 관리 해야 하나?
 const target = process.env.NEXT_PUBLIC_API_TARGET
 function getServerUrl() {
   let PORT = 8000
   switch (target) {
     case "prod":
-      PORT = 8000
-      return `https://nuon.iubns.net:${PORT}`
+      return `https://nuon.iubns.net`
     case "dev":
-      PORT = 8001
-      return `https://nuon-dev.iubns.net:${PORT}`
+      return `https://nuon-dev.iubns.net`
     case "local":
     default:
-      PORT = 8000
+      PORT = 8080
       return `http://localhost:${PORT}`
   }
 }
