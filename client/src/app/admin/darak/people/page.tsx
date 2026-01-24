@@ -430,8 +430,23 @@ export default function People() {
   }
 
   return (
-    <Box sx={{ bgcolor: "grey.50", minHeight: "100vh" }}>
+    <Box sx={{ bgcolor: "grey.50" }}>
       <Box p={1.5}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          mb={1.5}
+        >
+          <Typography variant="h5" fontWeight="bold" color="text.primary">
+            커뮤니티 관리
+          </Typography>
+          <Stack direction="row" gap={1} alignItems="center">
+            <Box mb={1.5}>
+              <UserSearch onSelectUser={handleSelectUser} />
+            </Box>
+          </Stack>
+        </Stack>
         <Stack
           direction="row"
           gap={2}
@@ -440,23 +455,6 @@ export default function People() {
           }}
         >
           <Stack gap={1.5}>
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{ width: 320 }}
-            >
-              <Typography variant="h5" fontWeight="bold" color="text.primary">
-                커뮤니티 관리
-              </Typography>
-              <Chip
-                label={`미배정: ${noCommunityUser.length}명`}
-                size="small"
-                variant="outlined"
-                color={noCommunityUser.length > 0 ? "warning" : "success"}
-              />
-            </Stack>
-
             {/* 미배정 사용자 영역 */}
             <Paper
               elevation={2}
@@ -506,12 +504,11 @@ export default function People() {
           {/* 커뮤니티 영역 */}
           <Box
             flex="1"
-            sx={{ maxHeight: "calc(100vh - 100px)", overflowY: "auto" }}
+            sx={{
+              maxHeight: "calc(100vh - (64px + 64px + 24px))",
+              overflowY: "auto",
+            }}
           >
-            <Box mb={1.5}>
-              <UserSearch onSelectUser={handleSelectUser} />
-            </Box>
-
             {/* 네비게이션 */}
             <Paper
               elevation={1}
@@ -603,7 +600,6 @@ export default function People() {
             )}
           </Box>
         </Stack>
-
         {/* 드래그 중인 사용자 표시 */}
         {selectedUser.current && selectedUser.current.id && (
           <Box

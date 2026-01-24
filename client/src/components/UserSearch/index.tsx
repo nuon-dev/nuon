@@ -1,12 +1,6 @@
 import { useState, useEffect, useMemo } from "react"
-import {
-  TextField,
-  Autocomplete,
-  Box,
-  Typography,
-  CircularProgress,
-} from "@mui/material"
-import { get } from "@/config/api"
+import { TextField, Autocomplete, Box, Typography } from "@mui/material"
+import axios from "@/config/axios"
 import { type User } from "@server/entity/user"
 import { debounce } from "lodash"
 
@@ -28,10 +22,10 @@ export default function UserSearch({ onSelectUser }: UserSearchProps) {
           callback: (results?: User[]) => void,
         ) => {
           try {
-            const results = await get(
+            const { data } = await axios.get<User[]>(
               `/admin/community/search-user?name=${request.input}`,
             )
-            callback(results)
+            callback(data)
           } catch (error) {
             console.error(error)
             callback([])
@@ -97,22 +91,7 @@ export default function UserSearch({ onSelectUser }: UserSearchProps) {
         )
       }}
       renderInput={(params) => (
-        <TextField
-          {...params}
-          label="사용자 검색"
-          size="small"
-          InputProps={{
-            ...params.InputProps,
-            endAdornment: (
-              <>
-                {loading ? (
-                  <CircularProgress color="inherit" size={20} />
-                ) : null}
-                {params.InputProps.endAdornment}
-              </>
-            ),
-          }}
-        />
+        <TextField {...params} label="사용자 검색" size="small" />
       )}
       sx={{ width: 300 }}
     />
