@@ -314,7 +314,7 @@ function index() {
                         {/* Points and Labels */}
                         {data.map((d, i) => {
                           const maleHigher = d.male >= d.female
-                          
+
                           return (
                             <g key={i}>
                               <text
@@ -354,7 +354,11 @@ function index() {
                               />
                               <text
                                 x={getX(i)}
-                                y={maleHigher ? getY(d.male) - 15 : getY(d.male) + 25}
+                                y={
+                                  maleHigher
+                                    ? getY(d.male) - 15
+                                    : getY(d.male) + 25
+                                }
                                 textAnchor="middle"
                                 fontSize="14"
                                 fontWeight="bold"
@@ -372,7 +376,11 @@ function index() {
                               />
                               <text
                                 x={getX(i)}
-                                y={!maleHigher ? getY(d.female) - 15 : getY(d.female) + 25}
+                                y={
+                                  !maleHigher
+                                    ? getY(d.female) - 15
+                                    : getY(d.female) + 25
+                                }
                                 textAnchor="middle"
                                 fontSize="14"
                                 fontWeight="bold"
