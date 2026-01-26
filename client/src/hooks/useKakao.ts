@@ -41,7 +41,7 @@ export default function useKakaoHook() {
   async function executeKakaoLogin(redirectUri: string = "") {
     const URL = GetUrl()
     await Kakao.Auth.authorize({
-      redirectUri: `${URL.host}:${URL.clientPort}/common/login`,
+      redirectUri: `${URL.host}${URL.clientPort}/common/login`,
       state: redirectUri,
     })
     return
