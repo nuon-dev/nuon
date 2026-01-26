@@ -351,6 +351,7 @@ router.get("/retreat-attendance-records", async (req, res) => {
         isWorker: true,
         isHalf: true,
         createAt: true,
+        isCanceled: true,
       },
     },
     relations: {
@@ -358,15 +359,6 @@ router.get("/retreat-attendance-records", async (req, res) => {
     },
   })
 
-  attendDataList = attendDataList.filter((soon) => {
-    if (!soon.retreatAttend) {
-      return true
-    }
-    if (soon.retreatAttend.isCanceled) {
-      return false
-    }
-    return true
-  })
   res.status(200).send(attendDataList)
 })
 
