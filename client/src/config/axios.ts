@@ -3,20 +3,20 @@ import axios from "axios"
 export const GetUrl = () => {
   const target = process.env.NEXT_PUBLIC_API_TARGET
 
-  let SERVER_PORT = 8000
-  let CLIENT_PORT = 8080
+  let SERVER_PORT = "8000"
+  let CLIENT_PORT = "8080"
   switch (target) {
     case "prod":
-      SERVER_PORT = 8000
-      CLIENT_PORT = 8080
+      SERVER_PORT = "8000"
+      CLIENT_PORT = "8080"
       return {
         host: process.env.NEXT_PUBLIC_PROD_SERVER,
         serverPort: SERVER_PORT,
         clientPort: CLIENT_PORT,
       }
     case "dev":
-      SERVER_PORT = 8001
-      CLIENT_PORT = 80
+      SERVER_PORT = "8001"
+      CLIENT_PORT = ""
       return {
         host: process.env.NEXT_PUBLIC_DEV_SERVER,
         serverPort: SERVER_PORT,
@@ -24,8 +24,8 @@ export const GetUrl = () => {
       }
     case "local":
     default:
-      SERVER_PORT = 8000
-      CLIENT_PORT = 80
+      SERVER_PORT = "8000"
+      CLIENT_PORT = ""
       return {
         host: process.env.NEXT_PUBLIC_LOCAL_SERVER,
         serverPort: SERVER_PORT,
