@@ -1,26 +1,42 @@
 import axios from "axios"
 
-export const GetServerUrl = () => {
+export const GetUrl = () => {
   const target = process.env.NEXT_PUBLIC_API_TARGET
 
-  let PORT = 8000
+  let SERVER_PORT = 8000
+  let CLIENT_PORT = 8080
   switch (target) {
     case "prod":
-      PORT = 8000
-      return `${process.env.NEXT_PUBLIC_PROD_SERVER}:${PORT}`
+      SERVER_PORT = 8000
+      CLIENT_PORT = 8080
+      return {
+        host: process.env.NEXT_PUBLIC_PROD_SERVER,
+        serverPort: SERVER_PORT,
+        clientPort: CLIENT_PORT,
+      }
     case "dev":
-      PORT = 8001
-      return `${process.env.NEXT_PUBLIC_DEV_SERVER}:${PORT}`
+      SERVER_PORT = 8001
+      CLIENT_PORT = 80
+      return {
+        host: process.env.NEXT_PUBLIC_DEV_SERVER,
+        serverPort: SERVER_PORT,
+        clientPort: CLIENT_PORT,
+      }
     case "local":
     default:
-      PORT = 8000
-      return `${process.env.NEXT_PUBLIC_LOCAL_SERVER}:${PORT}`
+      SERVER_PORT = 8000
+      CLIENT_PORT = 80
+      return {
+        host: process.env.NEXT_PUBLIC_LOCAL_SERVER,
+        serverPort: SERVER_PORT,
+        clientPort: CLIENT_PORT,
+      }
   }
 }
 
-const SERVER_URL = GetServerUrl()
+const URL = GetUrl()
 
-export const SERVER_FULL_PATH = `${SERVER_URL}`
+export const SERVER_FULL_PATH = `${URL.host}:${URL.serverPort}`
 
 const isBrowser = typeof window !== "undefined"
 
