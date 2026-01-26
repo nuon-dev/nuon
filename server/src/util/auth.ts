@@ -119,7 +119,6 @@ export async function getKakaoIdFromAccessToken(
 //Todo: cors에 있는 것도 그렇고, 어떻게 관리 해야 하나?
 const target = process.env.NEXT_PUBLIC_API_TARGET
 function getServerUrl() {
-  let PORT = 8000
   switch (target) {
     case "prod":
       return `https://nuon.iubns.net`
@@ -127,7 +126,6 @@ function getServerUrl() {
       return `https://nuon-dev.iubns.net`
     case "local":
     default:
-      PORT = 8080
-      return `http://localhost:${PORT}`
+      return `http://localhost:8080`
   }
 }
