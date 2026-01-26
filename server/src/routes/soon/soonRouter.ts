@@ -10,6 +10,7 @@ import { checkJwt, getUserFromToken } from "../../util/util"
 import { Community } from "../../entity/community"
 import { User } from "../../entity/user"
 import { In } from "typeorm"
+import { getKakaoIdFromAccessToken } from "../../util/auth"
 
 const router = express.Router()
 
@@ -23,7 +24,7 @@ async function getAllSoonUsers(community: Community) {
   const childUsersPromise = await communityWithRelations.children.map(
     async (childCommunity) => {
       return await getAllSoonUsers(childCommunity)
-    }
+    },
   )
   const awaitedChildUsers = (await Promise.all(childUsersPromise)).flat()
 
@@ -51,7 +52,7 @@ router.get("/my-group-info", async (req, res) => {
         phone: user.phone,
         gender: user.gender,
         kakaoId: !!user.kakaoId,
-      } as any)
+      }) as any,
   )
 
   res.send(group)
@@ -208,7 +209,9 @@ router.post("/attendance", async (req, res) => {
 })
 
 router.post("/register-kakao-login", async (req, res) => {
-  const { userId, kakaoId } = req.body
+  const { userId, kakaoToken } = req.body
+
+  const kakaoId = await getKakaoIdFromAccessToken(kakaoToken)
 
   const existingUsers = await userDatabase.findOne({
     where: {
@@ -348,6 +351,7 @@ router.get("/retreat-attendance-records", async (req, res) => {
         isWorker: true,
         isHalf: true,
         createAt: true,
+        isCanceled: true,
       },
     },
     relations: {
@@ -355,15 +359,6 @@ router.get("/retreat-attendance-records", async (req, res) => {
     },
   })
 
-  attendDataList = attendDataList.filter((soon) => {
-    if (!soon.retreatAttend) {
-      return true
-    }
-    if (soon.retreatAttend.isCanceled) {
-      return false
-    }
-    return true
-  })
   res.status(200).send(attendDataList)
 })
 

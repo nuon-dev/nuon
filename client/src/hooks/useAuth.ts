@@ -29,11 +29,10 @@ export interface jwtPayload {
   exp: number
 }
 const isLoginAtom = atom((get) => get(JwtInformationAtom) != null)
-const kakaoTokenAtom = atom<number | null>(null)
+const kakaoTokenAtom = atom<string | null>(null)
 
 export default function useAuth() {
   const { push } = useRouter()
-  const { getKakaoToken } = useKakaoHook()
   const isLogin = useAtomValue(isLoginAtom)
   const setNotificationMessage = useSetAtom(NotificationMessage)
   const [authUserData, setAuthUserData] = useAtom(JwtInformationAtom)
@@ -69,19 +68,27 @@ export default function useAuth() {
     return null
   }
 
-  async function login(kakaoId?: number): Promise<jwtPayload> {
-    if (!kakaoId) {
-      kakaoId = await getKakaoToken()
+  async function getKakaoTokenFromAuthCode(code: string) {
+    const { data } = await axios.post("/auth/get-kakao-token", {
+      code: code,
+    })
+    setKakaoToken(data.kakaoToken)
+    return data.kakaoToken
+  }
+
+  async function login(kakaoToken: string): Promise<jwtPayload> {
+    if (!kakaoToken) {
+      throw new Error("카카오 토큰이 없습니다.")
     }
-    setKakaoToken(kakaoId)
+    //setKakaoToken(kakaoToken)
     const { data } = await axios.post(
       "/auth/login",
       {
-        kakaoId: kakaoId,
+        kakaoToken: kakaoToken,
       },
       {
         withCredentials: true,
-      }
+      },
     )
     const { accessToken } = data
     localStorage.setItem("token", accessToken)
@@ -145,5 +152,6 @@ export default function useAuth() {
     isAdminIfNotExit,
     logout,
     kakaoToken,
+    getKakaoTokenFromAuthCode,
   }
 }

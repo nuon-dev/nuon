@@ -1,24 +1,26 @@
 import axios from "axios"
-let PORT = 8000
 
-const getBaseUrl = () => {
+export const GetServerUrl = () => {
   const target = process.env.NEXT_PUBLIC_API_TARGET
 
+  let PORT = 8000
   switch (target) {
     case "prod":
-      return process.env.NEXT_PUBLIC_PROD_SERVER
+      PORT = 8000
+      return `${process.env.NEXT_PUBLIC_PROD_SERVER}:${PORT}`
     case "dev":
       PORT = 8001
-      return process.env.NEXT_PUBLIC_DEV_SERVER
+      return `${process.env.NEXT_PUBLIC_DEV_SERVER}:${PORT}`
     case "local":
     default:
-      return process.env.NEXT_PUBLIC_LOCAL_SERVER
+      PORT = 8000
+      return `${process.env.NEXT_PUBLIC_LOCAL_SERVER}:${PORT}`
   }
 }
 
-const SERVER_URL = getBaseUrl()
+const SERVER_URL = GetServerUrl()
 
-export const SERVER_FULL_PATH = `${SERVER_URL}:${PORT}`
+export const SERVER_FULL_PATH = `${SERVER_URL}`
 
 const isBrowser = typeof window !== "undefined"
 
@@ -35,7 +37,7 @@ axios.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error)
-  }
+  },
 )
 
 axios.interceptors.response.use(
@@ -46,11 +48,11 @@ axios.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       if (isBrowser) {
         window.location.href = `/common/login?redirect=${encodeURIComponent(
-          window.location.pathname
+          window.location.pathname,
         )}`
       }
     }
     return Promise.reject(error)
-  }
+  },
 )
 export default axios

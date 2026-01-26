@@ -1,3 +1,4 @@
+import { GetServerUrl } from "@/config/axios"
 import { useEffect } from "react"
 
 export default function useKakaoHook() {
@@ -37,35 +38,15 @@ export default function useKakaoHook() {
     return false
   }
 
-  function getKakaoToken(): Promise<number> {
-    return new Promise((resolve, reject) => {
-      if (!Kakao) {
-        alert("카카오 SDK가 로딩되지 않았습니다.\n잠시후 다시 눌러주세요.")
-        if (globalValue.Kakao) {
-          alert("globalValue.Kakao는 불러와짐")
-        }
-        return
-      }
-      Kakao.Auth.login({
-        success: function (response: Response) {
-          Kakao.API.request({
-            url: "/v2/user/me",
-            success: function (response: { id: number }) {
-              resolve(response.id)
-            },
-            fail: function (error: any) {
-              reject(error)
-            },
-          })
-        },
-        fail: function (error: any) {
-          reject(error)
-        },
-      })
+  async function executeKakaoLogin(redirectUri: string = "") {
+    await Kakao.Auth.authorize({
+      redirectUri: `http://localhost:8080/common/login`,
+      state: redirectUri,
     })
+    return
   }
 
   return {
-    getKakaoToken,
+    executeKakaoLogin,
   }
 }

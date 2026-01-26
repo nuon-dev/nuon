@@ -78,3 +78,56 @@ async function getRole(user: User): Promise<Role> {
     VillageLeader: villageLeader,
   }
 }
+
+export async function getKakaoTokenFromAuthCode(code: string): Promise<string> {
+  const response = await fetch("https://kauth.kakao.com/oauth/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: process.env.KAKAO_REST_API_KEY || "",
+      redirect_uri: `${getServerUrl()}/common/login`,
+      code: code,
+    }),
+  })
+
+  const tokenData = (await response.json()) as {
+    access_token: string
+    refresh_token: string
+    expires_in: number
+    refresh_token_expires_in: number
+    scope: string
+  }
+  return tokenData.access_token
+}
+
+export async function getKakaoIdFromAccessToken(
+  accessToken: string,
+): Promise<string> {
+  const userResponse = await fetch("https://kapi.kakao.com/v2/user/me", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+  const userData = (await userResponse.json()) as { id: string }
+  return userData.id
+}
+
+//Todo: cors에 있는 것도 그렇고, 어떻게 관리 해야 하나?
+const target = process.env.NEXT_PUBLIC_API_TARGET
+function getServerUrl() {
+  let PORT = 8000
+  switch (target) {
+    case "prod":
+      return `https://nuon.iubns.net`
+    case "dev":
+      return `https://nuon-dev.iubns.net`
+    case "local":
+    default:
+      PORT = 8080
+      return `http://localhost:${PORT}`
+  }
+}
