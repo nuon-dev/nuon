@@ -16,7 +16,7 @@ interface RetreatAttendanceCardProps {
 export default function RetreatAttendanceCard({
   soon,
 }: RetreatAttendanceCardProps) {
-  const isRegistered = !!soon.retreatAttend
+  const isRegistered = !!soon.retreatAttend && !soon.retreatAttend.isCanceled
 
   return (
     <Stack
