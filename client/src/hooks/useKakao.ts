@@ -1,4 +1,4 @@
-import { GetServerUrl } from "@/config/axios"
+import { GetUrl } from "@/config/axios"
 import { useEffect } from "react"
 
 export default function useKakaoHook() {
@@ -39,8 +39,9 @@ export default function useKakaoHook() {
   }
 
   async function executeKakaoLogin(redirectUri: string = "") {
+    const URL = GetUrl()
     await Kakao.Auth.authorize({
-      redirectUri: `http://localhost:8080/common/login`,
+      redirectUri: `${URL.host}:${URL.clientPort}/common/login`,
       state: redirectUri,
     })
     return

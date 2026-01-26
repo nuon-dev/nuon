@@ -7,11 +7,9 @@ import {
   Chip,
   List,
   Alert,
-  Divider,
   ListItem,
   Typography,
   CardContent,
-  LinearProgress,
   CircularProgress,
 } from "@mui/material"
 import { useSetAtom } from "jotai"
@@ -242,106 +240,174 @@ function index() {
               <Typography variant="h6" fontWeight="bold" gutterBottom>
                 출석 현황 (최근 4주)
               </Typography>
-              <Stack
-                direction="row"
-                spacing={2}
-                justifyContent="space-around"
-                height={300}
-              >
-                {dashboardData.statistics.last4Weeks.map((week, index) => {
-                  const maxCount = Math.max(
-                    ...dashboardData.statistics.last4Weeks.flatMap((w) => [
-                      w.genderCount.male,
-                      w.genderCount.female,
-                    ]),
-                    1
-                  )
+              <Box sx={{ height: 300, width: "100%", position: "relative" }}>
+                <svg
+                  viewBox="0 0 800 300"
+                  style={{ width: "100%", height: "100%", overflow: "visible" }}
+                >
+                  {(() => {
+                    const data = dashboardData.statistics.last4Weeks.map(
+                      (w) => ({
+                        date: w.date,
+                        male: w.genderCount.male,
+                        female: w.genderCount.female,
+                        total: w.genderCount.male + w.genderCount.female,
+                      }),
+                    )
+                    const maxVal =
+                      Math.max(...data.map((d) => d.total), 1) * 1.2
 
-                  return (
-                    <Stack key={index} alignItems="center" spacing={1} flex={1}>
-                      <Typography
-                        variant="caption"
-                        fontWeight="bold"
-                        fontSize="16px"
-                      >
-                        {week.date}
-                      </Typography>
-                      <Stack
-                        spacing={1}
-                        width="50%"
-                        height="100%"
-                        direction="row"
-                        alignItems="flex-end"
-                        justifyContent="center"
-                      >
-                        {/* Man Bar */}
-                        <Stack
-                          alignItems="center"
-                          justifyContent="flex-end"
-                          height="100%"
-                          flex={1}
-                        >
-                          <Typography
-                            height="40px"
-                            variant="caption"
-                            fontWeight="bold"
-                            fontSize="18px"
-                            color="primary"
-                            gutterBottom
-                          >
-                            {week.genderCount.male}
-                          </Typography>
-                          <Box
-                            sx={{
-                              width: "100%",
-                              height: `${
-                                (week.genderCount.male / maxCount) * 100
-                              }%`,
-                              bgcolor: "#1976d2",
-                              borderRadius: "4px 4px 0 0",
-                              transition: "height 0.5s ease-in-out",
-                              minHeight:
-                                week.genderCount.male > 0 ? "4px" : "0px",
-                            }}
-                          />
-                        </Stack>
-                        {/* Woman Bar */}
-                        <Stack
-                          alignItems="center"
-                          justifyContent="flex-end"
-                          height="100%"
-                          flex={1}
-                        >
-                          <Typography
-                            height="40px"
-                            variant="caption"
-                            fontWeight="bold"
-                            color="secondary"
-                            fontSize="18px"
-                            gutterBottom
-                          >
-                            {week.genderCount.female}
-                          </Typography>
-                          <Box
-                            sx={{
-                              width: "100%",
-                              height: `${
-                                (week.genderCount.female / maxCount) * 100
-                              }%`,
-                              bgcolor: "#9c27b0",
-                              borderRadius: "4px 4px 0 0",
-                              transition: "height 0.5s ease-in-out",
-                              minHeight:
-                                week.genderCount.female > 0 ? "4px" : "0px",
-                            }}
-                          />
-                        </Stack>
-                      </Stack>
-                    </Stack>
-                  )
-                })}
-              </Stack>
+                    const getX = (index: number) => {
+                      const sectionWidth = 800 / data.length
+                      return index * sectionWidth + sectionWidth / 2
+                    }
+                    const getY = (val: number) => 250 - (val / maxVal) * 200
+
+                    const malePath = data
+                      .map(
+                        (d, i) =>
+                          `${i === 0 ? "M" : "L"} ${getX(i)} ${getY(d.male)}`,
+                      )
+                      .join(" ")
+                    const femalePath = data
+                      .map(
+                        (d, i) =>
+                          `${i === 0 ? "M" : "L"} ${getX(i)} ${getY(d.female)}`,
+                      )
+                      .join(" ")
+                    const totalPath = data
+                      .map(
+                        (d, i) =>
+                          `${i === 0 ? "M" : "L"} ${getX(i)} ${getY(d.total)}`,
+                      )
+                      .join(" ")
+
+                    return (
+                      <>
+                        {/* Grid lines */}
+                        <line x1="0" y1="250" x2="800" y2="250" stroke="#eee" />
+
+                        {/* Total Line */}
+                        <path
+                          d={totalPath}
+                          fill="none"
+                          stroke="#2e7d32"
+                          strokeWidth="3"
+                        />
+
+                        {/* Male Line */}
+                        <path
+                          d={malePath}
+                          fill="none"
+                          stroke="#1976d2"
+                          strokeWidth="3"
+                        />
+
+                        {/* Female Line */}
+                        <path
+                          d={femalePath}
+                          fill="none"
+                          stroke="#9c27b0"
+                          strokeWidth="3"
+                        />
+
+                        {/* Points and Labels */}
+                        {data.map((d, i) => {
+                          const maleHigher = d.male >= d.female
+
+                          return (
+                            <g key={i}>
+                              <text
+                                x={getX(i)}
+                                y="280"
+                                textAnchor="middle"
+                                fontSize="14"
+                                fill="#666"
+                              >
+                                {d.date}
+                              </text>
+
+                              {/* Total */}
+                              <circle
+                                cx={getX(i)}
+                                cy={getY(d.total)}
+                                r="4"
+                                fill="#2e7d32"
+                              />
+                              <text
+                                x={getX(i)}
+                                y={getY(d.total) - 15}
+                                textAnchor="middle"
+                                fontSize="14"
+                                fontWeight="bold"
+                                fill="#2e7d32"
+                              >
+                                {d.total}
+                              </text>
+
+                              {/* Male */}
+                              <circle
+                                cx={getX(i)}
+                                cy={getY(d.male)}
+                                r="4"
+                                fill="#1976d2"
+                              />
+                              <text
+                                x={getX(i)}
+                                y={
+                                  maleHigher
+                                    ? getY(d.male) - 15
+                                    : getY(d.male) + 25
+                                }
+                                textAnchor="middle"
+                                fontSize="14"
+                                fontWeight="bold"
+                                fill="#1976d2"
+                              >
+                                {d.male}
+                              </text>
+
+                              {/* Female */}
+                              <circle
+                                cx={getX(i)}
+                                cy={getY(d.female)}
+                                r="4"
+                                fill="#9c27b0"
+                              />
+                              <text
+                                x={getX(i)}
+                                y={
+                                  !maleHigher
+                                    ? getY(d.female) - 15
+                                    : getY(d.female) + 25
+                                }
+                                textAnchor="middle"
+                                fontSize="14"
+                                fontWeight="bold"
+                                fill="#9c27b0"
+                              >
+                                {d.female}
+                              </text>
+                            </g>
+                          )
+                        })}
+                      </>
+                    )
+                  })()}
+                </svg>
+              </Box>
               <Stack direction="row" justifyContent="center" spacing={2} mt={2}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      bgcolor: "#2e7d32",
+                      borderRadius: 1,
+                    }}
+                  />
+                  <Typography variant="caption">전체</Typography>
+                </Stack>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <Box
                     sx={{
