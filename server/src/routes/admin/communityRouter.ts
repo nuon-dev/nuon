@@ -1,6 +1,6 @@
 import express from "express"
 import { communityDatabase, userDatabase } from "../../model/dataSource"
-import { IsNull, Not } from "typeorm"
+import { IsNull, Like, Not } from "typeorm"
 
 const router = express.Router()
 
@@ -77,6 +77,39 @@ router.get("/user-list/:groupId", async (req, res) => {
     },
   })
   res.send(groupList)
+})
+
+router.get("/search-user", async (req, res) => {
+  const { name } = req.query
+  if (!name) {
+    res.send([])
+    return
+  }
+
+  const users = await userDatabase.find({
+    where: {
+      name: Like(`%${name}%`),
+    },
+    relations: {
+      community: {
+        parent: true,
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      yearOfBirth: true,
+      community: {
+        id: true,
+        name: true,
+        parent: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  })
+  res.send(users)
 })
 
 router.get("/no-community-user-list", async (req, res) => {
