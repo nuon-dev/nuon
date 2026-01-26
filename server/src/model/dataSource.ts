@@ -14,6 +14,8 @@ import { AttendData } from "../entity/attendData"
 import { WorshipContest } from "../entity/event/worshipContest"
 import { AIChat } from "../entity/ai/aiChat"
 import { AIChatRoom } from "../entity/ai/aiChatRoom"
+import { Newcomer } from "../entity/newcomer"
+import { NewcomerEducation } from "../entity/newcomerEducation"
 
 const dataSource = new DataSource(require("../../ormconfig.js"))
 
@@ -34,5 +36,8 @@ export const aiChatDatabase = dataSource.getRepository(AIChat)
 export const aiChatRoomDatabase = dataSource.getRepository(AIChatRoom)
 
 export const worshipContestDatabase = dataSource.getRepository(WorshipContest)
+export const newcomerDatabase = dataSource.getRepository(Newcomer)
+export const newcomerEducationDatabase =
+  dataSource.getRepository(NewcomerEducation)
 
 export default dataSource
