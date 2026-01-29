@@ -30,7 +30,7 @@ export class CreateNewcomer1769693832000 implements MigrationInterface {
       CREATE TABLE \`newcomer_education\` (
         \`id\` varchar(36) NOT NULL,
         \`newcomerId\` varchar(36) NULL,
-        \`worshipScheduleId\` varchar(36) NULL,
+        \`worshipScheduleId\` int NULL,
         \`lectureType\` enum ('OT', 'L1', 'L2', 'L3', 'L4', 'L5') NOT NULL,
         \`memo\` text NULL,
         PRIMARY KEY (\`id\`),
