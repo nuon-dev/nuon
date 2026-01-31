@@ -42,18 +42,32 @@ interface EducationResponse {
   newcomers: NewcomerEducation[]
 }
 
-// 강의 타입별 색상
+// 강의 타입별 색상 (value 기준)
 const lectureColors: Record<string, string> = {
   "": "transparent",
   OT: "#b8f85d",
-  "1강": "#fdf171",
-  "2강": "#fdf171",
-  "3강": "#fdf171",
-  "4강": "#fdf171",
-  "5강": "#fdf171",
+  L1: "#fdf171",
+  L2: "#fdf171",
+  L3: "#fdf171",
+  L4: "#fdf171",
+  L5: "#fdf171",
 }
 
-const lectureOptions = ["", "OT", "1강", "2강", "3강", "4강", "5강"]
+// value: API로 보내는 값, label: 화면에 표시하는 값
+const lectureOptions = [
+  { value: "", label: "-" },
+  { value: "OT", label: "OT" },
+  { value: "L1", label: "1강" },
+  { value: "L2", label: "2강" },
+  { value: "L3", label: "3강" },
+  { value: "L4", label: "4강" },
+  { value: "L5", label: "5강" },
+]
+
+// value → label 변환
+const getLectureLabel = (value: string) => {
+  return lectureOptions.find((o) => o.value === value)?.label || value
+}
 
 // 테이블 셀 너비 상수
 const NAME_CELL_WIDTH = 150
@@ -77,12 +91,61 @@ export default function NewcomerEducationPage() {
     try {
       setLoading(true)
       const { data } = await axios.get<EducationResponse>("/newcomer/education")
-      setEducationData(data)
+
+      // 출석률 기준 정렬
+      const sortedNewcomers = sortByAttendanceRate(
+        data.newcomers,
+        data.worshipSchedules,
+      )
+      setEducationData({
+        ...data,
+        newcomers: sortedNewcomers,
+      })
     } catch (error) {
       console.error("Error fetching education data:", error)
     } finally {
       setLoading(false)
     }
+  }
+
+  // OT 날짜부터 출석률 계산 및 정렬
+  function sortByAttendanceRate(
+    newcomers: NewcomerEducation[],
+    schedules: WorshipSchedule[],
+  ): NewcomerEducation[] {
+    return [...newcomers].sort((a, b) => {
+      const rateA = calculateAttendanceRate(a, schedules)
+      const rateB = calculateAttendanceRate(b, schedules)
+      return rateB - rateA // 높은 순으로 정렬
+    })
+  }
+
+  // 출석률 계산: OT 날짜부터 현재까지의 출석 비율
+  function calculateAttendanceRate(
+    newcomer: NewcomerEducation,
+    schedules: WorshipSchedule[],
+  ): number {
+    const educationEntries = Object.entries(newcomer.education).filter(
+      ([_, record]) => record !== null,
+    )
+
+    // OT 기록 찾기
+    const otEntry = educationEntries.find(
+      ([_, record]) => record?.lectureType === "OT",
+    )
+    if (!otEntry) return -1 // OT 없으면 맨 아래로
+
+    const [otDate] = otEntry
+
+    // OT 이후의 스케줄 수 계산 (날짜 기준)
+    const schedulesAfterOT = schedules.filter((s) => s.date >= otDate)
+
+    if (schedulesAfterOT.length === 0) return 0
+
+    // 출석 횟수: OT 날짜 이후에 기록이 있는 날짜 수
+    const attendedDates = educationEntries.filter(([date]) => date >= otDate)
+
+    return attendedDates.length / schedulesAfterOT.length
   }
 
   async function handleLectureChange(
@@ -154,6 +217,26 @@ export default function NewcomerEducationPage() {
     return record?.lectureType || ""
   }
 
+  // 해당 새신자가 이미 사용한 강의 타입 목록 (현재 날짜 제외)
+  function getUsedLectureTypes(
+    newcomer: NewcomerEducation,
+    currentScheduleId: number,
+  ): string[] {
+    const currentSchedule = educationData?.worshipSchedules.find(
+      (s) => s.id === currentScheduleId,
+    )
+    if (!currentSchedule) return []
+
+    return Object.entries(newcomer.education)
+      .filter(([date, record]) => {
+        if (!record) return false
+        // 현재 날짜는 제외 (수정 가능하게)
+        if (date === currentSchedule.date) return false
+        return true
+      })
+      .map(([_, record]) => record!.lectureType)
+  }
+
   if (loading) {
     return (
       <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5", p: 2 }}>
@@ -195,14 +278,14 @@ export default function NewcomerEducationPage() {
                 강의:
               </Typography>
               {lectureOptions
-                .filter((l) => l)
+                .filter((l) => l.value !== "")
                 .map((lecture) => (
                   <Chip
-                    key={lecture}
-                    label={lecture}
+                    key={lecture.value}
+                    label={lecture.label}
                     size="small"
                     sx={{
-                      bgcolor: lectureColors[lecture],
+                      bgcolor: lectureColors[lecture.value],
                       fontWeight: "bold",
                     }}
                   />
@@ -338,6 +421,10 @@ export default function NewcomerEducationPage() {
                       )
                       const cellKey = `${newcomer.id}-${schedule.id}`
                       const isSaving = savingCell === cellKey
+                      const usedLectures = getUsedLectureTypes(
+                        newcomer,
+                        schedule.id,
+                      )
 
                       return (
                         <Box
@@ -384,10 +471,16 @@ export default function NewcomerEducationPage() {
                           >
                             <MenuItem value="">-</MenuItem>
                             {lectureOptions
-                              .filter((l) => l)
+                              .filter((l) => l.value !== "")
                               .map((lecture) => (
-                                <MenuItem key={lecture} value={lecture}>
-                                  {lecture}
+                                <MenuItem
+                                  key={lecture.value}
+                                  value={lecture.value}
+                                  disabled={usedLectures.includes(
+                                    lecture.value,
+                                  )}
+                                >
+                                  {lecture.label}
                                 </MenuItem>
                               ))}
                           </Select>

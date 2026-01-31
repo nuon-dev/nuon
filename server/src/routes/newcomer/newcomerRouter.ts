@@ -35,7 +35,15 @@ router.post("/", async (req, res) => {
     return
   }
 
-  const { name, yearOfBirth, gender, phone, guiderId, assignmentId } = req.body
+  const {
+    name,
+    yearOfBirth,
+    gender,
+    phone,
+    guiderId,
+    assignmentId,
+    newcomerManagerId,
+  } = req.body
 
   if (!name) {
     res.status(400).send({ error: "이름은 필수입니다." })
@@ -49,8 +57,17 @@ router.post("/", async (req, res) => {
       guider = await userDatabase.findOne({ where: { id: guiderId } })
     }
 
-    // NewcomerManager 찾거나 생성
-    const newcomerManager = await getOrCreateNewcomerManager(user)
+    // NewcomerManager 확인 또는 현재 유저로 생성
+    let newcomerManager = null
+    if (newcomerManagerId) {
+      newcomerManager = await newcomerManagerDatabase.findOne({
+        where: { id: newcomerManagerId },
+      })
+    }
+    if (!newcomerManager) {
+      // 지정된 담당자가 없으면 현재 유저로 자동 생성
+      newcomerManager = await getOrCreateNewcomerManager(user)
+    }
 
     // 배정(Community) 확인
     let assignment = null
@@ -271,17 +288,6 @@ router.put("/:id/education", async (req, res) => {
   const newcomerId = req.params.id
   const { lectureType, worshipScheduleId, memo } = req.body
 
-  if (!lectureType) {
-    res.status(400).send({ error: "강의 타입은 필수입니다." })
-    return
-  }
-
-  // lectureType 유효성 검사
-  if (!Object.values(EducationLecture).includes(lectureType)) {
-    res.status(400).send({ error: "유효하지 않은 강의 타입입니다." })
-    return
-  }
-
   try {
     const newcomer = await newcomerDatabase.findOne({
       where: { id: newcomerId },
@@ -289,6 +295,24 @@ router.put("/:id/education", async (req, res) => {
 
     if (!newcomer) {
       res.status(404).send({ error: "새신자를 찾을 수 없습니다." })
+      return
+    }
+
+    // lectureType이 null이거나 빈 문자열이면 해당 스케줄의 기록 삭제
+    if (!lectureType) {
+      if (worshipScheduleId) {
+        await newcomerEducationDatabase.delete({
+          newcomer: { id: newcomerId },
+          worshipSchedule: { id: worshipScheduleId },
+        })
+      }
+      res.status(200).send({ success: true, deleted: true })
+      return
+    }
+
+    // lectureType 유효성 검사
+    if (!Object.values(EducationLecture).includes(lectureType)) {
+      res.status(400).send({ error: "유효하지 않은 강의 타입입니다." })
       return
     }
 
@@ -327,6 +351,156 @@ router.put("/:id/education", async (req, res) => {
   } catch (error) {
     console.error("Error updating newcomer education:", error)
     res.status(500).send({ error: "교육 정보 업데이트에 실패했습니다." })
+  }
+})
+
+// 7. 사용자 목록 조회 (담당자 선택용)
+router.get("/users", async (req, res) => {
+  const user = await checkJwt(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  try {
+    const users = await userDatabase.find({
+      select: ["id", "name", "yearOfBirth", "gender"],
+      order: { name: "ASC" },
+    })
+    res.status(200).send(users)
+  } catch (error) {
+    console.error("Error fetching users:", error)
+    res.status(500).send({ error: "사용자 목록 조회에 실패했습니다." })
+  }
+})
+
+// 8. 담당자 목록 조회
+router.get("/managers", async (req, res) => {
+  const user = await checkJwt(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  try {
+    const managers = await newcomerManagerDatabase.find({
+      relations: {
+        user: true,
+        newcomers: true,
+      },
+      order: {
+        user: { name: "ASC" },
+      },
+    })
+
+    const sanitizedManagers = managers.map((manager) => ({
+      id: manager.id,
+      user: {
+        id: manager.user.id,
+        name: manager.user.name,
+        yearOfBirth: manager.user.yearOfBirth,
+        gender: manager.user.gender,
+      },
+      newcomers:
+        manager.newcomers?.map((newcomer) => ({
+          id: newcomer.id,
+          name: newcomer.name,
+          yearOfBirth: newcomer.yearOfBirth,
+        })) || [],
+    }))
+
+    res.status(200).send(sanitizedManagers)
+  } catch (error) {
+    console.error("Error fetching managers:", error)
+    res.status(500).send({ error: "담당자 목록 조회에 실패했습니다." })
+  }
+})
+
+// 9. 담당자 등록 (User -> NewcomerManager)
+router.post("/managers", async (req, res) => {
+  const authUser = await checkJwt(req)
+  if (!authUser) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const { userId } = req.body
+
+  if (!userId) {
+    res.status(400).send({ error: "userId는 필수입니다." })
+    return
+  }
+
+  try {
+    // 이미 담당자인지 확인
+    const existingManager = await newcomerManagerDatabase.findOne({
+      where: { user: { id: userId } },
+    })
+
+    if (existingManager) {
+      res.status(400).send({ error: "이미 담당자로 등록되어 있습니다." })
+      return
+    }
+
+    // 사용자 확인
+    const targetUser = await userDatabase.findOne({ where: { id: userId } })
+    if (!targetUser) {
+      res.status(404).send({ error: "사용자를 찾을 수 없습니다." })
+      return
+    }
+
+    // 담당자 등록
+    const manager = newcomerManagerDatabase.create({ user: targetUser })
+    await newcomerManagerDatabase.save(manager)
+
+    res.status(201).send({
+      id: manager.id,
+      user: {
+        id: targetUser.id,
+        name: targetUser.name,
+      },
+      newcomers: [],
+    })
+  } catch (error) {
+    console.error("Error creating manager:", error)
+    res.status(500).send({ error: "담당자 등록에 실패했습니다." })
+  }
+})
+
+// 10. 담당자 해제
+router.delete("/managers/:id", async (req, res) => {
+  const user = await checkJwt(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const { id } = req.params
+
+  try {
+    const manager = await newcomerManagerDatabase.findOne({
+      where: { id },
+      relations: { newcomers: true },
+    })
+
+    if (!manager) {
+      res.status(404).send({ error: "담당자를 찾을 수 없습니다." })
+      return
+    }
+
+    // 담당 새신자가 있으면 연결 해제
+    if (manager.newcomers && manager.newcomers.length > 0) {
+      for (const newcomer of manager.newcomers) {
+        newcomer.newcomerManager = null as any
+        await newcomerDatabase.save(newcomer)
+      }
+    }
+
+    await newcomerManagerDatabase.delete(id)
+    res.status(200).send({ success: true })
+  } catch (error) {
+    console.error("Error deleting manager:", error)
+    res.status(500).send({ error: "담당자 해제에 실패했습니다." })
   }
 })
 

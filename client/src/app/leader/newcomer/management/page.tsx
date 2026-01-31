@@ -26,6 +26,11 @@ interface Newcomer {
   createdAt: string
 }
 
+interface Manager {
+  id: string
+  user: { id: string; name: string }
+}
+
 const emptyNewcomer: Newcomer = {
   id: "",
   name: "",
@@ -53,6 +58,7 @@ export default function NewcomerManagement() {
   const [filterGender, setFilterGender] = useState<"" | "man" | "woman">("")
   const [filterMinYear, setFilterMinYear] = useState("")
   const [filterMaxYear, setFilterMaxYear] = useState("")
+  const [managerList, setManagerList] = useState<Manager[]>([])
 
   useEffect(() => {
     isLeaderIfNotExit("/leader/newcomer/management")
@@ -61,11 +67,15 @@ export default function NewcomerManagement() {
 
   async function fetchData() {
     try {
-      const { data } = await axios.get<Newcomer[]>("/newcomer")
-      setNewcomerList(data)
+      const [newcomerRes, managerRes] = await Promise.all([
+        axios.get<Newcomer[]>("/newcomer"),
+        axios.get<Manager[]>("/newcomer/managers"),
+      ])
+      setNewcomerList(newcomerRes.data)
+      setManagerList(managerRes.data)
     } catch (error) {
-      console.error("Error fetching newcomers:", error)
-      setNotificationMessage("새신자 목록 조회에 실패했습니다.")
+      console.error("Error fetching data:", error)
+      setNotificationMessage("데이터 조회에 실패했습니다.")
     }
   }
 
@@ -89,6 +99,7 @@ export default function NewcomerManagement() {
           yearOfBirth: selectedNewcomer.yearOfBirth,
           gender: selectedNewcomer.gender,
           phone: selectedNewcomer.phone,
+          newcomerManagerId: selectedNewcomer.newcomerManager?.id || null,
         })
         setNotificationMessage("새신자가 추가되었습니다.")
       }
@@ -212,6 +223,7 @@ export default function NewcomerManagement() {
             onSave={saveData}
             onDelete={deleteNewcomer}
             onClear={clearSelectedNewcomer}
+            managerList={managerList}
           />
         </Stack>
       </Stack>

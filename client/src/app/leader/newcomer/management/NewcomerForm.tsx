@@ -1,11 +1,20 @@
 import { Box, Button, MenuItem, Stack, TextField } from "@mui/material"
 
+interface Manager {
+  id: string
+  user: { id: string; name: string }
+}
+
 interface Newcomer {
   id: string
   name: string
   yearOfBirth: number | null
   phone: string | null
   gender: "man" | "woman" | "" | null
+  newcomerManager?: {
+    id: string
+    user: { id: string; name: string }
+  } | null
 }
 
 interface NewcomerFormProps {
@@ -14,6 +23,7 @@ interface NewcomerFormProps {
   onSave: () => void
   onDelete: () => void
   onClear: () => void
+  managerList: Manager[]
 }
 
 export default function NewcomerForm({
@@ -22,6 +32,7 @@ export default function NewcomerForm({
   onSave,
   onDelete,
   onClear,
+  managerList,
 }: NewcomerFormProps) {
   return (
     <Stack
@@ -146,6 +157,35 @@ export default function NewcomerForm({
         >
           <MenuItem value="man">남</MenuItem>
           <MenuItem value="woman">여</MenuItem>
+        </TextField>
+      </Stack>
+
+      <Stack direction="row" alignItems="center" gap="12px">
+        <Box width="80px" textAlign="right">
+          담당자 :
+        </Box>
+        <TextField
+          select
+          value={selectedNewcomer.newcomerManager?.id || ""}
+          onChange={(e) => {
+            const managerId = e.target.value
+            if (!managerId) {
+              onDataChange("newcomerManager", null)
+            } else {
+              const manager = managerList.find((m) => m.id === managerId)
+              onDataChange("newcomerManager", manager || null)
+            }
+          }}
+          variant="outlined"
+          size="small"
+          sx={{ flex: 1 }}
+        >
+          <MenuItem value="">없음</MenuItem>
+          {managerList.map((manager) => (
+            <MenuItem key={manager.id} value={manager.id}>
+              {manager.user.name}
+            </MenuItem>
+          ))}
         </TextField>
       </Stack>
     </Stack>

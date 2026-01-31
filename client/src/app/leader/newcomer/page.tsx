@@ -20,6 +20,7 @@ export default function NewcomerPage() {
       <Stack spacing={1}>
         <Link href="/leader/newcomer/management">새신자 등록/조회</Link>
         <Link href="/leader/newcomer/education">교육 현황</Link>
+        <Link href="/leader/newcomer/managers">담당자 관리</Link>
       </Stack>
     </Stack>
   )
