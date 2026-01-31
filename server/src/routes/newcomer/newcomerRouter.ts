@@ -1,8 +1,10 @@
 import express from "express"
 
 import {
+  communityDatabase,
   newcomerDatabase,
   newcomerEducationDatabase,
+  newcomerManagerDatabase,
   userDatabase,
   worshipScheduleDatabase,
 } from "../../model/dataSource"
@@ -10,6 +12,20 @@ import { checkJwt } from "../../util/util"
 import { EducationLecture, NewcomerStatus } from "../../entity/types"
 
 const router = express.Router()
+
+// 현재 유저에 해당하는 NewcomerManager를 찾거나 생성
+async function getOrCreateNewcomerManager(user: any) {
+  let manager = await newcomerManagerDatabase.findOne({
+    where: { user: { id: user.id } },
+  })
+
+  if (!manager) {
+    manager = newcomerManagerDatabase.create({ user })
+    await newcomerManagerDatabase.save(manager)
+  }
+
+  return manager
+}
 
 // 1. 새신자 등록
 router.post("/", async (req, res) => {
@@ -19,7 +35,15 @@ router.post("/", async (req, res) => {
     return
   }
 
-  const { name, yearOfBirth, gender, phone, guiderId, assignment } = req.body
+  const {
+    name,
+    yearOfBirth,
+    gender,
+    phone,
+    guiderId,
+    assignmentId,
+    newcomerManagerId,
+  } = req.body
 
   if (!name) {
     res.status(400).send({ error: "이름은 필수입니다." })
@@ -33,14 +57,34 @@ router.post("/", async (req, res) => {
       guider = await userDatabase.findOne({ where: { id: guiderId } })
     }
 
+    // NewcomerManager 확인 또는 현재 유저로 생성
+    let newcomerManager = null
+    if (newcomerManagerId) {
+      newcomerManager = await newcomerManagerDatabase.findOne({
+        where: { id: newcomerManagerId },
+      })
+    }
+    if (!newcomerManager) {
+      // 지정된 담당자가 없으면 현재 유저로 자동 생성
+      newcomerManager = await getOrCreateNewcomerManager(user)
+    }
+
+    // 배정(Community) 확인
+    let assignment = null
+    if (assignmentId) {
+      assignment = await communityDatabase.findOne({
+        where: { id: assignmentId },
+      })
+    }
+
     const newcomer = newcomerDatabase.create({
       name,
       yearOfBirth: yearOfBirth ? parseInt(yearOfBirth, 10) : null,
       gender: gender || null,
       phone: phone?.replace(/[^\d]/g, "") || null,
       guider,
-      assignment: assignment || null,
-      manager: user,
+      assignment,
+      newcomerManager,
       status: NewcomerStatus.NORMAL,
     })
 
@@ -72,7 +116,10 @@ router.get("/", async (req, res) => {
       where: whereCondition,
       relations: {
         guider: true,
-        manager: true,
+        assignment: true,
+        newcomerManager: {
+          user: true,
+        },
         educationRecords: {
           worshipSchedule: true,
         },
@@ -88,19 +135,31 @@ router.get("/", async (req, res) => {
       guider: newcomer.guider
         ? { id: newcomer.guider.id, name: newcomer.guider.name }
         : null,
-      manager: newcomer.manager
-        ? { id: newcomer.manager.id, name: newcomer.manager.name }
+      assignment: newcomer.assignment
+        ? { id: newcomer.assignment.id, name: newcomer.assignment.name }
+        : null,
+      newcomerManager: newcomer.newcomerManager?.user
+        ? {
+            id: newcomer.newcomerManager.id,
+            user: {
+              id: newcomer.newcomerManager.user.id,
+              name: newcomer.newcomerManager.user.name,
+            },
+          }
         : null,
     }))
 
     res.status(200).send(sanitizedNewcomers)
-  } catch (error) {
-    console.error("Error fetching newcomers:", error)
-    res.status(500).send({ error: "새신자 목록 조회에 실패했습니다." })
+  } catch (error: any) {
+    console.error("Error fetching newcomers:", error.message, error.stack)
+    res.status(500).send({
+      error: "새신자 목록 조회에 실패했습니다.",
+      detail: error.message,
+    })
   }
 })
 
-// 3. 새신자 교육 출석 조회 (모든 새신자 + 교육 현황 테이블)
+// 3. 새신자 교육 출석 조회 (날짜별 테이블 형식 - 출석 테이블과 동일한 구조)
 router.get("/education", async (req, res) => {
   const user = await checkJwt(req)
   if (!user) {
@@ -116,11 +175,15 @@ router.get("/education", async (req, res) => {
       whereCondition.status = status
     }
 
+    // 새신자 조회 (교육 기록 포함)
     const newcomers = await newcomerDatabase.find({
       where: whereCondition,
       relations: {
         guider: true,
-        manager: true,
+        assignment: true,
+        newcomerManager: {
+          user: true,
+        },
         educationRecords: {
           worshipSchedule: true,
         },
@@ -130,23 +193,51 @@ router.get("/education", async (req, res) => {
       },
     })
 
-    // 테이블 형식으로 변환: 각 새신자별 교육 수강 현황
-    const educationTable = newcomers.map((newcomer) => {
-      // 교육 기록을 lectureType 기준으로 맵핑
-      const educationMap: Record<string, any> = {}
-      for (const lecture of Object.values(EducationLecture)) {
-        const record = newcomer.educationRecords?.find(
-          (r) => r.lectureType === lecture,
-        )
-        educationMap[lecture] = record
-          ? {
-              id: record.id,
-              completed: true,
-              worshipSchedule: record.worshipSchedule,
-              memo: record.memo,
-            }
-          : { completed: false }
+    // 최근 8주간의 예배 스케줄 조회
+    const eightWeeksAgo = new Date()
+    eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56)
+    const eightWeeksAgoStr = eightWeeksAgo.toISOString().split("T")[0]
+
+    const recentSchedules = await worshipScheduleDatabase
+      .createQueryBuilder("schedule")
+      .where("schedule.date >= :startDate", { startDate: eightWeeksAgoStr })
+      .orderBy("schedule.date", "DESC")
+      .getMany()
+
+    console.log("eightWeeksAgoStr:", eightWeeksAgoStr)
+    console.log("recentSchedules count:", recentSchedules.length)
+
+    // 날짜별 스케줄 맵 생성
+    const worshipScheduleMap: Record<string, any> = {}
+    const sortedDates: string[] = []
+
+    recentSchedules.forEach((schedule) => {
+      if (!worshipScheduleMap[schedule.date]) {
+        worshipScheduleMap[schedule.date] = {
+          id: schedule.id,
+          date: schedule.date,
+        }
+        sortedDates.push(schedule.date)
       }
+    })
+
+    console.log("sortedDates:", sortedDates)
+
+    // 테이블 형식으로 변환: 각 새신자별로 날짜 → 강의 타입 매핑
+    const educationTable = newcomers.map((newcomer) => {
+      // 날짜별 교육 기록 맵핑
+      const educationByDate: Record<string, any> = {}
+
+      newcomer.educationRecords?.forEach((record) => {
+        if (record.worshipSchedule?.date) {
+          educationByDate[record.worshipSchedule.date] = {
+            id: record.id,
+            lectureType: record.lectureType,
+            worshipScheduleId: record.worshipSchedule.id,
+            memo: record.memo,
+          }
+        }
+      })
 
       return {
         id: newcomer.id,
@@ -158,16 +249,28 @@ router.get("/education", async (req, res) => {
         guider: newcomer.guider
           ? { id: newcomer.guider.id, name: newcomer.guider.name }
           : null,
-        manager: newcomer.manager
-          ? { id: newcomer.manager.id, name: newcomer.manager.name }
+        newcomerManager: newcomer.newcomerManager?.user
+          ? {
+              id: newcomer.newcomerManager.id,
+              user: {
+                id: newcomer.newcomerManager.user.id,
+                name: newcomer.newcomerManager.user.name,
+              },
+            }
           : null,
-        assignment: newcomer.assignment,
+        assignment: newcomer.assignment
+          ? { id: newcomer.assignment.id, name: newcomer.assignment.name }
+          : null,
         createdAt: newcomer.createdAt,
-        education: educationMap,
+        education: educationByDate, // { "2026-01-11": { lectureType: "OT" }, ... }
       }
     })
 
-    res.status(200).send(educationTable)
+    res.status(200).send({
+      dates: sortedDates, // 테이블 헤더용 날짜 목록
+      worshipSchedules: sortedDates.map((date) => worshipScheduleMap[date]),
+      newcomers: educationTable,
+    })
   } catch (error) {
     console.error("Error fetching newcomers education:", error)
     res.status(500).send({ error: "교육 출석 조회에 실패했습니다." })
@@ -185,17 +288,6 @@ router.put("/:id/education", async (req, res) => {
   const newcomerId = req.params.id
   const { lectureType, worshipScheduleId, memo } = req.body
 
-  if (!lectureType) {
-    res.status(400).send({ error: "강의 타입은 필수입니다." })
-    return
-  }
-
-  // lectureType 유효성 검사
-  if (!Object.values(EducationLecture).includes(lectureType)) {
-    res.status(400).send({ error: "유효하지 않은 강의 타입입니다." })
-    return
-  }
-
   try {
     const newcomer = await newcomerDatabase.findOne({
       where: { id: newcomerId },
@@ -203,6 +295,24 @@ router.put("/:id/education", async (req, res) => {
 
     if (!newcomer) {
       res.status(404).send({ error: "새신자를 찾을 수 없습니다." })
+      return
+    }
+
+    // lectureType이 null이거나 빈 문자열이면 해당 스케줄의 기록 삭제
+    if (!lectureType) {
+      if (worshipScheduleId) {
+        await newcomerEducationDatabase.delete({
+          newcomer: { id: newcomerId },
+          worshipSchedule: { id: worshipScheduleId },
+        })
+      }
+      res.status(200).send({ success: true, deleted: true })
+      return
+    }
+
+    // lectureType 유효성 검사
+    if (!Object.values(EducationLecture).includes(lectureType)) {
+      res.status(400).send({ error: "유효하지 않은 강의 타입입니다." })
       return
     }
 
@@ -241,6 +351,156 @@ router.put("/:id/education", async (req, res) => {
   } catch (error) {
     console.error("Error updating newcomer education:", error)
     res.status(500).send({ error: "교육 정보 업데이트에 실패했습니다." })
+  }
+})
+
+// 7. 사용자 목록 조회 (담당자 선택용)
+router.get("/users", async (req, res) => {
+  const user = await checkJwt(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  try {
+    const users = await userDatabase.find({
+      select: ["id", "name", "yearOfBirth", "gender"],
+      order: { name: "ASC" },
+    })
+    res.status(200).send(users)
+  } catch (error) {
+    console.error("Error fetching users:", error)
+    res.status(500).send({ error: "사용자 목록 조회에 실패했습니다." })
+  }
+})
+
+// 8. 담당자 목록 조회
+router.get("/managers", async (req, res) => {
+  const user = await checkJwt(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  try {
+    const managers = await newcomerManagerDatabase.find({
+      relations: {
+        user: true,
+        newcomers: true,
+      },
+      order: {
+        user: { name: "ASC" },
+      },
+    })
+
+    const sanitizedManagers = managers.map((manager) => ({
+      id: manager.id,
+      user: {
+        id: manager.user.id,
+        name: manager.user.name,
+        yearOfBirth: manager.user.yearOfBirth,
+        gender: manager.user.gender,
+      },
+      newcomers:
+        manager.newcomers?.map((newcomer) => ({
+          id: newcomer.id,
+          name: newcomer.name,
+          yearOfBirth: newcomer.yearOfBirth,
+        })) || [],
+    }))
+
+    res.status(200).send(sanitizedManagers)
+  } catch (error) {
+    console.error("Error fetching managers:", error)
+    res.status(500).send({ error: "담당자 목록 조회에 실패했습니다." })
+  }
+})
+
+// 9. 담당자 등록 (User -> NewcomerManager)
+router.post("/managers", async (req, res) => {
+  const authUser = await checkJwt(req)
+  if (!authUser) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const { userId } = req.body
+
+  if (!userId) {
+    res.status(400).send({ error: "userId는 필수입니다." })
+    return
+  }
+
+  try {
+    // 이미 담당자인지 확인
+    const existingManager = await newcomerManagerDatabase.findOne({
+      where: { user: { id: userId } },
+    })
+
+    if (existingManager) {
+      res.status(400).send({ error: "이미 담당자로 등록되어 있습니다." })
+      return
+    }
+
+    // 사용자 확인
+    const targetUser = await userDatabase.findOne({ where: { id: userId } })
+    if (!targetUser) {
+      res.status(404).send({ error: "사용자를 찾을 수 없습니다." })
+      return
+    }
+
+    // 담당자 등록
+    const manager = newcomerManagerDatabase.create({ user: targetUser })
+    await newcomerManagerDatabase.save(manager)
+
+    res.status(201).send({
+      id: manager.id,
+      user: {
+        id: targetUser.id,
+        name: targetUser.name,
+      },
+      newcomers: [],
+    })
+  } catch (error) {
+    console.error("Error creating manager:", error)
+    res.status(500).send({ error: "담당자 등록에 실패했습니다." })
+  }
+})
+
+// 10. 담당자 해제
+router.delete("/managers/:id", async (req, res) => {
+  const user = await checkJwt(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const { id } = req.params
+
+  try {
+    const manager = await newcomerManagerDatabase.findOne({
+      where: { id },
+      relations: { newcomers: true },
+    })
+
+    if (!manager) {
+      res.status(404).send({ error: "담당자를 찾을 수 없습니다." })
+      return
+    }
+
+    // 담당 새신자가 있으면 연결 해제
+    if (manager.newcomers && manager.newcomers.length > 0) {
+      for (const newcomer of manager.newcomers) {
+        newcomer.newcomerManager = null as any
+        await newcomerDatabase.save(newcomer)
+      }
+    }
+
+    await newcomerManagerDatabase.delete(id)
+    res.status(200).send({ success: true })
+  } catch (error) {
+    console.error("Error deleting manager:", error)
+    res.status(500).send({ error: "담당자 해제에 실패했습니다." })
   }
 })
 

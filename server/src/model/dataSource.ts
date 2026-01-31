@@ -16,6 +16,7 @@ import { AIChat } from "../entity/ai/aiChat"
 import { AIChatRoom } from "../entity/ai/aiChatRoom"
 import { Newcomer } from "../entity/newcomer/newcomer"
 import { NewcomerEducation } from "../entity/newcomer/newcomerEducation"
+import { NewcomerManager } from "../entity/newcomer/newcomerManager"
 
 const dataSource = new DataSource(require("../../ormconfig.js"))
 
@@ -39,5 +40,6 @@ export const worshipContestDatabase = dataSource.getRepository(WorshipContest)
 export const newcomerDatabase = dataSource.getRepository(Newcomer)
 export const newcomerEducationDatabase =
   dataSource.getRepository(NewcomerEducation)
+export const newcomerManagerDatabase = dataSource.getRepository(NewcomerManager)
 
 export default dataSource

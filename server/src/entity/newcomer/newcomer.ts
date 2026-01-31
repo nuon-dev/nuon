@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
 } from "typeorm"
 import { User } from "../user"
+import { Community } from "../community"
 import { NewcomerStatus } from "../types"
 import { NewcomerEducation } from "./newcomerEducation"
 import { NewcomerManager } from "./newcomerManager"
@@ -45,21 +46,16 @@ export class Newcomer {
   @Column({ nullable: true })
   promotionDate: string // 등반일
 
-  @Column({ nullable: true })
-  assignment: string // 배정
-
-  @DeleteDateColumn({
-    type: "timestamp",
-    nullable: true,
-  })
-  deletedAt: Date | null // 삭제일
+  @ManyToOne(() => Community, { nullable: true })
+  @JoinColumn({ name: "assignmentId" })
+  assignment: Community // 배정 (등반 후 배정받는 순)
 
   @Column({ nullable: true })
   pendingDate: string // 보류일
 
   @ManyToOne(() => NewcomerManager)
-  @JoinColumn({ name: "managerId" })
-  manager: NewcomerManager // 섬김이(담당자)
+  @JoinColumn({ name: "newcomerManagerId" })
+  newcomerManager: NewcomerManager // 섬김이(담당자)
 
   @OneToMany(() => NewcomerEducation, (education) => education.newcomer)
   educationRecords: NewcomerEducation[]
@@ -76,4 +72,10 @@ export class Newcomer {
     onUpdate: "CURRENT_TIMESTAMP(6)",
   })
   updatedAt: Date
+
+  @DeleteDateColumn({
+    type: "timestamp",
+    nullable: true,
+  })
+  deletedAt: Date | null // 삭제일
 }

@@ -1,5 +1,12 @@
-import { Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm"
+import {
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm"
 import { User } from "../user"
+import type { Newcomer } from "./newcomer"
 
 @Entity()
 export class NewcomerManager {
@@ -9,4 +16,7 @@ export class NewcomerManager {
   @OneToOne(() => User)
   @JoinColumn({ name: "userId" })
   user: User
+
+  @OneToMany("Newcomer", "newcomerManager")
+  newcomers: Newcomer[]
 }
