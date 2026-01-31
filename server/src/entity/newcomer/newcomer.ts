@@ -6,11 +6,13 @@ import {
   JoinColumn,
   OneToMany,
   CreateDateColumn,
+  DeleteDateColumn,
   UpdateDateColumn,
 } from "typeorm"
 import { User } from "../user"
 import { NewcomerStatus } from "../types"
 import { NewcomerEducation } from "./newcomerEducation"
+import { NewcomerManager } from "./newcomerManager"
 
 @Entity()
 export class Newcomer {
@@ -46,15 +48,18 @@ export class Newcomer {
   @Column({ nullable: true })
   assignment: string // 배정
 
-  @Column({ nullable: true })
-  deletionDate: string // 삭제일
+  @DeleteDateColumn({
+    type: "timestamp",
+    nullable: true,
+  })
+  deletedAt: Date | null // 삭제일
 
   @Column({ nullable: true })
   pendingDate: string // 보류일
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => NewcomerManager)
   @JoinColumn({ name: "managerId" })
-  manager: User
+  manager: NewcomerManager // 섬김이(담당자)
 
   @OneToMany(() => NewcomerEducation, (education) => education.newcomer)
   educationRecords: NewcomerEducation[]
