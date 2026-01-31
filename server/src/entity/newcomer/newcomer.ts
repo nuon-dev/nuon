@@ -8,8 +8,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm"
-import { User } from "./user"
-import { NewcomerStatus } from "./types"
+import { User } from "../user"
+import { NewcomerStatus } from "../types"
 import { NewcomerEducation } from "./newcomerEducation"
 
 @Entity()

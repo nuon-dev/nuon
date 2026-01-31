@@ -14,8 +14,8 @@ import { AttendData } from "../entity/attendData"
 import { WorshipContest } from "../entity/event/worshipContest"
 import { AIChat } from "../entity/ai/aiChat"
 import { AIChatRoom } from "../entity/ai/aiChatRoom"
-import { Newcomer } from "../entity/newcomer"
-import { NewcomerEducation } from "../entity/newcomerEducation"
+import { Newcomer } from "../entity/newcomer/newcomer"
+import { NewcomerEducation } from "../entity/newcomer/newcomerEducation"
 
 const dataSource = new DataSource(require("../../ormconfig.js"))
 

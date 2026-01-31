@@ -6,8 +6,8 @@ import {
   JoinColumn,
 } from "typeorm"
 import { Newcomer } from "./newcomer"
-import { WorshipSchedule } from "./worshipSchedule"
-import { EducationLecture } from "./types"
+import { WorshipSchedule } from "../worshipSchedule"
+import { EducationLecture } from "../types"
 
 @Entity()
 export class NewcomerEducation {
