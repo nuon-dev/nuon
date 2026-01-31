@@ -24,15 +24,16 @@ export class CreateNewcomer1769693832000 implements MigrationInterface {
         \`guiderId\` varchar(36) NULL COMMENT '인도자',
         \`status\` enum ('NORMAL', 'PROMOTED', 'DELETED', 'PENDING') NOT NULL DEFAULT 'NORMAL',
         \`promotionDate\` varchar(255) NULL COMMENT '등반일',
-        \`assignment\` varchar(255) NULL COMMENT '배정',
-        \`deletedAt\` timestamp(6) NULL COMMENT '삭제일 (soft delete)',
+        \`assignmentId\` int NULL COMMENT '배정 (등반 후 배정받는 순)',
         \`pendingDate\` varchar(255) NULL COMMENT '보류일',
-        \`managerId\` varchar(36) NULL COMMENT '섬김이(담당자)',
+        \`newcomerManagerId\` varchar(36) NULL COMMENT '섬김이(담당자)',
         \`createdAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
         \`updatedAt\` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+        \`deletedAt\` timestamp(6) NULL COMMENT '삭제일 (soft delete)',
         PRIMARY KEY (\`id\`),
         CONSTRAINT \`FK_newcomer_guider\` FOREIGN KEY (\`guiderId\`) REFERENCES \`user\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION,
-        CONSTRAINT \`FK_newcomer_manager\` FOREIGN KEY (\`managerId\`) REFERENCES \`newcomer_manager\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION
+        CONSTRAINT \`FK_newcomer_manager\` FOREIGN KEY (\`newcomerManagerId\`) REFERENCES \`newcomer_manager\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION,
+        CONSTRAINT \`FK_newcomer_assignment\` FOREIGN KEY (\`assignmentId\`) REFERENCES \`community\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     `)
 
