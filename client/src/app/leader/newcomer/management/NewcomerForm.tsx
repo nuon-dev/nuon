@@ -11,6 +11,7 @@ interface Newcomer {
   yearOfBirth: number | null
   phone: string | null
   gender: "man" | "woman" | "" | null
+  status?: "NORMAL" | "PROMOTED" | "PENDING" | "DELETED"
   newcomerManager?: {
     id: string
     user: { id: string; name: string }
@@ -22,6 +23,8 @@ interface NewcomerFormProps {
   onDataChange: (key: string, value: any) => void
   onSave: () => void
   onDelete: () => void
+  onPending: () => void
+  onPromote: () => void
   onClear: () => void
   managerList: Manager[]
 }
@@ -31,9 +34,26 @@ export default function NewcomerForm({
   onDataChange,
   onSave,
   onDelete,
+  onPending,
+  onPromote,
   onClear,
   managerList,
 }: NewcomerFormProps) {
+  const getStatusLabel = (status?: string) => {
+    switch (status) {
+      case "NORMAL":
+        return "활동중"
+      case "PROMOTED":
+        return "등반"
+      case "PENDING":
+        return "보류"
+      case "DELETED":
+        return "삭제"
+      default:
+        return "활동중"
+    }
+  }
+
   return (
     <Stack
       flex={1}
@@ -61,19 +81,45 @@ export default function NewcomerForm({
           {selectedNewcomer.id ? "정보 수정 중.." : "새로 입력 중.."}
         </Box>
         <Stack direction="row" gap="8px">
-          {selectedNewcomer.id && (
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={onDelete}
-              sx={{
-                borderRadius: "8px",
-                textTransform: "none",
-                px: 2,
-              }}
-            >
-              삭제
-            </Button>
+          {selectedNewcomer.id && selectedNewcomer.status !== "DELETED" && (
+            <>
+              <Button
+                variant="outlined"
+                color="warning"
+                onClick={onPending}
+                sx={{
+                  borderRadius: "8px",
+                  textTransform: "none",
+                  px: 2,
+                }}
+              >
+                보류
+              </Button>
+              <Button
+                variant="outlined"
+                color="success"
+                onClick={onPromote}
+                sx={{
+                  borderRadius: "8px",
+                  textTransform: "none",
+                  px: 2,
+                }}
+              >
+                등반
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={onDelete}
+                sx={{
+                  borderRadius: "8px",
+                  textTransform: "none",
+                  px: 2,
+                }}
+              >
+                삭제
+              </Button>
+            </>
           )}
           <Button
             variant="contained"
@@ -187,6 +233,22 @@ export default function NewcomerForm({
             </MenuItem>
           ))}
         </TextField>
+      </Stack>
+
+      <Stack direction="row" alignItems="center" gap="12px">
+        <Box width="80px" textAlign="right">
+          상태 :
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            p: 1,
+            fontSize: "14px",
+            color: "#666",
+          }}
+        >
+          {getStatusLabel(selectedNewcomer.status)}
+        </Box>
       </Stack>
     </Stack>
   )

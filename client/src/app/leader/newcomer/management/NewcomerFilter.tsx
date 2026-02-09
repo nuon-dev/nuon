@@ -9,6 +9,8 @@ interface NewcomerFilterProps {
   setFilterMinYear: (value: string) => void
   filterMaxYear: string
   setFilterMaxYear: (value: string) => void
+  filterStatus: string
+  setFilterStatus: (value: string) => void
   clearFilters: () => void
 }
 
@@ -21,6 +23,8 @@ export default function NewcomerFilter({
   setFilterMinYear,
   filterMaxYear,
   setFilterMaxYear,
+  filterStatus,
+  setFilterStatus,
   clearFilters,
 }: NewcomerFilterProps) {
   return (
@@ -87,6 +91,26 @@ export default function NewcomerFilter({
             <MenuItem value="">전체</MenuItem>
             <MenuItem value="man">남</MenuItem>
             <MenuItem value="woman">여</MenuItem>
+          </TextField>
+        </Stack>
+
+        <Stack direction="row" alignItems="center" gap="12px">
+          <Box width="60px" fontSize="14px">
+            상태:
+          </Box>
+          <TextField
+            select
+            size="small"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            variant="outlined"
+            sx={{ flex: 1 }}
+          >
+            <MenuItem value="">전체</MenuItem>
+            <MenuItem value="NORMAL">활동중</MenuItem>
+            <MenuItem value="PROMOTED">등반</MenuItem>
+            <MenuItem value="PENDING">보류</MenuItem>
+            <MenuItem value="DELETED">삭제</MenuItem>
           </TextField>
         </Stack>
 

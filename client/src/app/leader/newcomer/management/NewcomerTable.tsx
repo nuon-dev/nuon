@@ -16,6 +16,10 @@ interface Newcomer {
   phone: string | null
   gender: "man" | "woman" | "" | null
   status: string
+  createdAt: string
+  deletedAt?: string | null
+  pendingDate?: string | null
+  promotionDate?: string | null
 }
 
 interface NewcomerTableProps {
@@ -35,6 +39,21 @@ export default function NewcomerTable({
   onSortClick,
   onNewcomerSelect,
 }: NewcomerTableProps) {
+  const getStatusLabel = (status?: string) => {
+    switch (status) {
+      case "NORMAL":
+        return "활동중"
+      case "PROMOTED":
+        return "등반"
+      case "PENDING":
+        return "보류"
+      case "DELETED":
+        return "삭제"
+      default:
+        return ""
+    }
+  }
+
   return (
     <Stack
       width="50%"
@@ -85,6 +104,27 @@ export default function NewcomerTable({
                 전화번호
               </TableSortLabel>
             </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={orderProperty === "status"}
+                direction={direction}
+                onClick={() => onSortClick("status")}
+              >
+                상태
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={orderProperty === "createdAt"}
+                direction={direction}
+                onClick={() => onSortClick("createdAt")}
+              >
+                등록일
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>보류일</TableCell>
+            <TableCell>등반일</TableCell>
+            <TableCell>삭제일</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -108,6 +148,27 @@ export default function NewcomerTable({
                   : newcomer.yearOfBirth}
               </TableCell>
               <TableCell>{newcomer.phone || ""}</TableCell>
+              <TableCell>{getStatusLabel(newcomer.status)}</TableCell>
+              <TableCell>
+                {newcomer.createdAt
+                  ? new Date(newcomer.createdAt).toLocaleDateString("ko-KR")
+                  : ""}
+              </TableCell>
+              <TableCell>
+                {newcomer.pendingDate
+                  ? new Date(newcomer.pendingDate).toLocaleDateString("ko-KR")
+                  : ""}
+              </TableCell>
+              <TableCell>
+                {newcomer.promotionDate
+                  ? new Date(newcomer.promotionDate).toLocaleDateString("ko-KR")
+                  : ""}
+              </TableCell>
+              <TableCell>
+                {newcomer.deletedAt
+                  ? new Date(newcomer.deletedAt).toLocaleDateString("ko-KR")
+                  : ""}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
