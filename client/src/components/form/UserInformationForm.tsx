@@ -2,10 +2,8 @@
 
 import { post } from "@/config/api"
 import InOutFrom from "./InOutForm"
-import { useSetAtom } from "jotai"
-import { useRouter } from "next/navigation"
 import { HowToMove } from "@server/entity/types"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 import { InOutInfo } from "@server/entity/retreat/inOutInfo"
 import { RetreatAttend } from "@server/entity/retreat/retreatAttend"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
@@ -18,12 +16,11 @@ interface IProps {
 }
 
 export default function UserInformationForm(props: IProps) {
-  const router = useRouter()
   const [retreatAttend, setRetreatAttend] = useState<RetreatAttend | undefined>(
-    undefined
+    undefined,
   )
   const [inOutData, setInOutData] = useState<Array<InOutInfo>>([])
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error, success } = useNotification()
 
   useEffect(() => {
     setRetreatAttend(props.retreatAttend)
@@ -39,11 +36,11 @@ export default function UserInformationForm(props: IProps) {
 
   const submit = async () => {
     if (!retreatAttend) {
-      setNotificationMessage("수련회 접수 정보 없음.")
+      error("수련회 접수 정보 없음.")
       return
     }
     if (!retreatAttend.howToGo) {
-      setNotificationMessage("이동 방법을 선택해주세요.")
+      error("이동 방법을 선택해주세요.")
       return
     }
 
@@ -59,19 +56,17 @@ export default function UserInformationForm(props: IProps) {
     }
 
     if (saveResult.result !== "success") {
-      setNotificationMessage(
-        "접수중 오류가 발생하였습니다.\n다시 시도해주세요."
-      )
+      error("접수중 오류가 발생하였습니다.\n다시 시도해주세요.")
       return
     }
 
     if (attendTimeResult && attendTimeResult.result !== "success") {
-      setNotificationMessage(
-        "이동 정보 저장중에 문제가 발생하였습니다.\n시간, 장소. 이동 방법을 모두 입력해주세요."
+      error(
+        "이동 정보 저장중에 문제가 발생하였습니다.\n시간, 장소. 이동 방법을 모두 입력해주세요.",
       )
       return
     }
-    setNotificationMessage(`신청 내역이 저장이 되었습니다.`)
+    success(`신청 내역이 저장이 되었습니다.`)
     props.reloadFunction()
     props.setEditMode(false)
   }

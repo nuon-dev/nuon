@@ -20,8 +20,7 @@ import AddUser from "./AddUser"
 import PersonAddIcon from "@mui/icons-material/PersonAdd"
 import PeopleIcon from "@mui/icons-material/People"
 import PhoneIcon from "@mui/icons-material/Phone"
-import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 import { useRouter } from "next/navigation"
 import RequestKakaoLogin from "@/app/leader/management/RequestKakaoLogin"
 import useAuth from "@/hooks/useAuth"
@@ -32,7 +31,7 @@ export default function SoonManagement() {
   const [groupName, setGroupName] = useState("")
   const [soonList, setSoonList] = useState<User[]>([])
   const [openAddUser, setOpenAddUser] = useState(false)
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const notification = useNotification()
 
   useEffect(() => {
     isLeaderIfNotExit("/leader/management")
@@ -42,13 +41,13 @@ export default function SoonManagement() {
   async function fetchGroupDate() {
     try {
       const { data } = await axios.get<Community & { error: string }>(
-        "/soon/my-group-info"
+        "/soon/my-group-info",
       )
       setGroupName(data.name)
       setSoonList(data.users)
     } catch (error: any) {
       console.error("Error fetching group data:", error)
-      setNotificationMessage("순장만 이용할 수 있습니다.")
+      notification.error("순장만 이용할 수 있습니다.")
       push("/")
       return
     }

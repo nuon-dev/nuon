@@ -8,8 +8,7 @@ import { useEffect, useState } from "react"
 import Header from "@/app/leader/components/Header"
 import { useRouter } from "next/navigation"
 import axios from "@/config/axios"
-import { useAtom, useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 
 export default function PostcardPage() {
   const { push } = useRouter()
@@ -21,7 +20,7 @@ export default function PostcardPage() {
     userId: string
     text: string
   } | null>(null)
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { success } = useNotification()
 
   useEffect(() => {
     fetchGroupDate()
@@ -81,7 +80,7 @@ export default function PostcardPage() {
       targetUserId: selectedUser?.id,
     })
     localStorage.removeItem("postcardData")
-    setNotificationMessage("저장되었습니다.")
+    success("저장되었습니다.")
   }
 
   return (

@@ -18,13 +18,12 @@ import {
 import CommunityBox from "@/app/admin/soon/attendance/CommunityBox"
 import useAuth from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
-import { useAtom, useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 
 export default function AttendanceAdminPage() {
   const [communities, setCommunities] = useState<Community[]>([])
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(
-    null
+    null,
   )
   const [communityStack, setCommunityStack] = useState<Community[]>([])
   const [soonList, setSoonList] = useState<User[]>([])
@@ -35,12 +34,12 @@ export default function AttendanceAdminPage() {
 
   const { authUserData } = useAuth()
   const { push } = useRouter()
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
 
   useEffect(() => {
     fetchCommunities()
     if (!authUserData?.role.VillageLeader) {
-      setNotificationMessage("접근 권한이 없습니다.")
+      error("접근 권한이 없습니다.")
       push("/leader")
     }
   }, [])
@@ -114,7 +113,7 @@ export default function AttendanceAdminPage() {
     const map: WorshipSchedule[] = []
     attendDataList.forEach((data) => {
       const existing = map.find(
-        (worshipSchedule) => worshipSchedule.id === data.worshipSchedule.id
+        (worshipSchedule) => worshipSchedule.id === data.worshipSchedule.id,
       )
       if (existing) {
         return

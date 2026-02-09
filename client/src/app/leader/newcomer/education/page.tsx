@@ -14,8 +14,7 @@ import {
 } from "@mui/material"
 import { useEffect, useState } from "react"
 import useAuth from "@/hooks/useAuth"
-import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 
 interface WorshipSchedule {
   id: number
@@ -80,7 +79,7 @@ export default function NewcomerEducationPage() {
   )
   const [loading, setLoading] = useState(true)
   const [savingCell, setSavingCell] = useState<string | null>(null) // 저장 중인 셀 표시
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const notification = useNotification()
 
   useEffect(() => {
     isLeaderIfNotExit("/leader/newcomer/education")
@@ -103,6 +102,7 @@ export default function NewcomerEducationPage() {
       })
     } catch (error) {
       console.error("Error fetching education data:", error)
+      notification.error("교육 데이터를 불러오는 중 오류가 발생했습니다.")
     } finally {
       setLoading(false)
     }
@@ -198,7 +198,7 @@ export default function NewcomerEducationPage() {
       })
     } catch (error) {
       console.error("Error saving education data:", error)
-      setNotificationMessage("저장 중 오류가 발생했습니다.")
+      notification.error("저장 중 오류가 발생했습니다.")
     } finally {
       setSavingCell(null)
     }

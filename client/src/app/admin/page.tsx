@@ -19,7 +19,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import PeopleIcon from "@mui/icons-material/People"
 import EventNoteIcon from "@mui/icons-material/EventNote"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 import TrendingUpIcon from "@mui/icons-material/TrendingUp"
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday"
 
@@ -70,10 +70,10 @@ interface DashboardData {
 function index() {
   const router = useRouter()
   const { isLogin, authUserData } = useAuth()
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error: showError } = useNotification()
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const [errorMsg, setErrorMsg] = useState("")
 
   useEffect(() => {
     hasPermission()
@@ -89,7 +89,7 @@ function index() {
     if (!isLogin || !authUserData) {
       router.push("/common/login?returnUrl=/admin")
     } else if (!authUserData.role.Admin) {
-      setNotificationMessage("관리자 권한이 없습니다.")
+      showError("관리자 권한이 없습니다.")
       router.push("/")
     } else {
       setLoading(false)
@@ -101,7 +101,7 @@ function index() {
       const { data } = await axios.get("/admin/dashboard")
       setDashboardData(data)
     } catch (err) {
-      setError("대시보드 데이터를 불러오는 중 오류가 발생했습니다.")
+      setErrorMsg("대시보드 데이터를 불러오는 중 오류가 발생했습니다.")
       console.error("Dashboard fetch error:", err)
     }
   }
@@ -124,7 +124,7 @@ function index() {
     )
   }
 
-  if (error) {
+  if (errorMsg) {
     return (
       <Stack
         style={{
@@ -134,7 +134,7 @@ function index() {
       >
         <Stack alignItems="center" justifyContent="center" flex={1} p={3}>
           <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
+            {errorMsg}
           </Alert>
         </Stack>
       </Stack>
