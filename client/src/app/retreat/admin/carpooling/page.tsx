@@ -24,7 +24,7 @@ function Carpooling() {
   const [shiftPosition, setShiftPosition] = useState({ x: 0, y: 0 })
   const [isShowUserInfo, setIsShowUserInfo] = useState(false)
   const [showRetreatAttendInfo, setShowRetreatAttendInfo] = useState(
-    {} as RetreatAttend
+    {} as RetreatAttend,
   )
 
   function onMouseMove(event: MouseEvent) {
@@ -91,16 +91,16 @@ function Carpooling() {
         data.sort(
           (a, b) =>
             Number.parseFloat(a.time.replace(":", ".")) -
-            Number.parseFloat(b.time.replace(":", "."))
+            Number.parseFloat(b.time.replace(":", ".")),
         )
         const cars = data.filter(
-          (info) => info.howToMove === HowToMove.driveCarWithPerson
+          (info) => info.howToMove === HowToMove.driveCarWithPerson,
         )
         setCarList(cars)
         const rideUsers = data.filter(
           (info) =>
             (info.howToMove === HowToMove.rideCar && !info.rideCarInfo) ||
-            (info.howToMove === HowToMove.goAlone && !info.rideCarInfo)
+            (info.howToMove === HowToMove.goAlone && !info.rideCarInfo),
         )
         setRideUserList(rideUsers)
       })
@@ -135,13 +135,12 @@ function Carpooling() {
           const target = e.target as HTMLElement
           const shiftX = e.clientX - target.getBoundingClientRect().left
           const shiftY = e.clientY - target.getBoundingClientRect().top
-          console.log(e)
           setSelectedInfo(info)
           setShiftPosition({ x: shiftX, y: shiftY })
         }}
         onDoubleClick={() => {
           router.push(
-            `/retreat/admin/edit-user-data?retreadAttendId=${info.retreatAttend.id}`
+            `/retreat/admin/edit-user-data?retreadAttendId=${info.retreatAttend.id}`,
           )
         }}
       >
@@ -209,7 +208,7 @@ function Carpooling() {
           {rideUserList
             .filter(
               (info) =>
-                info.day === selectedDay && info.inOutType === selectedInOut
+                info.day === selectedDay && info.inOutType === selectedInOut,
             )
             .map((info) => getRowOfInfo(info))}
         </Stack>
@@ -226,7 +225,7 @@ function Carpooling() {
           {carList
             .filter(
               (info) =>
-                info.day === selectedDay && info.inOutType === selectedInOut
+                info.day === selectedDay && info.inOutType === selectedInOut,
             )
             .map((car) => (
               <Stack
@@ -257,7 +256,7 @@ function Carpooling() {
                     justifyContent="space-evenly"
                     onDoubleClick={() => {
                       router.push(
-                        `/retreat/admin/edit-user-data?retreadAttendId=${car.retreatAttend.id}`
+                        `/retreat/admin/edit-user-data?retreadAttendId=${car.retreatAttend.id}`,
                       )
                     }}
                   >

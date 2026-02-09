@@ -42,7 +42,6 @@ router.post("/ask", async (req, res) => {
     responseChat.room = chatRoom
     responseChat.createdAt = new Date()
     if (responseChat.message.includes("```sql")) {
-      console.log("query:", responseChat.message)
       responseChat.type = ChatType.SYSTEM // 쿼리는 시스템으로 저장
       chatRoom.chats.push(responseChat)
       const sqlResult = await AiModel.callSql(responseChat.message)

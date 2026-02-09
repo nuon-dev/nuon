@@ -11,7 +11,7 @@ import { Deposit } from "@server/entity/types"
 
 export default function Receipt() {
   const [retreatAttend, setRetreatAttend] = useState<RetreatAttend | undefined>(
-    undefined
+    undefined,
   )
   const [isEditMode, setEditMode] = useState(true)
   const [inOutData, setInOutData] = useState<Array<InOutInfo>>([])
@@ -22,11 +22,6 @@ export default function Receipt() {
 
   const checkToken = () => {
     const token = localStorage.getItem("token")
-    if (!token) {
-      return
-    }
-    const userData = jwtDecode(token)
-    console.log(userData)
     if (!token) {
       return
     }

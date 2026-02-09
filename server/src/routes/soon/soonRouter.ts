@@ -283,7 +283,6 @@ router.get("/my-info", async (req, res) => {
 
 router.get("/existing-users", async (req, res) => {
   const user = await checkJwt(req)
-  console.log("user", user)
   if (!user) {
     res.status(401).send({ error: "Unauthorized" })
     return

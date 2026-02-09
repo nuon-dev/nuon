@@ -204,9 +204,6 @@ router.get("/education", async (req, res) => {
       .orderBy("schedule.date", "DESC")
       .getMany()
 
-    console.log("eightWeeksAgoStr:", eightWeeksAgoStr)
-    console.log("recentSchedules count:", recentSchedules.length)
-
     // 날짜별 스케줄 맵 생성
     const worshipScheduleMap: Record<string, any> = {}
     const sortedDates: string[] = []
@@ -220,8 +217,6 @@ router.get("/education", async (req, res) => {
         sortedDates.push(schedule.date)
       }
     })
-
-    console.log("sortedDates:", sortedDates)
 
     // 테이블 형식으로 변환: 각 새신자별로 날짜 → 강의 타입 매핑
     const educationTable = newcomers.map((newcomer) => {

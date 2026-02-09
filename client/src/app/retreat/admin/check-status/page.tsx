@@ -89,10 +89,10 @@ export default function CheckStatus(props: any) {
       //@ts-ignore
       (err) => {
         if (err) {
-          return console.log(err)
+          return console.error(err)
         }
         Quagga.start()
-      }
+      },
     )
     Quagga.onDetected(_onDetected)
     //@ts-ignore
@@ -106,7 +106,7 @@ export default function CheckStatus(props: any) {
             0,
             0,
             parseInt(drawingCanvas.getAttribute("width")),
-            parseInt(drawingCanvas.getAttribute("height"))
+            parseInt(drawingCanvas.getAttribute("height")),
           )
           result.boxes
             //@ts-ignore
@@ -132,7 +132,7 @@ export default function CheckStatus(props: any) {
             result.line,
             { x: "x", y: "y" },
             drawingCtx,
-            { color: "red", lineWidth: 3 }
+            { color: "red", lineWidth: 3 },
           )
         }
       }
