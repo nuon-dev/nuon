@@ -70,7 +70,7 @@ export default function SoonAttendance() {
             <CardContent sx={{ textAlign: "center", py: 4 }}>
               <EventNoteIcon sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
               <Typography variant="h4" fontWeight="bold" gutterBottom>
-                출석 관리 {selectedScheduleId}
+                출석 관리
               </Typography>
               <Typography variant="body1" sx={{ opacity: 0.9 }}>
                 순원들의 출석을 관리해보세요
