@@ -7,6 +7,7 @@ const menuItems = [
   { label: "새신자 등록/조회", path: "/leader/newcomer/management" },
   { label: "교육 현황", path: "/leader/newcomer/education" },
   { label: "섬김이 관리", path: "/leader/newcomer/managers" },
+  { label: "주차별 예상 참석", path: "/leader/newcomer/weekly-attendance" },
 ]
 
 export default function NewcomerLayout({

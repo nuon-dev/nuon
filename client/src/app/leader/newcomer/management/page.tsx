@@ -1,6 +1,14 @@
 "use client"
 
-import { Stack } from "@mui/material"
+import {
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+} from "@mui/material"
 import { useEffect, useState } from "react"
 import { useSetAtom } from "jotai"
 import axios from "@/config/axios"
@@ -16,7 +24,7 @@ interface Newcomer {
   yearOfBirth: number | null
   phone: string | null
   gender: "man" | "woman" | "" | null
-  status: string
+  status: "NORMAL" | "PROMOTED" | "PENDING" | "DELETED"
   guider: { id: string; name: string } | null
   newcomerManager: {
     id: string
@@ -24,6 +32,9 @@ interface Newcomer {
   } | null
   assignment: { id: number; name: string } | null
   createdAt: string
+  deletedAt?: string | null
+  pendingDate?: string | null
+  promotionDate?: string | null
 }
 
 interface Manager {
@@ -42,6 +53,9 @@ const emptyNewcomer: Newcomer = {
   newcomerManager: null,
   assignment: null,
   createdAt: "",
+  deletedAt: null,
+  pendingDate: null,
+  promotionDate: null,
 }
 
 export default function NewcomerManagement() {
@@ -58,7 +72,15 @@ export default function NewcomerManagement() {
   const [filterGender, setFilterGender] = useState<"" | "man" | "woman">("")
   const [filterMinYear, setFilterMinYear] = useState("")
   const [filterMaxYear, setFilterMaxYear] = useState("")
+  const [filterStatus, setFilterStatus] = useState("")
   const [managerList, setManagerList] = useState<Manager[]>([])
+
+  // 날짜 선택 다이얼로그 상태
+  const [dateDialogOpen, setDateDialogOpen] = useState(false)
+  const [dateDialogType, setDateDialogType] = useState<
+    "pending" | "promotion" | "delete" | ""
+  >("")
+  const [selectedDate, setSelectedDate] = useState("")
 
   useEffect(() => {
     isLeaderIfNotExit("/leader/newcomer/management")
@@ -119,15 +141,65 @@ export default function NewcomerManagement() {
   }
 
   async function deleteNewcomer() {
-    if (selectedNewcomer.id && confirm("정말로 삭제하시겠습니까?")) {
-      try {
+    if (selectedNewcomer.id) {
+      const today = new Date().toISOString().split("T")[0]
+      setSelectedDate(today)
+      setDateDialogType("delete")
+      setDateDialogOpen(true)
+    }
+  }
+
+  async function pendingNewcomer() {
+    if (selectedNewcomer.id) {
+      const today = new Date().toISOString().split("T")[0]
+      setSelectedDate(today)
+      setDateDialogType("pending")
+      setDateDialogOpen(true)
+    }
+  }
+
+  async function promoteNewcomer() {
+    if (selectedNewcomer.id) {
+      const today = new Date().toISOString().split("T")[0]
+      setSelectedDate(today)
+      setDateDialogType("promotion")
+      setDateDialogOpen(true)
+    }
+  }
+
+  async function handleDateConfirm() {
+    if (!selectedDate) {
+      setNotificationMessage("날짜를 선택해주세요.")
+      return
+    }
+
+    try {
+      if (dateDialogType === "delete") {
         await axios.delete(`/newcomer/${selectedNewcomer.id}`)
         setNotificationMessage("새신자가 삭제되었습니다.")
         clearSelectedNewcomer()
-        await fetchData()
-      } catch (error) {
-        setNotificationMessage("삭제 중 오류가 발생했습니다.")
+      } else if (dateDialogType === "pending") {
+        await axios.put(`/newcomer/${selectedNewcomer.id}`, {
+          ...selectedNewcomer,
+          status: "PENDING",
+          pendingDate: selectedDate,
+        })
+        setNotificationMessage("새신자가 보류 처리되었습니다.")
+      } else if (dateDialogType === "promotion") {
+        await axios.put(`/newcomer/${selectedNewcomer.id}`, {
+          ...selectedNewcomer,
+          status: "PROMOTED",
+          promotionDate: selectedDate,
+        })
+        setNotificationMessage("새신자가 등반 처리되었습니다.")
       }
+
+      setDateDialogOpen(false)
+      setDateDialogType("")
+      setSelectedDate("")
+      await fetchData()
+    } catch (error) {
+      setNotificationMessage("처리 중 오류가 발생했습니다.")
     }
   }
 
@@ -136,6 +208,7 @@ export default function NewcomerManagement() {
     setFilterGender("")
     setFilterMinYear("")
     setFilterMaxYear("")
+    setFilterStatus("")
   }
 
   function orderingNewcomerList() {
@@ -151,6 +224,10 @@ export default function NewcomerManagement() {
         }
 
         if (filterGender && newcomer.gender !== filterGender) {
+          return false
+        }
+
+        if (filterStatus && newcomer.status !== filterStatus) {
           return false
         }
 
@@ -212,7 +289,7 @@ export default function NewcomerManagement() {
           onSortClick={handleSortClick}
           onNewcomerSelect={setSelectedNewcomer}
         />
-        <Stack width="50%">
+        <Stack width="40%">
           <NewcomerFilter
             filterName={filterName}
             setFilterName={setFilterName}
@@ -222,6 +299,8 @@ export default function NewcomerManagement() {
             setFilterMinYear={setFilterMinYear}
             filterMaxYear={filterMaxYear}
             setFilterMaxYear={setFilterMaxYear}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
             clearFilters={clearFilters}
           />
           <NewcomerForm
@@ -229,11 +308,48 @@ export default function NewcomerManagement() {
             onDataChange={onChangeData}
             onSave={saveData}
             onDelete={deleteNewcomer}
+            onPending={pendingNewcomer}
+            onPromote={promoteNewcomer}
             onClear={clearSelectedNewcomer}
             managerList={managerList}
           />
         </Stack>
       </Stack>
+
+      <Dialog open={dateDialogOpen} onClose={() => setDateDialogOpen(false)}>
+        <DialogTitle>
+          {dateDialogType === "pending"
+            ? "보류 처리"
+            : dateDialogType === "promotion"
+              ? "등반 처리"
+              : "삭제 처리"}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            label={
+              dateDialogType === "pending"
+                ? "보류일"
+                : dateDialogType === "promotion"
+                  ? "등반일"
+                  : "삭제일"
+            }
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            fullWidth
+            InputLabelProps={{
+              shrink: true,
+            }}
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDateDialogOpen(false)}>취소</Button>
+          <Button onClick={handleDateConfirm} variant="contained">
+            확인
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   )
 }
