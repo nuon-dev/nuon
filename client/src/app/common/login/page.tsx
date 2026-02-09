@@ -5,7 +5,7 @@ import { useEffect } from "react"
 import { useSetAtom } from "jotai"
 import useAuth from "@/hooks/useAuth"
 import { Button, Stack } from "@mui/material"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 import { useRouter, useSearchParams } from "next/navigation"
 import useKakaoHook from "@/hooks/useKakao"
 
@@ -22,7 +22,7 @@ function Login() {
   const searchParams = useSearchParams()
   const { getKakaoTokenFromAuthCode, login, isLogin } = useAuth()
   const { executeKakaoLogin } = useKakaoHook()
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
 
   useEffect(() => {
     const code = searchParams.get("code")
@@ -45,7 +45,7 @@ function Login() {
       const returnUrl = searchParams.get("returnUrl") || "/"
       await executeKakaoLogin(returnUrl)
     } catch (error) {
-      setNotificationMessage("카카오 로그인 실패")
+      error("카카오 로그인 실패")
     }
   }
 

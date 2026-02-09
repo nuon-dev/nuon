@@ -2,13 +2,13 @@
 
 import { jwtDecode } from "jwt-decode"
 import { useEffect } from "react"
-import { atom, useAtom, useAtomValue, useSetAtom } from "jotai"
+import { atom, useAtom, useAtomValue } from "jotai"
 import dayjs from "dayjs"
 import { Role } from "@server/util/type"
 import axios from "@/config/axios"
 import { Community } from "@server/entity/community"
 import { useRouter } from "next/navigation"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 
 export const JwtInformationAtom = atom<jwtPayload | null | undefined>(null)
 
@@ -28,7 +28,7 @@ const kakaoTokenAtom = atom<string | null>(null)
 export default function useAuth() {
   const { push } = useRouter()
   const isLogin = useAtomValue(isLoginAtom)
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
   const [authUserData, setAuthUserData] = useAtom(JwtInformationAtom)
   const [kakaoToken, setKakaoToken] = useAtom(kakaoTokenAtom)
 
@@ -110,7 +110,7 @@ export default function useAuth() {
 
     if (authUserData.role.Leader === false) {
       push("/")
-      setNotificationMessage("순장 권한이 없습니다.")
+      error("순장 권한이 없습니다.")
       return false
     }
     return true
@@ -125,7 +125,7 @@ export default function useAuth() {
 
     if (authUserData.role.Admin === false) {
       push("/")
-      setNotificationMessage("관리자 권한이 없습니다.")
+      error("관리자 권한이 없습니다.")
       return false
     }
     return true

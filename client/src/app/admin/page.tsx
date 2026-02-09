@@ -12,16 +12,16 @@ import {
   CardContent,
   CircularProgress,
 } from "@mui/material"
-import { useSetAtom } from "jotai"
 import axios from "@/config/axios"
 import useAuth from "@/hooks/useAuth"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import PeopleIcon from "@mui/icons-material/People"
 import EventNoteIcon from "@mui/icons-material/EventNote"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 import TrendingUpIcon from "@mui/icons-material/TrendingUp"
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday"
+import AttendanceChart from "@/app/admin/AttendanceChart"
 
 interface DashboardData {
   totalUsers: number
@@ -70,10 +70,10 @@ interface DashboardData {
 function index() {
   const router = useRouter()
   const { isLogin, authUserData } = useAuth()
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error: showError } = useNotification()
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const [errorMsg, setErrorMsg] = useState("")
 
   useEffect(() => {
     hasPermission()
@@ -89,7 +89,7 @@ function index() {
     if (!isLogin || !authUserData) {
       router.push("/common/login?returnUrl=/admin")
     } else if (!authUserData.role.Admin) {
-      setNotificationMessage("관리자 권한이 없습니다.")
+      showError("관리자 권한이 없습니다.")
       router.push("/")
     } else {
       setLoading(false)
@@ -101,7 +101,7 @@ function index() {
       const { data } = await axios.get("/admin/dashboard")
       setDashboardData(data)
     } catch (err) {
-      setError("대시보드 데이터를 불러오는 중 오류가 발생했습니다.")
+      setErrorMsg("대시보드 데이터를 불러오는 중 오류가 발생했습니다.")
       console.error("Dashboard fetch error:", err)
     }
   }
@@ -124,7 +124,7 @@ function index() {
     )
   }
 
-  if (error) {
+  if (errorMsg) {
     return (
       <Stack
         style={{
@@ -134,7 +134,7 @@ function index() {
       >
         <Stack alignItems="center" justifyContent="center" flex={1} p={3}>
           <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
+            {errorMsg}
           </Alert>
         </Stack>
       </Stack>
@@ -240,10 +240,37 @@ function index() {
               <Typography variant="h6" fontWeight="bold" gutterBottom>
                 출석 현황 (최근 4주)
               </Typography>
-              <Box sx={{ height: 300, width: "100%", position: "relative" }}>
+
+              {/* 모바일 버전: 막대 그래프 */}
+              <Box sx={{ display: { xs: "block", md: "none" } }}>
+                <AttendanceChart
+                  data={dashboardData.statistics.last4Weeks.map((w) => ({
+                    date: w.date,
+                    male: w.genderCount.male,
+                    female: w.genderCount.female,
+                    total: w.genderCount.male + w.genderCount.female,
+                  }))}
+                />
+              </Box>
+
+              {/* 데스크톱 버전: 라인 그래프 */}
+              <Box
+                sx={{
+                  height: 300,
+                  width: "100%",
+                  position: "relative",
+                  overflow: "auto",
+                  display: { xs: "none", md: "block" },
+                }}
+              >
                 <svg
-                  viewBox="0 0 800 300"
-                  style={{ width: "100%", height: "100%", overflow: "visible" }}
+                  viewBox={`0 0 ${Math.max(1800, dashboardData.statistics.last4Weeks.length * 400)} 300`}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    overflow: "visible",
+                  }}
+                  preserveAspectRatio="xMidYMid meet"
                 >
                   {(() => {
                     const data = dashboardData.statistics.last4Weeks.map(
@@ -256,12 +283,17 @@ function index() {
                     )
                     const maxVal =
                       Math.max(...data.map((d) => d.total), 1) * 1.2
+                    const viewBoxWidth = Math.max(1800, data.length * 400)
 
                     const getX = (index: number) => {
-                      const sectionWidth = 800 / data.length
+                      const sectionWidth = viewBoxWidth / data.length
                       return index * sectionWidth + sectionWidth / 2
                     }
                     const getY = (val: number) => 250 - (val / maxVal) * 200
+                    const fontSize = Math.max(
+                      14,
+                      Math.min(20, viewBoxWidth / data.length / 2.2),
+                    )
 
                     const malePath = data
                       .map(
@@ -285,7 +317,13 @@ function index() {
                     return (
                       <>
                         {/* Grid lines */}
-                        <line x1="0" y1="250" x2="800" y2="250" stroke="#eee" />
+                        <line
+                          x1="0"
+                          y1="250"
+                          x2={viewBoxWidth}
+                          y2="250"
+                          stroke="#eee"
+                        />
 
                         {/* Total Line */}
                         <path
@@ -321,7 +359,7 @@ function index() {
                                 x={getX(i)}
                                 y="280"
                                 textAnchor="middle"
-                                fontSize="14"
+                                fontSize={fontSize}
                                 fill="#666"
                               >
                                 {d.date}
@@ -331,14 +369,14 @@ function index() {
                               <circle
                                 cx={getX(i)}
                                 cy={getY(d.total)}
-                                r="4"
+                                r="3"
                                 fill="#2e7d32"
                               />
                               <text
                                 x={getX(i)}
-                                y={getY(d.total) - 15}
+                                y={getY(d.total) - 12}
                                 textAnchor="middle"
-                                fontSize="14"
+                                fontSize={fontSize}
                                 fontWeight="bold"
                                 fill="#2e7d32"
                               >
@@ -349,18 +387,18 @@ function index() {
                               <circle
                                 cx={getX(i)}
                                 cy={getY(d.male)}
-                                r="4"
+                                r="3"
                                 fill="#1976d2"
                               />
                               <text
                                 x={getX(i)}
                                 y={
                                   maleHigher
-                                    ? getY(d.male) - 15
-                                    : getY(d.male) + 25
+                                    ? getY(d.male) - 12
+                                    : getY(d.male) + 20
                                 }
                                 textAnchor="middle"
-                                fontSize="14"
+                                fontSize={fontSize}
                                 fontWeight="bold"
                                 fill="#1976d2"
                               >
@@ -371,18 +409,18 @@ function index() {
                               <circle
                                 cx={getX(i)}
                                 cy={getY(d.female)}
-                                r="4"
+                                r="3"
                                 fill="#9c27b0"
                               />
                               <text
                                 x={getX(i)}
                                 y={
                                   !maleHigher
-                                    ? getY(d.female) - 15
-                                    : getY(d.female) + 25
+                                    ? getY(d.female) - 12
+                                    : getY(d.female) + 20
                                 }
                                 textAnchor="middle"
-                                fontSize="14"
+                                fontSize={fontSize}
                                 fontWeight="bold"
                                 fill="#9c27b0"
                               >

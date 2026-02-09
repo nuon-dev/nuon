@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Divider,
   Drawer,
   List,
   ListItem,
@@ -12,11 +11,21 @@ import {
 } from "@mui/material"
 import { useEffect, useState } from "react"
 import MenuIcon from "@mui/icons-material/Menu"
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted"
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar"
+import ListIcon from "@mui/icons-material/List"
+import BedtimeIcon from "@mui/icons-material/Bedtime"
+import GroupsIcon from "@mui/icons-material/Groups"
+import LockIcon from "@mui/icons-material/Lock"
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney"
+import EditIcon from "@mui/icons-material/Edit"
+import QrCode2Icon from "@mui/icons-material/QrCode2"
+import TableChartIcon from "@mui/icons-material/TableChart"
+import LoginIcon from "@mui/icons-material/Login"
+import DashboardIcon from "@mui/icons-material/Dashboard"
 import { useRouter } from "next/navigation"
 
-import PermIdentityOutlinedIcon from "@mui/icons-material/PermIdentityOutlined"
 import useUserData from "@/hooks/useUserData"
-import Image from "next/image"
 
 export default function Header() {
   const { getUserDataFromToken } = useUserData()
@@ -45,11 +54,11 @@ export default function Header() {
   function RouterRow({
     pageURL,
     pageName,
-    icon,
+    icon: IconComponent,
   }: {
     pageURL: string
     pageName: string
-    icon: string
+    icon: React.ElementType
   }) {
     function goToPage() {
       push("/retreat/admin" + pageURL)
@@ -58,7 +67,7 @@ export default function Header() {
       <ListItem disablePadding>
         <ListItemButton onClick={goToPage}>
           <ListItemIcon>
-            <Image src={icon} width="30" height="30" alt="" />
+            <IconComponent sx={{ fontSize: 28 }} />
           </ListItemIcon>
           <ListItemText primary={pageName} />
         </ListItemButton>
@@ -85,8 +94,8 @@ export default function Header() {
       </Stack>
       <Button onClick={() => toggleDrawer(true)}>
         <MenuIcon
-          color="action"
-          style={{
+          sx={{
+            color: "white",
             width: "40px",
             height: "36px",
           }}
@@ -102,62 +111,57 @@ export default function Header() {
             {RouterRow({
               pageName: "접수자 전체 조회",
               pageURL: "/all-user",
-              icon: "/icon/free-icon-bullet-list.png",
+              icon: FormatListBulletedIcon,
             })}
             {RouterRow({
               pageName: "카풀 관리",
               pageURL: "/carpooling",
-              icon: "/icon/free-icon-car.png",
+              icon: DirectionsCarIcon,
             })}
             {RouterRow({
               pageName: "카풀 명단 조회",
               pageURL: "/carpooling-list",
-              icon: "/icon/free-icon-car-list.png",
+              icon: ListIcon,
             })}
             {RouterRow({
               pageName: "방배정 관리",
               pageURL: "/room-assignment",
-              icon: "/icon/free-icon-bunk-bed.png",
+              icon: BedtimeIcon,
             })}
             {RouterRow({
               pageName: "조배정 관리",
               pageURL: "/group-formation",
-              icon: "/icon/free-icon-group.png",
+              icon: GroupsIcon,
             })}
             {RouterRow({
               pageName: "권한 관리",
               pageURL: "/permission-manage",
-              icon: "/icon/free-icon-lock.png",
+              icon: LockIcon,
             })}
             {RouterRow({
               pageName: "입금 확인 처리",
               pageURL: "/deposit-check",
-              icon: "/icon/free-icon-cost.png",
+              icon: AttachMoneyIcon,
             })}
             {RouterRow({
               pageName: "접수 내용 수정",
               pageURL: "/edit-user-data",
-              icon: "/icon/free-icon-edit-profile.png",
+              icon: EditIcon,
             })}
             {RouterRow({
               pageName: "인원 확인 처리",
               pageURL: "/check-status",
-              icon: "/icon/free-icon-qr-code.png",
+              icon: QrCode2Icon,
             })}
             {RouterRow({
               pageName: "인원 관리",
               pageURL: "/show-status-table",
-              icon: "/icon/free-icon-table.png",
+              icon: TableChartIcon,
             })}
             {RouterRow({
               pageName: "인원 출입 관리",
               pageURL: "/inout-info",
-              icon: "/icon/free-icon-table.png",
-            })}
-            {RouterRow({
-              pageName: "대시보드",
-              pageURL: "/dash-board",
-              icon: "/icon/free-icon-dashboard-interface.png",
+              icon: LoginIcon,
             })}
           </List>
         </Box>

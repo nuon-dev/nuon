@@ -12,11 +12,11 @@ import {
 import { get, post } from "@/config/api"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { NotificationMessage } from "@/state/notification"
 import { useSetAtom } from "jotai"
 import { RetreatAttend } from "@server/entity/retreat/retreatAttend"
 import { Deposit } from "@server/entity/types"
 import Header from "@/components/retreat/admin/Header"
+import { useNotification } from "@/hooks/useNotification"
 
 function DepositCheck() {
   const { push } = useRouter()
@@ -25,7 +25,7 @@ function DepositCheck() {
   const [isShowUnpaid, setIsShowUnpaid] = useState(false)
   const [depositSum, setDepositSum] = useState(0)
   const [allUserList, setAllUserList] = useState([] as Array<RetreatAttend>)
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
 
   useEffect(() => {
     fetchData()
@@ -41,7 +41,7 @@ function DepositCheck() {
     })
 
     if (result.result === "error") {
-      alert("오류 발생!")
+      error("오류 발생!")
       return
     }
 
@@ -89,7 +89,7 @@ function DepositCheck() {
       })
       .catch(() => {
         push("/retreat/admin")
-        setNotificationMessage("권한이 없습니다.")
+        error("권한이 없습니다.")
         return
       })
   }

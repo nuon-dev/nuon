@@ -8,20 +8,24 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Paper,
+  Box,
+  Button,
+  Typography,
 } from "@mui/material"
-import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
 import { useRouter } from "next/navigation"
 import { HowToMove } from "@server/entity/types"
 import { InOutInfo } from "@server/entity/retreat/inOutInfo"
 import { RetreatAttend } from "@server/entity/retreat/retreatAttend"
 import { get } from "@/config/api"
 import Header from "@/components/retreat/admin/Header"
+import { useNotification } from "@/hooks/useNotification"
+import FileDownloadIcon from "@mui/icons-material/FileDownload"
 
 function AllUser() {
   const router = useRouter()
   const [allUserList, setAllUserList] = useState<Array<RetreatAttend>>([])
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error, success } = useNotification()
 
   useEffect(() => {
     ;(async () => {
@@ -29,12 +33,12 @@ function AllUser() {
         const list: RetreatAttend[] = await get("/retreat/admin/get-all-user")
         if (list) {
           setAllUserList(
-            list.sort((a, b) => a.attendanceNumber - b.attendanceNumber)
+            list.sort((a, b) => a.attendanceNumber - b.attendanceNumber),
           )
         }
       } catch {
         router.push("/retreat/admin")
-        setNotificationMessage("권한이 없습니다.")
+        error("권한이 없습니다.")
         return
       }
     })()
@@ -42,7 +46,7 @@ function AllUser() {
 
   function downloadFile() {
     if (allUserList.length === 0) {
-      setNotificationMessage("접수자가 없습니다!.")
+      error("접수자가 없습니다!.")
       return
     }
 
@@ -66,71 +70,228 @@ function AllUser() {
       hiddenElement.download = "출입 정보.txt"
       hiddenElement.click()
     })
+
+    success("다운로드가 완료되었습니다.")
   }
 
   return (
-    <Stack>
+    <Box sx={{ bgcolor: "#ffffff", minHeight: "100vh" }}>
       <Header />
-      <Stack
-        mt="8px"
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-      >
+      <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: "2000px", mx: "auto" }}>
         <Stack
-          fontSize="20px"
-          fontWeight="bold"
-          textAlign="center"
-          width="100%"
+          direction={{ xs: "column", sm: "row" }}
+          alignItems={{ xs: "flex-start", sm: "center" }}
+          justifyContent="space-between"
+          spacing={2}
+          mb={4}
         >
-          전체 접수자 목록
+          <Typography
+            variant="h3"
+            fontWeight="900"
+            sx={{
+              fontSize: { xs: "28px", md: "40px" },
+              color: "#0a0a0a",
+              letterSpacing: "-0.8px",
+            }}
+          >
+            전체 접수자 목록
+          </Typography>
+
+          <Button
+            variant="contained"
+            startIcon={<FileDownloadIcon />}
+            onClick={downloadFile}
+            sx={{
+              textTransform: "none",
+              borderRadius: "6px",
+              px: 3,
+              py: 1.2,
+              fontWeight: "700",
+              bgcolor: "#42C7F1",
+              "&:hover": {
+                bgcolor: "#2BA8D4",
+              },
+            }}
+          >
+            CSV 다운로드
+          </Button>
         </Stack>
 
-        {/* <Button
-          style={{
-            margin: "8px",
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: "8px",
+            border: "1.5px solid rgba(0, 0, 0, 0.15)",
+            overflow: "hidden",
+            backgroundColor: "#ffffff",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
           }}
-          variant="outlined"
-          onClick={downloadFile}
         >
-          엑셀로 다운로드
-        </Button> */}
-      </Stack>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>접수 번호</TableCell>
-            <TableCell>이름</TableCell>
-            <TableCell>성별</TableCell>
-            <TableCell>나이</TableCell>
-            <TableCell>가는 방법</TableCell>
-            <TableCell>오는 방법</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {allUserList.map((retreatAttend) => (
-            <TableRow>
-              <TableCell>{retreatAttend.attendanceNumber}</TableCell>
-              <TableCell>{retreatAttend.user.name}</TableCell>
-              <TableCell>
-                {retreatAttend.user.gender === "man" ? "남" : "여"}
-              </TableCell>
-              <TableCell>{retreatAttend.user.yearOfBirth}</TableCell>
-              <TableCell>
-                {retreatAttend.howToGo === HowToMove.together
-                  ? "교회 버스"
-                  : "기타"}
-              </TableCell>
-              <TableCell>
-                {retreatAttend.howToBack === HowToMove.together
-                  ? "교회 버스"
-                  : "기타"}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Stack>
+          <Box sx={{ overflowX: "auto" }}>
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead>
+                <TableRow
+                  sx={{
+                    bgcolor: "#f8f9fa",
+                    borderBottom: "2px solid rgba(0, 0, 0, 0.12)",
+                  }}
+                >
+                  <TableCell
+                    sx={{
+                      fontWeight: 800,
+                      color: "#0a0a0a",
+                      borderColor: "rgba(0, 0, 0, 0.12)",
+                      fontSize: "15px",
+                      letterSpacing: "-0.2px",
+                      py: 2,
+                    }}
+                  >
+                    접수 번호
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 800,
+                      color: "#0a0a0a",
+                      borderColor: "rgba(0, 0, 0, 0.12)",
+                      fontSize: "15px",
+                      letterSpacing: "-0.2px",
+                      py: 2,
+                    }}
+                  >
+                    이름
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 800,
+                      color: "#0a0a0a",
+                      borderColor: "rgba(0, 0, 0, 0.12)",
+                      fontSize: "15px",
+                      letterSpacing: "-0.2px",
+                      py: 2,
+                    }}
+                  >
+                    성별
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 800,
+                      color: "#0a0a0a",
+                      borderColor: "rgba(0, 0, 0, 0.12)",
+                      fontSize: "15px",
+                      letterSpacing: "-0.2px",
+                      py: 2,
+                    }}
+                  >
+                    나이
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 800,
+                      color: "#0a0a0a",
+                      borderColor: "rgba(0, 0, 0, 0.12)",
+                      fontSize: "15px",
+                      letterSpacing: "-0.2px",
+                      py: 2,
+                    }}
+                  >
+                    가는 방법
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 800,
+                      color: "#0a0a0a",
+                      borderColor: "rgba(0, 0, 0, 0.12)",
+                      fontSize: "15px",
+                      letterSpacing: "-0.2px",
+                      py: 2,
+                    }}
+                  >
+                    오는 방법
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {allUserList.map((retreatAttend, index) => (
+                  <TableRow
+                    key={retreatAttend.id}
+                    sx={{
+                      "&:hover": {
+                        bgcolor: "rgba(66, 199, 241, 0.08)",
+                      },
+                      "&:nth-of-type(odd)": {
+                        bgcolor: "rgba(66, 199, 241, 0.03)",
+                      },
+                      borderColor: "rgba(0, 0, 0, 0.08)",
+                      transition: "background-color 0.2s",
+                    }}
+                  >
+                    <TableCell
+                      sx={{
+                        fontWeight: 700,
+                        color: "#0a0a0a",
+                        borderColor: "rgba(0, 0, 0, 0.08)",
+                        py: 1.5,
+                      }}
+                    >
+                      {retreatAttend.attendanceNumber}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderColor: "rgba(0, 0, 0, 0.08)",
+                        fontWeight: 600,
+                        color: "#1a1a1a",
+                      }}
+                    >
+                      {retreatAttend.user.name}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderColor: "rgba(0, 0, 0, 0.08)",
+                        fontWeight: 500,
+                        color: "#333",
+                      }}
+                    >
+                      {retreatAttend.user.gender === "man" ? "남" : "여"}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderColor: "rgba(0, 0, 0, 0.08)",
+                        fontWeight: 500,
+                        color: "#333",
+                      }}
+                    >
+                      {retreatAttend.user.yearOfBirth}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderColor: "rgba(0, 0, 0, 0.08)",
+                        fontWeight: 500,
+                        color: "#333",
+                      }}
+                    >
+                      {retreatAttend.howToGo === HowToMove.together
+                        ? "교회 버스"
+                        : "기타"}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderColor: "rgba(0, 0, 0, 0.08)",
+                        fontWeight: 500,
+                        color: "#333",
+                      }}
+                    >
+                      {retreatAttend.howToBack === HowToMove.together
+                        ? "교회 버스"
+                        : "기타"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
+        </Paper>
+      </Box>
+    </Box>
   )
 }
 

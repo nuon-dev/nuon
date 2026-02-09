@@ -12,29 +12,29 @@ import {
 } from "@mui/material"
 import UserInformationForm from "@/components/form/UserInformationForm"
 import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
 import { useRouter } from "next/navigation"
 import { RetreatAttend } from "@server/entity/retreat/retreatAttend"
 import Header from "@/components/retreat/admin/Header"
+import { useNotification } from "@/hooks/useNotification"
 
 export default function EditUserData() {
   const { push } = useRouter()
   const [userList, setUserList] = useState([] as Array<RetreatAttend>)
   const [selectedUserId, setSelectedUserId] = useState("")
   const [retreatAttend, setRetreatAttend] = useState<RetreatAttend | undefined>(
-    undefined
+    undefined,
   )
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error, success } = useNotification()
 
   useEffect(() => {
     get("/retreat/admin/get-all-user")
       .then((response: Array<RetreatAttend>) => {
         setUserList(
-          response.sort((a, b) => (a.user.name > b.user.name ? 1 : -1))
+          response.sort((a, b) => (a.user.name > b.user.name ? 1 : -1)),
         )
         if (global.location.search) {
           const retreatAttendId = new URLSearchParams(
-            global.location.search
+            global.location.search,
           ).get("retreatAttendId")
           setSelectedUserId(retreatAttendId ? retreatAttendId : "")
         } else if (response.length > 0) {
@@ -43,7 +43,7 @@ export default function EditUserData() {
       })
       .catch(() => {
         push("/retreat/admin")
-        setNotificationMessage("권한이 없습니다.")
+        error("권한이 없습니다.")
         return
       })
   }, [])
@@ -71,7 +71,7 @@ export default function EditUserData() {
       `${
         userList.find((retreatAttend) => retreatAttend.id === selectedUserId)
           ?.user.name
-      }의 정보를 삭제하시겠습니까?`
+      }의 정보를 삭제하시겠습니까?`,
     )
     if (!c) {
       return
@@ -81,7 +81,7 @@ export default function EditUserData() {
     })
 
     if (result === "success") {
-      setNotificationMessage("삭제되었습니다.")
+      success("삭제되었습니다.")
     }
   }
 

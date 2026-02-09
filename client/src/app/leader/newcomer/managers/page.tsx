@@ -17,8 +17,7 @@ import {
 import { useEffect, useState } from "react"
 import axios from "@/config/axios"
 import useAuth from "@/hooks/useAuth"
-import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 import CloseIcon from "@mui/icons-material/Close"
 import PersonAddIcon from "@mui/icons-material/PersonAdd"
 
@@ -47,7 +46,7 @@ export default function ManagerPage() {
   const [managerList, setManagerList] = useState<NewcomerManager[]>([])
   const [searchName, setSearchName] = useState("")
   const [loading, setLoading] = useState(true)
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error, success } = useNotification()
 
   useEffect(() => {
     isLeaderIfNotExit("/leader/newcomer/managers")
@@ -73,11 +72,11 @@ export default function ManagerPage() {
   async function addManager(userId: string) {
     try {
       await axios.post("/newcomer/managers", { userId })
-      setNotificationMessage("담당자로 지정되었습니다.")
+      success("담당자로 지정되었습니다.")
       await fetchData()
-    } catch (error) {
-      console.error("Error adding manager:", error)
-      setNotificationMessage("담당자 지정 중 오류가 발생했습니다.")
+    } catch (err) {
+      console.error("Error adding manager:", err)
+      error("담당자 지정 중 오류가 발생했습니다.")
     }
   }
 
@@ -85,11 +84,11 @@ export default function ManagerPage() {
     if (!confirm("정말로 담당자를 해제하시겠습니까?")) return
     try {
       await axios.delete(`/newcomer/managers/${managerId}`)
-      setNotificationMessage("담당자가 해제되었습니다.")
+      success("담당자가 해제되었습니다.")
       await fetchData()
-    } catch (error) {
-      console.error("Error removing manager:", error)
-      setNotificationMessage("담당자 해제 중 오류가 발생했습니다.")
+    } catch (err) {
+      console.error("Error removing manager:", err)
+      error("담당자 해제 중 오류가 발생했습니다.")
     }
   }
 
