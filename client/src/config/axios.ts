@@ -8,7 +8,7 @@ export const GetUrl = () => {
   switch (target) {
     case "prod":
       SERVER_PORT = ":8000"
-      CLIENT_PORT = ":8080"
+      CLIENT_PORT = ""
       return {
         host: process.env.NEXT_PUBLIC_PROD_SERVER,
         serverPort: SERVER_PORT,
@@ -25,7 +25,7 @@ export const GetUrl = () => {
     case "local":
     default:
       SERVER_PORT = ":8000"
-      CLIENT_PORT = ""
+      CLIENT_PORT = ":8080"
       return {
         host: process.env.NEXT_PUBLIC_LOCAL_SERVER,
         serverPort: SERVER_PORT,

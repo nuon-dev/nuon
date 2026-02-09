@@ -37,15 +37,9 @@ export default function Header() {
       type: "menu",
     },
     {
-      title: "새신자 관리",
+      title: "새가족 관리",
       icon: <HowToRegIcon fontSize="small" sx={{ color: "#667eea" }} />,
-      path: "/leader/newcomer",
-      type: "menu",
-    },
-    {
-      title: "담당자 관리",
-      icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
-      path: "/leader/newcomer/managers",
+      path: "/leader/newcomer/management",
       type: "menu",
     },
     {

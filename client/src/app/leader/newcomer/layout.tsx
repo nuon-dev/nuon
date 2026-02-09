@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 const menuItems = [
   { label: "새신자 등록/조회", path: "/leader/newcomer/management" },
   { label: "교육 현황", path: "/leader/newcomer/education" },
-  { label: "담당자 관리", path: "/leader/newcomer/managers" },
+  { label: "섬김이 관리", path: "/leader/newcomer/managers" },
 ]
 
 export default function NewcomerLayout({

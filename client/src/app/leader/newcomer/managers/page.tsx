@@ -114,7 +114,7 @@ export default function ManagerPage() {
       <Box p={2}>
         {/* 헤더 */}
         <Typography variant="h5" fontWeight="bold" mb={2}>
-          담당자 관리
+          섬김이 관리
         </Typography>
 
         <Stack direction="row" gap={2}>
