@@ -34,7 +34,7 @@ interface DashboardData {
       attendPercent: number
       genderRatio: { male: number; female: number }
       genderCount: { male: number; female: number }
-      newFamilyPercent: number
+      newFamilyRegistrants: number
     }
     monthly: {
       attendCount: number
@@ -43,7 +43,7 @@ interface DashboardData {
       attendPercent: number
       genderRatio: { male: number; female: number }
       genderCount: { male: number; female: number }
-      newFamilyPercent: number
+      newFamilyRegistrants: number
     }
     last4Weeks: Array<{
       date: string
@@ -53,7 +53,7 @@ interface DashboardData {
       attendPercent: number
       genderRatio: { male: number; female: number }
       genderCount: { male: number; female: number }
-      newFamilyPercent: number
+      newFamilyRegistrants: number
     }>
   }
   recentAbsentees: Array<{
@@ -223,10 +223,10 @@ function index() {
                 <TrendingUpIcon sx={{ fontSize: 40, color: "#7b1fa2" }} />
                 <Stack>
                   <Typography variant="h4" fontWeight="bold">
-                    {dashboardData.statistics.weekly.newFamilyPercent}%
+                    {dashboardData.statistics.weekly.newFamilyRegistrants}명
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    새가족 비율
+                    새가족 등록자
                   </Typography>
                 </Stack>
               </Stack>

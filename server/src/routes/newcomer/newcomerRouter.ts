@@ -96,6 +96,105 @@ router.post("/", async (req, res) => {
   }
 })
 
+router.put("/:id", async (req, res) => {
+  const user = await checkJwt(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const { id } = req.params
+  const {
+    name,
+    yearOfBirth,
+    gender,
+    phone,
+    guiderId,
+    assignmentId,
+    newcomerManagerId,
+    status,
+  } = req.body
+
+  try {
+    const newcomer = await newcomerDatabase.findOne({ where: { id } })
+    if (!newcomer) {
+      res.status(404).send({ error: "새신자를 찾을 수 없습니다." })
+      return
+    }
+
+    if (name) newcomer.name = name
+    if (yearOfBirth !== undefined)
+      newcomer.yearOfBirth = yearOfBirth ? parseInt(yearOfBirth, 10) : null
+    if (gender !== undefined) newcomer.gender = gender || null
+    if (phone !== undefined)
+      newcomer.phone = phone?.replace(/[^\d]/g, "") || null
+    if (status) newcomer.status = status
+
+    // 인도자 업데이트
+    if (guiderId !== undefined) {
+      if (guiderId) {
+        const guider = await userDatabase.findOne({ where: { id: guiderId } })
+        newcomer.guider = guider
+      } else {
+        newcomer.guider = null
+      }
+    }
+
+    // NewcomerManager 업데이트
+    if (newcomerManagerId !== undefined) {
+      if (newcomerManagerId) {
+        const manager = await newcomerManagerDatabase.findOne({
+          where: { id: newcomerManagerId },
+        })
+        newcomer.newcomerManager = manager
+      } else {
+        newcomer.newcomerManager = null
+      }
+    }
+
+    // 배정 업데이트
+    if (assignmentId !== undefined) {
+      if (assignmentId) {
+        const assignment = await communityDatabase.findOne({
+          where: { id: assignmentId },
+        })
+        newcomer.assignment = assignment
+      } else {
+        newcomer.assignment = null
+      }
+    }
+
+    await newcomerDatabase.save(newcomer)
+    res.status(200).send(newcomer)
+  } catch (error) {
+    console.error("Error updating newcomer:", error)
+    res.status(500).send({ error: "새신자 정보 수정에 실패했습니다." })
+  }
+})
+
+// 1-2. 새신자 삭제
+router.delete("/:id", async (req, res) => {
+  const user = await checkJwt(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const { id } = req.params
+
+  try {
+    const result = await newcomerDatabase.delete(id)
+    if (result.affected === 0) {
+      res.status(404).send({ error: "새신자를 찾을 수 없습니다." })
+      return
+    }
+    res.status(200).send({ success: true })
+  } catch (error) {
+    console.error("Error deleting newcomer:", error)
+    res.status(500).send({ error: "새신자 삭제에 실패했습니다." })
+  }
+})
+
 // 2. 새신자 조회 (리스트)
 router.get("/", async (req, res) => {
   const user = await checkJwt(req)
