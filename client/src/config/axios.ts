@@ -1,24 +1,42 @@
 import axios from "axios"
-let PORT = 8000
 
-const getBaseUrl = () => {
+export const GetUrl = () => {
   const target = process.env.NEXT_PUBLIC_API_TARGET
 
+  let SERVER_PORT = ":8000"
+  let CLIENT_PORT = ":8080"
   switch (target) {
     case "prod":
-      return process.env.NEXT_PUBLIC_PROD_SERVER
+      SERVER_PORT = ":8000"
+      CLIENT_PORT = ""
+      return {
+        host: process.env.NEXT_PUBLIC_PROD_SERVER,
+        serverPort: SERVER_PORT,
+        clientPort: CLIENT_PORT,
+      }
     case "dev":
-      PORT = 8001
-      return process.env.NEXT_PUBLIC_DEV_SERVER
+      SERVER_PORT = ":8001"
+      CLIENT_PORT = ""
+      return {
+        host: process.env.NEXT_PUBLIC_DEV_SERVER,
+        serverPort: SERVER_PORT,
+        clientPort: CLIENT_PORT,
+      }
     case "local":
     default:
-      return process.env.NEXT_PUBLIC_LOCAL_SERVER
+      SERVER_PORT = ":8000"
+      CLIENT_PORT = ":8080"
+      return {
+        host: process.env.NEXT_PUBLIC_LOCAL_SERVER,
+        serverPort: SERVER_PORT,
+        clientPort: CLIENT_PORT,
+      }
   }
 }
 
-const SERVER_URL = getBaseUrl()
+const URL = GetUrl()
 
-export const SERVER_FULL_PATH = `${SERVER_URL}:${PORT}`
+export const SERVER_FULL_PATH = `${URL.host}${URL.serverPort}`
 
 const isBrowser = typeof window !== "undefined"
 
@@ -35,7 +53,7 @@ axios.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error)
-  }
+  },
 )
 
 axios.interceptors.response.use(
@@ -46,11 +64,11 @@ axios.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       if (isBrowser) {
         window.location.href = `/common/login?redirect=${encodeURIComponent(
-          window.location.pathname
+          window.location.pathname,
         )}`
       }
     }
     return Promise.reject(error)
-  }
+  },
 )
 export default axios

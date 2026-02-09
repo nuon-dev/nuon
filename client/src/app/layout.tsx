@@ -18,7 +18,7 @@ export default function RootLayout({
       global.location.href =
         "kakaotalk://web/openExternal?url=" +
         encodeURIComponent(
-          `https://nuon.iubns.net${global.location?.pathname}${global.location?.search}`
+          `https://nuon.iubns.net${global.location?.pathname}${global.location?.search}`,
         )
       isKakaoBrowser = true
     }
@@ -52,10 +52,11 @@ export default function RootLayout({
       <meta name="format-detection" content="telephone=no" />
       <Provider>
         <body>
-          <Script
-            src="https://developers.kakao.com/sdk/js/kakao.js"
-            strategy="beforeInteractive"
-          />
+          <script
+            src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.9/kakao.min.js"
+            integrity="sha384-JpLApTkB8lPskhVMhT+m5Ln8aHlnS0bsIexhaak0jOhAkMYedQoVghPfSpjNi9K1"
+            crossOrigin="anonymous"
+          ></script>
           <Notification />
           {isKakaoBrowser ? (
             <div>카카오톡 브라우저에서는 사용할 수 없습니다.</div>

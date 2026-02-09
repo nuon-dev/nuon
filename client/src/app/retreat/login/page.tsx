@@ -2,21 +2,20 @@
 
 import { Stack } from "@mui/material"
 import RetreatButton from "../components/Button"
-import useAuth from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
 import usePageColor from "@/hooks/usePageColor"
 import useBodyOverflowHidden from "@/hooks/useBodyOverflowHidden"
+import useKakaoHook from "@/hooks/useKakao"
 
 export default function RetreatLogin() {
   useBodyOverflowHidden()
   usePageColor("#2F3237")
-  const { login } = useAuth()
+  const { executeKakaoLogin } = useKakaoHook()
   const { push } = useRouter()
 
   async function handleKakaoLogin() {
     try {
-      await login()
-      push("/retreat")
+      await executeKakaoLogin("/retreat")
     } catch {
       push("/retreat?newUser=true")
     }

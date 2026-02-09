@@ -3,6 +3,10 @@ import { getUserFromToken } from "../util/util"
 import { communityDatabase } from "../model/dataSource"
 import { User } from "../entity/user"
 import userModel from "../model/user"
+import {
+  getKakaoIdFromAccessToken,
+  getKakaoTokenFromAuthCode,
+} from "../util/auth"
 
 const router = express.Router()
 
@@ -27,11 +31,6 @@ router.post("/edit-my-information", async (req, res) => {
   res.send({ result: "success" })
 })
 
-router.get("/community", async (req, res) => {
-  const communityList = await communityDatabase.find()
-  res.send(communityList)
-})
-
 router.post("/receipt-record", async (req, res) => {
   const body = req.body
 
@@ -52,9 +51,13 @@ router.post("/receipt-record", async (req, res) => {
 
 const twentyOneDays = 1000 * 60 * 60 * 24 * 21
 router.post("/login", async (req, res) => {
-  const body = req.body
+  const { kakaoToken } = req.body
 
-  const kakaoId = body.kakaoId
+  const kakaoId = await getKakaoIdFromAccessToken(kakaoToken as string)
+  if (!kakaoId) {
+    res.status(404).send({ result: "fail" })
+    return
+  }
 
   const newUserToken = await userModel.loginFromKakaoId(kakaoId)
   if (!newUserToken) {
@@ -72,6 +75,18 @@ router.post("/login", async (req, res) => {
       expires: new Date(Date.now() + twentyOneDays),
     })
     .send({ result: "success", accessToken: newUserToken.accessToken })
+})
+
+router.post("/get-kakao-token", async (req, res) => {
+  const { code } = req.body
+
+  const kakaoToken = await getKakaoTokenFromAuthCode(code as string)
+  if (!kakaoToken) {
+    res.status(404).send({ result: "fail" })
+    return
+  }
+
+  res.send({ result: "success", kakaoToken: kakaoToken })
 })
 
 router.post("/refresh-token", async (req, res) => {

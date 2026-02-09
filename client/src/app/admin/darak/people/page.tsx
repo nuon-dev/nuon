@@ -21,6 +21,7 @@ import { get, put } from "@/config/api"
 import { type User } from "@server/entity/user"
 import { Community } from "@server/entity/community"
 import { MouseEvent, useEffect, useRef, useState } from "react"
+import UserSearch from "@/components/UserSearch"
 
 export default function People() {
   const [communityList, setCommunityList] = useState<Community[]>([])
@@ -57,7 +58,7 @@ export default function People() {
 
   async function fetchCommunityUserList(communityId: number) {
     const communityUserListData = await get(
-      `/admin/community/user-list/${communityId}`
+      `/admin/community/user-list/${communityId}`,
     )
     setChildCommunityList(communityUserListData)
   }
@@ -66,7 +67,7 @@ export default function People() {
     const communityListData = await get("/admin/community")
     setCommunityList(communityListData)
     const noCommunityUserData = await get(
-      "/admin/community/no-community-user-list"
+      "/admin/community/no-community-user-list",
     )
     setNoCommunityUser(noCommunityUserData)
 
@@ -121,7 +122,7 @@ export default function People() {
 
   async function saveCommunityLeader(
     community: Community,
-    leaderId: number | null
+    leaderId: number | null,
   ) {
     await put("/admin/community/save-leader", {
       groupId: community.id,
@@ -132,7 +133,7 @@ export default function People() {
 
   async function saveCommunityDeputyLeader(
     community: Community,
-    deputyLeaderId: number | null
+    deputyLeaderId: number | null,
   ) {
     await put("/admin/community/save-deputy-leader", {
       groupId: community.id,
@@ -207,7 +208,7 @@ export default function People() {
 
   function CommunityBox({ displayCommunity }: { displayCommunity: Community }) {
     const myCommunity = childCommunityList.find(
-      (community) => community.id === displayCommunity.id
+      (community) => community.id === displayCommunity.id,
     )
 
     function onClickCommunity(e: MouseEvent) {
@@ -338,7 +339,7 @@ export default function People() {
               onChange={(e) => {
                 saveCommunityDeputyLeader(
                   displayCommunity,
-                  e.target.value as number
+                  e.target.value as number,
                 )
               }}
             >
@@ -408,8 +409,28 @@ export default function People() {
     return `${getParentCommunityName(community.parent)} > ${community.name}`
   }
 
+  const handleSelectUser = (user: User) => {
+    if (!user.community) {
+      alert("미배정 사용자입니다.")
+      return
+    }
+
+    const parentId = user.community.parent ? user.community.parent.id : null
+
+    if (!parentId) {
+      setSelectedRootCommunity(null)
+    } else {
+      const parentCommunity = communityList.find((c) => c.id === parentId)
+      if (parentCommunity) {
+        setSelectedRootCommunity(parentCommunity)
+      } else {
+        console.warn("상위 그룹을 찾을 수 없습니다.")
+      }
+    }
+  }
+
   return (
-    <Box sx={{ bgcolor: "grey.50", minHeight: "100vh" }}>
+    <Box sx={{ bgcolor: "grey.50" }}>
       <Box p={1.5}>
         <Stack
           direction="row"
@@ -421,15 +442,11 @@ export default function People() {
             커뮤니티 관리
           </Typography>
           <Stack direction="row" gap={1} alignItems="center">
-            <Chip
-              label={`미배정: ${noCommunityUser.length}명`}
-              size="small"
-              variant="outlined"
-              color={noCommunityUser.length > 0 ? "warning" : "success"}
-            />
+            <Box mb={1.5}>
+              <UserSearch onSelectUser={handleSelectUser} />
+            </Box>
           </Stack>
         </Stack>
-
         <Stack
           direction="row"
           gap={2}
@@ -437,55 +454,60 @@ export default function People() {
             selectedUser.current = null
           }}
         >
-          {/* 미배정 사용자 영역 */}
-          <Paper
-            elevation={2}
-            sx={{
-              width: 320,
-              p: 2,
-              borderRadius: 2,
-              bgcolor: "background.paper",
-              border: "2px dashed",
-              borderColor: "warning.light",
-              maxHeight: "calc(100vh - 200px)",
-              overflow: "hidden",
-            }}
-            onMouseUp={removeCommunityToUser}
-          >
-            <Typography
-              variant="subtitle1"
-              fontWeight="bold"
-              mb={1}
-              color="warning.main"
-            >
-              미배정 사용자 ({noCommunityUser.length}명)
-            </Typography>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              mb={2}
-              display="block"
-            >
-              다락방에 속하지 않은 사용자들입니다.
-            </Typography>
-            <Box
+          <Stack gap={1.5}>
+            {/* 미배정 사용자 영역 */}
+            <Paper
+              elevation={2}
               sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 0.5,
-                maxHeight: "calc(100vh - 300px)",
-                overflowY: "auto",
-                pr: 1,
+                width: 320,
+                p: 2,
+                borderRadius: 2,
+                bgcolor: "background.paper",
+                border: "2px dashed",
+                borderColor: "warning.light",
+                maxHeight: "calc(100vh - 200px)",
+                overflow: "hidden",
               }}
+              onMouseUp={removeCommunityToUser}
             >
-              {noCommunityUser.map((user) => UserBox({ user }))}
-            </Box>
-          </Paper>
+              <Typography
+                variant="subtitle1"
+                fontWeight="bold"
+                mb={1}
+                color="warning.main"
+              >
+                미배정 사용자 ({noCommunityUser.length}명)
+              </Typography>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                mb={2}
+                display="block"
+              >
+                다락방에 속하지 않은 사용자들입니다.
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 0.5,
+                  maxHeight: "calc(100vh - 300px)",
+                  overflowY: "auto",
+                  pr: 1,
+                }}
+              >
+                {noCommunityUser.map((user) => UserBox({ user }))}
+              </Box>
+            </Paper>
+          </Stack>
 
           {/* 커뮤니티 영역 */}
           <Box
             flex="1"
-            sx={{ maxHeight: "calc(100vh - 150px)", overflowY: "auto" }}
+            sx={{
+              maxHeight: "calc(100vh - (64px + 64px + 24px))",
+              overflowY: "auto",
+            }}
           >
             {/* 네비게이션 */}
             <Paper
@@ -535,7 +557,7 @@ export default function People() {
                       setSelectedRootCommunity(
                         selectedRootCommunity
                           ? selectedRootCommunity.parent
-                          : null
+                          : null,
                       )
                     }
                   >
@@ -578,7 +600,6 @@ export default function People() {
             )}
           </Box>
         </Stack>
-
         {/* 드래그 중인 사용자 표시 */}
         {selectedUser.current && selectedUser.current.id && (
           <Box

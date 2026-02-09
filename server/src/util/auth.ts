@@ -1,24 +1,8 @@
 import jwt from "jsonwebtoken"
 import { User } from "../entity/user"
 import { REFRESH_TOKEN_EXPIRE_DAYS } from "../model/user"
-import { Community } from "../entity/community"
-import { communityDatabase } from "../model/dataSource"
-
-export interface Role {
-  Admin: boolean
-  Leader: boolean
-  VillageLeader: boolean
-}
-
-export interface jwtPayload {
-  id: string
-  name: string
-  yearOfBirth: number
-  community: Community
-  role: Role
-  iat: number
-  exp: number
-}
+import { communityDatabase, newcomerManagerDatabase } from "../model/dataSource"
+import { Role } from "./type"
 
 export function generateRefreshToken(user: User) {
   const payload = {
@@ -72,9 +56,65 @@ async function getRole(user: User): Promise<Role> {
     villageLeader = true
   }
 
+  const newcomerManager = await newcomerManagerDatabase.findOne({
+    where: { user: { id: user.id } },
+  })
+
   return {
     Admin: user.isSuperUser,
     Leader: isLeader,
     VillageLeader: villageLeader,
+    NewcomerManager: newcomerManager ? true : false,
+  }
+}
+
+export async function getKakaoTokenFromAuthCode(code: string): Promise<string> {
+  const response = await fetch("https://kauth.kakao.com/oauth/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: process.env.KAKAO_REST_API_KEY || "",
+      redirect_uri: `${getServerUrl()}/common/login`,
+      code: code,
+    }),
+  })
+
+  const tokenData = (await response.json()) as {
+    access_token: string
+    refresh_token: string
+    expires_in: number
+    refresh_token_expires_in: number
+    scope: string
+  }
+  return tokenData.access_token
+}
+
+export async function getKakaoIdFromAccessToken(
+  accessToken: string,
+): Promise<string> {
+  const userResponse = await fetch("https://kapi.kakao.com/v2/user/me", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+  const userData = (await userResponse.json()) as { id: string }
+  return userData.id
+}
+
+//Todo: cors에 있는 것도 그렇고, 어떻게 관리 해야 하나?
+const target = process.env.NEXT_PUBLIC_API_TARGET
+function getServerUrl() {
+  switch (target) {
+    case "prod":
+      return `https://nuon.iubns.net`
+    case "dev":
+      return `https://nuon-dev.iubns.net`
+    case "local":
+    default:
+      return `http://localhost:8080`
   }
 }

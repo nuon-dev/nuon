@@ -4,19 +4,13 @@ import { jwtDecode } from "jwt-decode"
 import { useEffect } from "react"
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai"
 import dayjs from "dayjs"
-import useKakaoHook from "@/hooks/useKakao"
+import { Role } from "@server/util/type"
 import axios from "@/config/axios"
 import { Community } from "@server/entity/community"
 import { useRouter } from "next/navigation"
 import { NotificationMessage } from "@/state/notification"
 
 export const JwtInformationAtom = atom<jwtPayload | null | undefined>(null)
-
-export interface Role {
-  Admin: boolean
-  Leader: boolean
-  VillageLeader: boolean
-}
 
 //Todo: 서버와 통합할 수 있는 방법 찾아보기, 지금은 jwt type error로 인해 분리
 export interface jwtPayload {
@@ -29,11 +23,10 @@ export interface jwtPayload {
   exp: number
 }
 const isLoginAtom = atom((get) => get(JwtInformationAtom) != null)
-const kakaoTokenAtom = atom<number | null>(null)
+const kakaoTokenAtom = atom<string | null>(null)
 
 export default function useAuth() {
   const { push } = useRouter()
-  const { getKakaoToken } = useKakaoHook()
   const isLogin = useAtomValue(isLoginAtom)
   const setNotificationMessage = useSetAtom(NotificationMessage)
   const [authUserData, setAuthUserData] = useAtom(JwtInformationAtom)
@@ -69,19 +62,27 @@ export default function useAuth() {
     return null
   }
 
-  async function login(kakaoId?: number): Promise<jwtPayload> {
-    if (!kakaoId) {
-      kakaoId = await getKakaoToken()
+  async function getKakaoTokenFromAuthCode(code: string) {
+    const { data } = await axios.post("/auth/get-kakao-token", {
+      code: code,
+    })
+    setKakaoToken(data.kakaoToken)
+    return data.kakaoToken
+  }
+
+  async function login(kakaoToken: string): Promise<jwtPayload> {
+    if (!kakaoToken) {
+      throw new Error("카카오 토큰이 없습니다.")
     }
-    setKakaoToken(kakaoId)
+    //setKakaoToken(kakaoToken)
     const { data } = await axios.post(
       "/auth/login",
       {
-        kakaoId: kakaoId,
+        kakaoToken: kakaoToken,
       },
       {
         withCredentials: true,
-      }
+      },
     )
     const { accessToken } = data
     localStorage.setItem("token", accessToken)
@@ -145,5 +146,6 @@ export default function useAuth() {
     isAdminIfNotExit,
     logout,
     kakaoToken,
+    getKakaoTokenFromAuthCode,
   }
 }
