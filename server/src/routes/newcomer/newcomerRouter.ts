@@ -113,6 +113,8 @@ router.put("/:id", async (req, res) => {
     assignmentId,
     newcomerManagerId,
     status,
+    pendingDate,
+    promotionDate,
   } = req.body
 
   try {
@@ -129,6 +131,8 @@ router.put("/:id", async (req, res) => {
     if (phone !== undefined)
       newcomer.phone = phone?.replace(/[^\d]/g, "") || null
     if (status) newcomer.status = status
+    if (pendingDate !== undefined) newcomer.pendingDate = pendingDate
+    if (promotionDate !== undefined) newcomer.promotionDate = promotionDate
 
     // 인도자 업데이트
     if (guiderId !== undefined) {
@@ -172,7 +176,7 @@ router.put("/:id", async (req, res) => {
   }
 })
 
-// 1-2. 새신자 삭제
+// 1-2. 새신자 삭제 (소프트 딜리트)
 router.delete("/:id", async (req, res) => {
   const user = await checkJwt(req)
   if (!user) {
@@ -183,7 +187,7 @@ router.delete("/:id", async (req, res) => {
   const { id } = req.params
 
   try {
-    const result = await newcomerDatabase.delete(id)
+    const result = await newcomerDatabase.softDelete(id)
     if (result.affected === 0) {
       res.status(404).send({ error: "새신자를 찾을 수 없습니다." })
       return
