@@ -36,25 +36,29 @@ export default function Header() {
       path: "/leader/attendance",
       type: "menu",
     },
-    {
-      title: "새가족 관리",
-      icon: <HowToRegIcon fontSize="small" sx={{ color: "#667eea" }} />,
-      path: "/leader/newcomer/management",
-      type: "menu",
-    },
+    /*Todo: 다음 수련회때 다시 키기
     {
       title: "순원 수련회 접수 조회",
       icon: <HowToRegIcon fontSize="small" sx={{ color: "#667eea" }} />,
       path: "/leader/retreat-attendance",
       type: "menu",
-    },
+    },*/
   ]
 
-  if (authUserData?.role.VillageLeader) {
+  if (authUserData?.role.VillageLeader || authUserData?.role.Admin) {
     menu.push({
       title: "전체 출석 조회",
       icon: <EventNoteIcon fontSize="small" sx={{ color: "#667eea" }} />,
       path: "/leader/all-attendance",
+      type: "menu",
+    })
+  }
+
+  if (authUserData?.role.NewcomerManager || authUserData?.role.Admin) {
+    menu.push({
+      title: "새가족 관리",
+      icon: <HowToRegIcon fontSize="small" sx={{ color: "#667eea" }} />,
+      path: "/leader/newcomer/management",
       type: "menu",
     })
   }

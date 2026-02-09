@@ -5,7 +5,7 @@ import { permissionDatabase, userDatabase } from "../model/dataSource"
 import { User } from "../entity/user"
 import express from "express"
 import jwt from "jsonwebtoken"
-import { jwtPayload } from "./auth"
+import { jwtPayload } from "./type"
 
 const env = dotenv.config().parsed || {}
 
@@ -18,7 +18,7 @@ export const hashCode = function (content: string) {
 
 export async function hasPermission(
   token: string | undefined,
-  permissionType: PermissionType
+  permissionType: PermissionType,
 ): Promise<boolean> {
   const payload = jwt.verify<jwtPayload>(token, env.JWT_SECRET) as jwtPayload
 
@@ -48,7 +48,7 @@ export async function hasPermission(
   }
 
   const userListPermission = foundUser.permissions.find(
-    (permission) => permission.permissionType === permissionType
+    (permission) => permission.permissionType === permissionType,
   )
 
   if (userListPermission && userListPermission.have) {
@@ -102,7 +102,7 @@ export async function checkJwt(req: express.Request) {
 
 export async function hasPermissionFromReq(
   req: express.Request,
-  permissionType: PermissionType
+  permissionType: PermissionType,
 ) {
   const token = req.header("token")
   return await hasPermission(token, permissionType)

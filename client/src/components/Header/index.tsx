@@ -27,6 +27,7 @@ export default function Header() {
       path: "/common/myPage",
       type: "menu",
     },
+    /*Todo: 수련회 신청 기간에 맞춰서 다시 열기 
     { type: "divider" },
     {
       title: "2026 겨울 수련회 신청",
@@ -34,6 +35,7 @@ export default function Header() {
       path: "/retreat",
       type: "menu",
     },
+    */
   ]
 
   if (authUserData?.role.Leader) {
