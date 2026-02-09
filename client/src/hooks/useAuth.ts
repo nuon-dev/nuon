@@ -4,19 +4,13 @@ import { jwtDecode } from "jwt-decode"
 import { useEffect } from "react"
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai"
 import dayjs from "dayjs"
-import useKakaoHook from "@/hooks/useKakao"
+import { Role } from "@server/util/type"
 import axios from "@/config/axios"
 import { Community } from "@server/entity/community"
 import { useRouter } from "next/navigation"
 import { NotificationMessage } from "@/state/notification"
 
 export const JwtInformationAtom = atom<jwtPayload | null | undefined>(null)
-
-export interface Role {
-  Admin: boolean
-  Leader: boolean
-  VillageLeader: boolean
-}
 
 //Todo: 서버와 통합할 수 있는 방법 찾아보기, 지금은 jwt type error로 인해 분리
 export interface jwtPayload {

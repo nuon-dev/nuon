@@ -1,24 +1,8 @@
 import jwt from "jsonwebtoken"
 import { User } from "../entity/user"
 import { REFRESH_TOKEN_EXPIRE_DAYS } from "../model/user"
-import { Community } from "../entity/community"
-import { communityDatabase } from "../model/dataSource"
-
-export interface Role {
-  Admin: boolean
-  Leader: boolean
-  VillageLeader: boolean
-}
-
-export interface jwtPayload {
-  id: string
-  name: string
-  yearOfBirth: number
-  community: Community
-  role: Role
-  iat: number
-  exp: number
-}
+import { communityDatabase, newcomerManagerDatabase } from "../model/dataSource"
+import { Role } from "./type"
 
 export function generateRefreshToken(user: User) {
   const payload = {
@@ -72,10 +56,15 @@ async function getRole(user: User): Promise<Role> {
     villageLeader = true
   }
 
+  const newcomerManager = await newcomerManagerDatabase.findOne({
+    where: { user: { id: user.id } },
+  })
+
   return {
     Admin: user.isSuperUser,
     Leader: isLeader,
     VillageLeader: villageLeader,
+    NewcomerManager: newcomerManager ? true : false,
   }
 }
 
