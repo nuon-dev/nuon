@@ -2,12 +2,13 @@ import { Router } from "express"
 import { Request, Response } from "express"
 import { Between, In, Not, IsNull, LessThanOrEqual } from "typeorm"
 import { AttendData } from "../../entity/attendData"
-import { AttendStatus } from "../../entity/types"
+import { AttendStatus, EducationLecture } from "../../entity/types"
 import {
   userDatabase,
   communityDatabase,
   attendDataDatabase,
   worshipScheduleDatabase,
+  newcomerEducationDatabase,
 } from "../../model/dataSource"
 
 const router = Router()
@@ -33,13 +34,6 @@ const getMonthStart = (date: Date) => {
 
 const getMonthEnd = (date: Date) => {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0)
-}
-
-// 새가족 판별 함수 (등반 후 6개월)
-const isNewFamily = (createAt: Date) => {
-  const sixMonthsAgo = new Date()
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-  return new Date(createAt) >= sixMonthsAgo
 }
 
 // GET /admin/dashboard - 대시보드 데이터 조회
@@ -70,7 +64,7 @@ router.get("/", async (req: Request, res: Response) => {
       where: {
         date: Between(
           weekStart.toISOString().split("T")[0],
-          weekEnd.toISOString().split("T")[0]
+          weekEnd.toISOString().split("T")[0],
         ),
       },
     })
@@ -80,7 +74,7 @@ router.get("/", async (req: Request, res: Response) => {
       where: {
         date: Between(
           monthStart.toISOString().split("T")[0],
-          monthEnd.toISOString().split("T")[0]
+          monthEnd.toISOString().split("T")[0],
         ),
       },
     })
@@ -111,19 +105,30 @@ router.get("/", async (req: Request, res: Response) => {
           })
         : []
 
+    // 새가족 등록자 수 계산 함수
+    const countNewFamilyRegistrants = async (scheduleIds: number[]) => {
+      if (scheduleIds.length === 0) return 0
+      return await newcomerEducationDatabase.count({
+        where: {
+          worshipSchedule: { id: In(scheduleIds) },
+          lectureType: EducationLecture.OT,
+        },
+      })
+    }
+
     // 통계 계산 함수
     const calculateStats = (attendanceData: AttendData[]) => {
       // 유효한 사용자 데이터만 필터링
       const validAttendanceData = attendanceData.filter((a) => a.user)
 
       const attendCount = validAttendanceData.filter(
-        (a) => a.isAttend === AttendStatus.ATTEND
+        (a) => a.isAttend === AttendStatus.ATTEND,
       ).length
       const absentCount = validAttendanceData.filter(
-        (a) => a.isAttend === AttendStatus.ABSENT
+        (a) => a.isAttend === AttendStatus.ABSENT,
       ).length
       const etcCount = validAttendanceData.filter(
-        (a) => a.isAttend === AttendStatus.ETC
+        (a) => a.isAttend === AttendStatus.ETC,
       ).length
       const total = validAttendanceData.length
 
@@ -132,23 +137,16 @@ router.get("/", async (req: Request, res: Response) => {
 
       // 성비 계산
       const maleCount = validAttendanceData.filter(
-        (a) => a.user.gender === "man"
+        (a) => a.user.gender === "man",
       ).length
       const femaleCount = validAttendanceData.filter(
-        (a) => a.user.gender === "woman"
+        (a) => a.user.gender === "woman",
       ).length
       const genderTotal = maleCount + femaleCount
       const malePercent =
         genderTotal > 0 ? Math.round((maleCount / genderTotal) * 100) : 0
       const femalePercent =
         genderTotal > 0 ? Math.round((femaleCount / genderTotal) * 100) : 0
-
-      // 새가족 비율
-      const newFamilyCount = validAttendanceData.filter((a) =>
-        isNewFamily(a.user.createAt)
-      ).length
-      const newFamilyPercent =
-        total > 0 ? Math.round((newFamilyCount / total) * 100) : 0
 
       return {
         attendCount,
@@ -157,12 +155,24 @@ router.get("/", async (req: Request, res: Response) => {
         attendPercent,
         genderRatio: { male: malePercent, female: femalePercent },
         genderCount: { male: maleCount, female: femaleCount },
-        newFamilyPercent,
       }
     }
 
-    const weeklyStats = calculateStats(weeklyAttendance)
-    const monthlyStats = calculateStats(monthlyAttendance)
+    const weeklyRegistrants = await countNewFamilyRegistrants(
+      weeklySchedules.map((s) => s.id),
+    )
+    const monthlyRegistrants = await countNewFamilyRegistrants(
+      monthlySchedules.map((s) => s.id),
+    )
+
+    const weeklyStats = {
+      ...calculateStats(weeklyAttendance),
+      newFamilyRegistrants: weeklyRegistrants,
+    }
+    const monthlyStats = {
+      ...calculateStats(monthlyAttendance),
+      newFamilyRegistrants: monthlyRegistrants,
+    }
 
     // 최근 4주간 예배 일정 조회 for Trend
     const last4WeeksSchedules = await worshipScheduleDatabase.find({
@@ -177,7 +187,7 @@ router.get("/", async (req: Request, res: Response) => {
 
     // Sort to chronological order
     last4WeeksSchedules.sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     )
 
     const last4WeeksStats = await Promise.all(
@@ -191,11 +201,15 @@ router.get("/", async (req: Request, res: Response) => {
           },
         })
         const stats = calculateStats(attendance)
+        const newFamilyRegistrants = await countNewFamilyRegistrants([
+          schedule.id,
+        ])
         return {
           date: schedule.date,
           ...stats,
+          newFamilyRegistrants,
         }
-      })
+      }),
     )
 
     // 최근 3주간 예배 일정 조회 (For Absentees - keeping existing logic)
@@ -203,7 +217,7 @@ router.get("/", async (req: Request, res: Response) => {
       where: {
         date: Between(
           threeWeeksAgo.toISOString().split("T")[0],
-          now.toISOString().split("T")[0]
+          now.toISOString().split("T")[0],
         ),
       },
       order: {
@@ -282,7 +296,7 @@ router.get("/stats", async (req: Request, res: Response) => {
       where: {
         date: Between(
           weekStart.toISOString().split("T")[0],
-          weekEnd.toISOString().split("T")[0]
+          weekEnd.toISOString().split("T")[0],
         ),
       },
     })
@@ -300,7 +314,7 @@ router.get("/stats", async (req: Request, res: Response) => {
         : []
 
     const attendCount = weeklyAttendance.filter(
-      (a) => a.isAttend === AttendStatus.ATTEND
+      (a) => a.isAttend === AttendStatus.ATTEND,
     ).length
     const totalCount = weeklyAttendance.length
     const attendanceRate =
@@ -314,7 +328,7 @@ router.get("/stats", async (req: Request, res: Response) => {
       where: {
         date: Between(
           oneMonthAgo.toISOString().split("T")[0],
-          now.toISOString().split("T")[0]
+          now.toISOString().split("T")[0],
         ),
       },
     })

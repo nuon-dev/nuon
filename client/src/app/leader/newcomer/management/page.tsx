@@ -90,8 +90,16 @@ export default function NewcomerManagement() {
   async function saveData() {
     try {
       if (selectedNewcomer.id) {
-        // TODO: 수정 API 구현 필요
-        // await axios.put(`/newcomer/${selectedNewcomer.id}`, selectedNewcomer)
+        await axios.put(`/newcomer/${selectedNewcomer.id}`, {
+          name: selectedNewcomer.name,
+          yearOfBirth: selectedNewcomer.yearOfBirth,
+          gender: selectedNewcomer.gender,
+          phone: selectedNewcomer.phone,
+          newcomerManagerId: selectedNewcomer.newcomerManager?.id || null,
+          guiderId: selectedNewcomer.guider?.id || null,
+          assignmentId: selectedNewcomer.assignment?.id || null,
+          status: selectedNewcomer.status,
+        })
         setNotificationMessage("새신자 정보가 수정되었습니다.")
       } else {
         await axios.post("/newcomer", {
@@ -113,8 +121,7 @@ export default function NewcomerManagement() {
   async function deleteNewcomer() {
     if (selectedNewcomer.id && confirm("정말로 삭제하시겠습니까?")) {
       try {
-        // TODO: 삭제 API 구현 필요
-        // await axios.delete(`/newcomer/${selectedNewcomer.id}`)
+        await axios.delete(`/newcomer/${selectedNewcomer.id}`)
         setNotificationMessage("새신자가 삭제되었습니다.")
         clearSelectedNewcomer()
         await fetchData()
