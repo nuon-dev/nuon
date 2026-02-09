@@ -4,16 +4,16 @@ import { Box, Stack } from "@mui/material"
 import { useEffect, useState } from "react"
 import { get, post } from "@/config/api"
 import { useRouter } from "next/navigation"
-import { NotificationMessage } from "@/state/notification"
 import { useSetAtom } from "jotai"
 import { InOutInfo } from "@server/entity/retreat/inOutInfo"
 import { RetreatAttend } from "@server/entity/retreat/retreatAttend"
 import Header from "@/components/retreat/admin/Header"
+import { useNotification } from "@/hooks/useNotification"
 
 function GroupFormation() {
   const { push } = useRouter()
   const [unassignedUserList, setUnassignedUserList] = useState(
-    [] as Array<RetreatAttend>
+    [] as Array<RetreatAttend>,
   )
   const [groupList, setGroupList] = useState([] as Array<Array<RetreatAttend>>)
   const [selectedUser, setSelectedUser] = useState<RetreatAttend>()
@@ -24,7 +24,7 @@ function GroupFormation() {
   const [showUserInfo, setShowUserInfo] = useState({} as RetreatAttend)
 
   const [userAttendInfo, setUserAttendInfo] = useState([] as Array<InOutInfo>)
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
 
   function onMouseMove(event: MouseEvent) {
     setMousePoint([event.pageX, event.pageY])
@@ -49,7 +49,7 @@ function GroupFormation() {
 
         const group = [] as Array<Array<RetreatAttend>>
         const assignedUserList = response.filter(
-          (retreatAttend) => retreatAttend.groupNumber !== 0
+          (retreatAttend) => retreatAttend.groupNumber !== 0,
         )
         assignedUserList.map((retreatAttend) => {
           const groupNumber = retreatAttend.groupNumber - 1
@@ -61,13 +61,13 @@ function GroupFormation() {
           setGroupList(group)
         })
         const maxNumber = Math.max(
-          ...response.map((retreatAttend) => retreatAttend.groupNumber)
+          ...response.map((retreatAttend) => retreatAttend.groupNumber),
         )
         setMaxGroupNumber(maxNumber)
       })
       .catch(() => {
         push("/retreat/admin")
-        setNotificationMessage("권한이 없습니다.")
+        error("권한이 없습니다.")
         return
       })
   }
@@ -257,7 +257,7 @@ function GroupFormation() {
             } else {
               return Group(
                 group[0].groupNumber,
-                group.sort((a, b) => a.user.yearOfBirth - b.user.yearOfBirth)
+                group.sort((a, b) => a.user.yearOfBirth - b.user.yearOfBirth),
               )
             }
           })}

@@ -15,9 +15,9 @@ import {
 } from "@mui/material"
 import { useRouter } from "next/navigation"
 import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
 import { PermissionType } from "@server/entity/types"
 import Header from "@/components/retreat/admin/Header"
+import { useNotification } from "@/hooks/useNotification"
 
 function PermissionManage() {
   const { push } = useRouter()
@@ -26,7 +26,7 @@ function PermissionManage() {
   const [userPermission, setUserPermission] = useState<{
     [key: number]: boolean
   }>({})
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
 
   useEffect(() => {
     get("/retreat/admin/get-all-user-name")
@@ -38,7 +38,7 @@ function PermissionManage() {
       })
       .catch(() => {
         push("/retreat/admin")
-        setNotificationMessage("권한이 없습니다.")
+        error("권한이 없습니다.")
         return
       })
   }, [])
@@ -73,7 +73,7 @@ function PermissionManage() {
       const data: { [key: number]: boolean } = {}
       response.map(
         (permission: { permissionType: number; have: boolean }) =>
-          (data[permission.permissionType] = permission.have)
+          (data[permission.permissionType] = permission.have),
       )
       setUserPermission(data)
     })
@@ -81,7 +81,7 @@ function PermissionManage() {
 
   function onChangePermission(
     event: ChangeEvent<HTMLInputElement>,
-    key: number
+    key: number,
   ) {
     post("/retreat/admin/set-user-permission", {
       userId: selectedUserId,

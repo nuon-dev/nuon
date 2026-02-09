@@ -10,18 +10,18 @@ import {
   TableRow,
 } from "@mui/material"
 import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
 import { useRouter } from "next/navigation"
 import { HowToMove } from "@server/entity/types"
 import { InOutInfo } from "@server/entity/retreat/inOutInfo"
 import { RetreatAttend } from "@server/entity/retreat/retreatAttend"
 import { get } from "@/config/api"
 import Header from "@/components/retreat/admin/Header"
+import { useNotification } from "@/hooks/useNotification"
 
 function AllUser() {
   const router = useRouter()
   const [allUserList, setAllUserList] = useState<Array<RetreatAttend>>([])
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error, success } = useNotification()
 
   useEffect(() => {
     ;(async () => {
@@ -29,12 +29,12 @@ function AllUser() {
         const list: RetreatAttend[] = await get("/retreat/admin/get-all-user")
         if (list) {
           setAllUserList(
-            list.sort((a, b) => a.attendanceNumber - b.attendanceNumber)
+            list.sort((a, b) => a.attendanceNumber - b.attendanceNumber),
           )
         }
       } catch {
         router.push("/retreat/admin")
-        setNotificationMessage("권한이 없습니다.")
+        error("권한이 없습니다.")
         return
       }
     })()
@@ -42,7 +42,7 @@ function AllUser() {
 
   function downloadFile() {
     if (allUserList.length === 0) {
-      setNotificationMessage("접수자가 없습니다!.")
+      error("접수자가 없습니다!.")
       return
     }
 

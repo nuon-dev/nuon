@@ -5,15 +5,15 @@ import { useEffect, useState } from "react"
 import { get, post } from "../../../../config/api"
 import { useRouter } from "next/navigation"
 import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
 import { InOutInfo } from "@server/entity/retreat/inOutInfo"
 import { RetreatAttend } from "@server/entity/retreat/retreatAttend"
 import Header from "@/components/retreat/admin/Header"
+import { useNotification } from "@/hooks/useNotification"
 
 function RoomAssingment() {
   const { push } = useRouter()
   const [unassignedUserList, setUnassignedUserList] = useState(
-    [] as Array<RetreatAttend>
+    [] as Array<RetreatAttend>,
   )
   const [roomList, setRoomList] = useState([] as Array<Array<RetreatAttend>>)
   const [selectedUser, setSelectedUser] = useState<RetreatAttend>()
@@ -26,7 +26,7 @@ function RoomAssingment() {
   const [shiftPosition, setShiftPosition] = useState({ x: 0, y: 0 })
 
   const [gender, setGender] = useState("man")
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
 
   function onMouseMove(event: MouseEvent) {
     setMousePoint([event.pageX, event.pageY])
@@ -47,14 +47,14 @@ function RoomAssingment() {
         const unassignedUserList = response
           .filter(
             (retreatAttend) =>
-              !retreatAttend.roomNumber || retreatAttend.roomNumber === 0
+              !retreatAttend.roomNumber || retreatAttend.roomNumber === 0,
           )
           .sort((a, b) => a.user.yearOfBirth - b.user.yearOfBirth)
         setUnassignedUserList(unassignedUserList)
 
         const room = [] as Array<Array<RetreatAttend>>
         const assignedUserList = response.filter(
-          (retreatAttend) => retreatAttend.roomNumber
+          (retreatAttend) => retreatAttend.roomNumber,
         )
         assignedUserList.map((retreatAttend) => {
           const roomNumber = retreatAttend.roomNumber - 1
@@ -63,19 +63,19 @@ function RoomAssingment() {
           } else {
             room[roomNumber].push(retreatAttend)
             room[roomNumber].sort(
-              (a, b) => a.user.yearOfBirth - b.user.yearOfBirth
+              (a, b) => a.user.yearOfBirth - b.user.yearOfBirth,
             )
           }
           setRoomList(room)
         })
         const maxNumber = Math.max(
-          ...response.map((retreatAttend) => retreatAttend.roomNumber)
+          ...response.map((retreatAttend) => retreatAttend.roomNumber),
         )
         setMaxRoomNumber(maxNumber)
       })
       .catch(() => {
         push("/retreat/admin")
-        setNotificationMessage("권한이 없습니다.")
+        error("권한이 없습니다.")
         return
       })
   }
@@ -213,7 +213,7 @@ function RoomAssingment() {
           {roomNumber}번 방 (
           {
             userList.filter(
-              (retreatAttend) => retreatAttend.user.gender === gender
+              (retreatAttend) => retreatAttend.user.gender === gender,
             ).length
           }
           )
@@ -299,7 +299,7 @@ function RoomAssingment() {
               미배정(
               {
                 unassignedUserList.filter(
-                  (roomNumber) => roomNumber.user.gender === gender
+                  (roomNumber) => roomNumber.user.gender === gender,
                 ).length
               }
               명)

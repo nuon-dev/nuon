@@ -6,14 +6,14 @@ import { useRouter } from "next/navigation"
 import { get } from "@/config/api"
 import { useEffect, useState } from "react"
 import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
 import { RetreatAttend } from "@server/entity/retreat/retreatAttend"
+import { useNotification } from "@/hooks/useNotification"
 
 export default function ShowStatusTable() {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState(CurrentStatus.arriveChurch)
   const [allUserList, setAllUserList] = useState<Array<RetreatAttend>>([])
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
 
   useEffect(() => {
     fetchUserData()
@@ -25,25 +25,25 @@ export default function ShowStatusTable() {
       const list: RetreatAttend[] = await get("/retreat/admin/get-all-user")
       if (list) {
         setAllUserList(
-          list.sort((a, b) => a.user.yearOfBirth - b.user.yearOfBirth)
+          list.sort((a, b) => a.user.yearOfBirth - b.user.yearOfBirth),
         )
       }
     } catch {
       router.push("/retreat/admin")
-      setNotificationMessage("권한이 없습니다.")
+      error("권한이 없습니다.")
       return
     }
   }
 
   function ArriveCurchUserList() {
     const busUser = allUserList.filter(
-      (user) => user.howToGo === HowToMove.together
+      (user) => user.howToGo === HowToMove.together,
     )
     const arriveUser = busUser.filter(
-      (user) => user.currentStatus === CurrentStatus.arriveChurch
+      (user) => user.currentStatus === CurrentStatus.arriveChurch,
     )
     const notArriveUser = busUser.filter(
-      (user) => user.currentStatus === CurrentStatus.null
+      (user) => user.currentStatus === CurrentStatus.null,
     )
     return (
       <Stack gap="24px">
@@ -78,11 +78,11 @@ export default function ShowStatusTable() {
 
   function ArriveAuditoriumUserList() {
     const arriveUser = allUserList.filter(
-      (user) => user.currentStatus === CurrentStatus.arriveAuditorium
+      (user) => user.currentStatus === CurrentStatus.arriveAuditorium,
     )
 
     const notArriveUser = allUserList.filter(
-      (user) => user.currentStatus !== CurrentStatus.arriveAuditorium
+      (user) => user.currentStatus !== CurrentStatus.arriveAuditorium,
     )
 
     return (
