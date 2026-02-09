@@ -21,8 +21,10 @@ import AttendRow from "./AttendRow"
 import SaveIcon from "@mui/icons-material/Save"
 import EventNoteIcon from "@mui/icons-material/EventNote"
 import PeopleIcon from "@mui/icons-material/People"
+import HistoryIcon from "@mui/icons-material/History"
 import useAuth from "@/hooks/useAuth"
 import { useEffect } from "react"
+import { useNotification } from "@/hooks/useNotification"
 
 export default function SoonAttendance() {
   const {
@@ -33,8 +35,10 @@ export default function SoonAttendance() {
     worshipScheduleList,
     groupInfo,
     setSoonAttendData,
+    loadLastSundayAttendance,
   } = useAttendance()
   const { isLeaderIfNotExit } = useAuth()
+  const { success } = useNotification()
 
   useEffect(() => {
     isLeaderIfNotExit("/leader/attendance")
@@ -48,6 +52,7 @@ export default function SoonAttendance() {
     if (selectedScheduleId) {
       getAttendData(selectedScheduleId)
     }
+    success("출석 데이터가 저장되었습니다.")
   }
 
   return (
@@ -65,7 +70,7 @@ export default function SoonAttendance() {
             <CardContent sx={{ textAlign: "center", py: 4 }}>
               <EventNoteIcon sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
               <Typography variant="h4" fontWeight="bold" gutterBottom>
-                출석 관리
+                출석 관리 {selectedScheduleId}
               </Typography>
               <Typography variant="body1" sx={{ opacity: 0.9 }}>
                 순원들의 출석을 관리해보세요
@@ -101,6 +106,21 @@ export default function SoonAttendance() {
                     ))}
                   </Select>
                 </FormControl>
+                {selectedScheduleId && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<HistoryIcon />}
+                    onClick={loadLastSundayAttendance}
+                    sx={{
+                      borderRadius: 1,
+                      textTransform: "none",
+                      fontSize: "0.95rem",
+                    }}
+                  >
+                    지난주 출석 불러오기
+                  </Button>
+                )}
               </Stack>
             </CardContent>
           </Card>
