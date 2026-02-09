@@ -10,9 +10,8 @@ import {
   TextField,
 } from "@mui/material"
 import { useEffect, useState } from "react"
-import { useSetAtom } from "jotai"
 import axios from "@/config/axios"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 import useAuth from "@/hooks/useAuth"
 import NewcomerTable from "./NewcomerTable"
 import NewcomerFilter from "./NewcomerFilter"
@@ -65,7 +64,7 @@ export default function NewcomerManagement() {
     useState<Newcomer>(emptyNewcomer)
   const [orderProperty, setOrderProperty] = useState<string>("name")
   const [direction, setDirection] = useState<"asc" | "desc">("asc")
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const notification = useNotification()
 
   // 필터 상태
   const [filterName, setFilterName] = useState("")
@@ -97,7 +96,7 @@ export default function NewcomerManagement() {
       setManagerList(managerRes.data)
     } catch (error) {
       console.error("Error fetching data:", error)
-      setNotificationMessage("데이터 조회에 실패했습니다.")
+      notification.error("데이터 조회에 실패했습니다.")
     }
   }
 
@@ -122,7 +121,7 @@ export default function NewcomerManagement() {
           assignmentId: selectedNewcomer.assignment?.id || null,
           status: selectedNewcomer.status,
         })
-        setNotificationMessage("새신자 정보가 수정되었습니다.")
+        notification.success("새신자 정보가 수정되었습니다.")
       } else {
         await axios.post("/newcomer", {
           name: selectedNewcomer.name,
@@ -131,12 +130,12 @@ export default function NewcomerManagement() {
           phone: selectedNewcomer.phone,
           newcomerManagerId: selectedNewcomer.newcomerManager?.id || null,
         })
-        setNotificationMessage("새신자가 추가되었습니다.")
+        notification.success("새신자가 추가되었습니다.")
       }
       await fetchData()
       clearSelectedNewcomer()
-    } catch (error) {
-      setNotificationMessage("저장 중 오류가 발생했습니다.")
+    } catch (err) {
+      notification.error("저장 중 오류가 발생했습니다.")
     }
   }
 
@@ -169,14 +168,14 @@ export default function NewcomerManagement() {
 
   async function handleDateConfirm() {
     if (!selectedDate) {
-      setNotificationMessage("날짜를 선택해주세요.")
+      notification.error("날짜를 선택해주세요.")
       return
     }
 
     try {
       if (dateDialogType === "delete") {
         await axios.delete(`/newcomer/${selectedNewcomer.id}`)
-        setNotificationMessage("새신자가 삭제되었습니다.")
+        notification.success("새신자가 삭제되었습니다.")
         clearSelectedNewcomer()
       } else if (dateDialogType === "pending") {
         await axios.put(`/newcomer/${selectedNewcomer.id}`, {
@@ -184,22 +183,22 @@ export default function NewcomerManagement() {
           status: "PENDING",
           pendingDate: selectedDate,
         })
-        setNotificationMessage("새신자가 보류 처리되었습니다.")
+        notification.success("새신자가 보류 처리되었습니다.")
       } else if (dateDialogType === "promotion") {
         await axios.put(`/newcomer/${selectedNewcomer.id}`, {
           ...selectedNewcomer,
           status: "PROMOTED",
           promotionDate: selectedDate,
         })
-        setNotificationMessage("새신자가 등반 처리되었습니다.")
+        notification.success("새신자가 등반 처리되었습니다.")
       }
 
       setDateDialogOpen(false)
       setDateDialogType("")
       setSelectedDate("")
       await fetchData()
-    } catch (error) {
-      setNotificationMessage("처리 중 오류가 발생했습니다.")
+    } catch (err) {
+      notification.error("처리 중 오류가 발생했습니다.")
     }
   }
 

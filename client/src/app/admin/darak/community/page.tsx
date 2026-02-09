@@ -7,7 +7,7 @@ import CommunityCard from "./CommunityCard"
 import { dele, get, post, put } from "@/config/api"
 import { MouseEvent, useEffect, useState } from "react"
 import { type Community } from "@server/entity/community"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 import CommunityControlPanel from "./CommunityControlPanel"
 
 enum EditMode {
@@ -32,7 +32,7 @@ export default function CommunityComponent() {
   const [clickedCommunityName, setClickedCommunityName] = useState("")
   const [isMoveMode, setIsMoveMode] = useState(false)
 
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
 
   useEffect(() => {
     fetchData()
@@ -77,7 +77,7 @@ export default function CommunityComponent() {
     const canAdd = checkLoopReference(selectedCommunity, parentCommunity.id)
     if (!canAdd) {
       if (selectedCommunity.id !== parentCommunity.id) {
-        setNotificationMessage(`순환 참조 입니다.`)
+        error(`순환 참조 입니다.`)
       }
       setSelectedCommunity(undefined)
       return
@@ -96,7 +96,7 @@ export default function CommunityComponent() {
 
   function checkLoopReference(
     checkCommunity: Community,
-    parentId: number
+    parentId: number,
   ): boolean {
     if (checkCommunity.id === parentId) return false
     const childList = communityList.filter((community) => {
@@ -164,7 +164,7 @@ export default function CommunityComponent() {
           selectedCommunity={selectedCommunity}
           onEditModeChange={() =>
             setEditMode(
-              editMode === EditMode.All ? EditMode.Folder : EditMode.All
+              editMode === EditMode.All ? EditMode.Folder : EditMode.All,
             )
           }
           onAddCommunity={addCommunity}

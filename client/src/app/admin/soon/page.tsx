@@ -8,7 +8,7 @@ import UserFilter from "./UserFilter"
 import UserTable from "./UserTable"
 import UserForm from "./UserForm"
 import { get, post, put, dele } from "@/config/api"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 
 const emptyUser = {
   id: "",
@@ -24,7 +24,7 @@ export default function Soon() {
   const [selectedUser, setSelectedUsers] = useState<User>(emptyUser)
   const [orderProperty, setOrderProperty] = useState<keyof User>("name")
   const [direction, setDirection] = useState<"asc" | "desc">("asc")
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error, success } = useNotification()
 
   // 필터 상태
   const [filterName, setFilterName] = useState("")
@@ -53,14 +53,14 @@ export default function Soon() {
     try {
       if (selectedUser.id) {
         await put("/admin/soon/update-user", selectedUser)
-        setNotificationMessage("사용자 정보가 수정되었습니다.")
+        success("사용자 정보가 수정되었습니다.")
       } else {
         await post("/admin/soon/insert-user", selectedUser)
-        setNotificationMessage("새 사용자가 추가되었습니다.")
+        success("새 사용자가 추가되었습니다.")
       }
       await fetchData()
-    } catch (error) {
-      setNotificationMessage("저장 중 오류가 발생했습니다.")
+    } catch (err) {
+      error("저장 중 오류가 발생했습니다.")
     }
   }
 
@@ -68,11 +68,11 @@ export default function Soon() {
     if (selectedUser.id && confirm("정말로 삭제하시겠습니까?")) {
       try {
         await dele(`/admin/soon/delete-user/${selectedUser.id}`, {})
-        setNotificationMessage("사용자가 삭제되었습니다.")
+        success("사용자가 삭제되었습니다.")
         clearSelectedUser()
         await fetchData()
-      } catch (error) {
-        setNotificationMessage("삭제 중 오류가 발생했습니다.")
+      } catch (err) {
+        error("삭제 중 오류가 발생했습니다.")
       }
     }
   }

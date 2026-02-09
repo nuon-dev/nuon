@@ -4,17 +4,17 @@ import { useEffect, useState } from "react"
 import { Box, Stack } from "@mui/material"
 import { useRouter } from "next/navigation"
 import { get } from "@/config/api"
-import { NotificationMessage } from "@/state/notification"
 import { useSetAtom } from "jotai"
 import { Days, HowToMove, InOutType } from "@server/entity/types"
 import { InOutInfo } from "@server/entity/retreat/inOutInfo"
 import { RetreatAttend } from "@server/entity/retreat/retreatAttend"
+import { useNotification } from "@/hooks/useNotification"
 
 function InoutInfo() {
   const router = useRouter()
   const [allUserList, setAllUserList] = useState<Array<RetreatAttend>>([])
   const [allInoutInfo, setAllInoutInfo] = useState([] as InOutInfo[])
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
 
   useEffect(() => {
     ;(async () => {
@@ -25,7 +25,7 @@ function InoutInfo() {
         }
       } catch {
         router.push("/retreat/admin")
-        setNotificationMessage("권한이 없습니다.")
+        error("권한이 없습니다.")
         return
       }
       get("/retreat/admin/get-car-info")
@@ -34,7 +34,7 @@ function InoutInfo() {
         })
         .catch(() => {
           router.push("/retreat/admin")
-          setNotificationMessage("권한이 없습니다.")
+          error("권한이 없습니다.")
           return
         })
     })()
@@ -70,7 +70,7 @@ function InoutInfo() {
           .sort(
             (a, b) =>
               a.retreatAttend.user.yearOfBirth -
-              b.retreatAttend.user.yearOfBirth
+              b.retreatAttend.user.yearOfBirth,
           )
           .map((info) => (
             <Stack
@@ -97,7 +97,7 @@ function InoutInfo() {
           .sort(
             (a, b) =>
               a.retreatAttend.user.yearOfBirth -
-              b.retreatAttend.user.yearOfBirth
+              b.retreatAttend.user.yearOfBirth,
           )
           .map((info) => (
             <Stack
@@ -124,7 +124,7 @@ function InoutInfo() {
           .sort(
             (a, b) =>
               a.retreatAttend.user.yearOfBirth -
-              b.retreatAttend.user.yearOfBirth
+              b.retreatAttend.user.yearOfBirth,
           )
           .map((info) => (
             <Stack

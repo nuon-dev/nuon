@@ -13,8 +13,7 @@ import {
   Avatar,
 } from "@mui/material"
 import useAuth from "@/hooks/useAuth"
-import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 import { useRouter } from "next/navigation"
 
 const 마을들: Record<string, string[]> = {
@@ -84,7 +83,7 @@ export default function VotePage() {
   const [firstCommunity, setFirstCommunity] = useState("")
   const [secondCommunity, setSecondCommunity] = useState("")
   const [thirdCommunity, setThirdCommunity] = useState("")
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error, success } = useNotification()
   const { push } = useRouter()
 
   useEffect(() => {
@@ -97,7 +96,7 @@ export default function VotePage() {
     const { data } = await axios.get("/event/worship-contest/status")
     setState(data.currentVoteStatus)
     if (data.currentVoteStatus === "투표불가") {
-      setNotificationMessage(`현재 투표가 불가능합니다.`)
+      error(`현재 투표가 불가능합니다.`)
       push("/event/worshipContest/main")
     }
   }
@@ -106,17 +105,15 @@ export default function VotePage() {
     try {
       const { data } = await axios.get("/event/worship-contest/my-village")
       setMyVillage(data.communityName)
-    } catch (error) {
-      setNotificationMessage(
-        "마을 정보를 불러오지 못했습니다.\n순장님에게 문의하세요."
-      )
+    } catch (err) {
+      error("마을 정보를 불러오지 못했습니다.\n순장님에게 문의하세요.")
       push("/event/worshipContest/main")
     }
   }
 
   async function submitVote() {
     const confirmed = confirm(
-      "제출한 투표는 수정할 수 없습니다. 제출하시겠습니까?"
+      "제출한 투표는 수정할 수 없습니다. 제출하시겠습니까?",
     )
     if (!confirmed) {
       return
@@ -128,9 +125,9 @@ export default function VotePage() {
         thirdCommunity,
         state,
       })
-      setNotificationMessage("투표가 완료되었습니다.")
-    } catch (error) {
-      setNotificationMessage(error.response.data.message)
+      success("투표가 완료되었습니다.")
+    } catch (err: any) {
+      error(err.response?.data?.message || "투표 중 오류가 발생했습니다.")
       return
     }
   }
@@ -354,28 +351,28 @@ export default function VotePage() {
               state === "1부 투표"
                 ? "linear-gradient(90deg, #b3e0f2 0%, #e0f7fa 100%)"
                 : state === "2부 투표"
-                ? "linear-gradient(90deg, #f8bbd0 0%, #fce4ec 100%)"
-                : undefined,
+                  ? "linear-gradient(90deg, #f8bbd0 0%, #fce4ec 100%)"
+                  : undefined,
             color: "#444",
             boxShadow:
               state === "1부 투표"
                 ? "0 2px 8px rgba(115,174,180,0.10)"
                 : state === "2부 투표"
-                ? "0 2px 8px rgba(239,160,174,0.10)"
-                : undefined,
+                  ? "0 2px 8px rgba(239,160,174,0.10)"
+                  : undefined,
             "&:hover": {
               background:
                 state === "1부 투표"
                   ? "linear-gradient(90deg, #e0f7fa 0%, #b3e0f2 100%)"
                   : state === "2부 투표"
-                  ? "linear-gradient(90deg, #fce4ec 0%, #f8bbd0 100%)"
-                  : undefined,
+                    ? "linear-gradient(90deg, #fce4ec 0%, #f8bbd0 100%)"
+                    : undefined,
               boxShadow:
                 state === "1부 투표"
                   ? "0 4px 16px rgba(115,174,180,0.15)"
                   : state === "2부 투표"
-                  ? "0 4px 16px rgba(239,160,174,0.15)"
-                  : undefined,
+                    ? "0 4px 16px rgba(239,160,174,0.15)"
+                    : undefined,
             },
           }}
           onClick={submitVote}

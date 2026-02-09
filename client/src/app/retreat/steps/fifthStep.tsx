@@ -3,12 +3,11 @@
 import { Stack, Box } from "@mui/material"
 import useRetreat from "../hooks/useRetreat"
 import RetreatButton from "../components/Button"
-import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 
 export default function FifthStep() {
   const { isWorker, isHalf } = useRetreat()
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { success } = useNotification()
 
   function calculateRetreatFee() {
     if (isHalf) {
@@ -54,9 +53,9 @@ export default function FifthStep() {
             label={"계좌 복사하기"}
             onClick={() => {
               navigator.clipboard.writeText(
-                "3333342703455 카카오뱅크 성은비 " + calculateRetreatFee()
+                "3333342703455 카카오뱅크 성은비 " + calculateRetreatFee(),
               )
-              setNotificationMessage("계좌 정보가 복사되었습니다.")
+              success("계좌 정보가 복사되었습니다.")
             }}
           />
         </Stack>

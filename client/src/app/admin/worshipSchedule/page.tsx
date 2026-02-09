@@ -29,24 +29,24 @@ import EditIcon from "@mui/icons-material/Edit"
 import SaveIcon from "@mui/icons-material/Save"
 import DeleteIcon from "@mui/icons-material/Delete"
 import SearchIcon from "@mui/icons-material/Search"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth"
 import { WorshipKind, WorshipSchedule } from "@server/entity/worshipSchedule"
 import axios from "@/config/axios"
 import dayjs from "dayjs"
 
 export default function WorshipSchedulePage() {
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error, success } = useNotification()
   const [worshipScheduleList, setWorshipScheduleList] = useState<
     WorshipSchedule[]
   >([])
 
   // Filter lists
   const [filterStartDate, setFilterStartDate] = useState(
-    dayjs().add(-1, "month").format("YYYY-MM-DD")
+    dayjs().add(-1, "month").format("YYYY-MM-DD"),
   )
   const [filterEndDate, setFilterEndDate] = useState(
-    dayjs().format("YYYY-MM-DD")
+    dayjs().format("YYYY-MM-DD"),
   )
   const [filterKind, setFilterKind] = useState<string>("")
   const [filterCanEdit, setFilterCanEdit] = useState<string>("")
@@ -80,14 +80,14 @@ export default function WorshipSchedulePage() {
 
     const { data: worshipScheduleList } = await axios.get(
       "/admin/worship-schedule",
-      { params }
+      { params },
     )
     setWorshipScheduleList(worshipScheduleList)
   }
 
   async function saveWorshipSchedule() {
     if (!selectedWorship.date || !selectedWorship.kind) {
-      setNotificationMessage("날짜와 종류를 모두 입력해주세요.")
+      error("날짜와 종류를 모두 입력해주세요.")
       return
     }
     if (selectedWorship.id) {
@@ -95,7 +95,7 @@ export default function WorshipSchedulePage() {
     } else {
       await axios.post("/admin/worship-schedule", selectedWorship)
     }
-    setNotificationMessage("예배 일정이 저장되었습니다.")
+    success("예배 일정이 저장되었습니다.")
     await fetchWorshipSchedules()
   }
 
@@ -111,7 +111,7 @@ export default function WorshipSchedulePage() {
   async function deleteWorshipSchedule() {
     if (!selectedWorship.id) return
     await axios.delete(`/admin/worship-schedule/${selectedWorship.id}`)
-    setNotificationMessage("예배 일정이 삭제되었습니다.")
+    success("예배 일정이 삭제되었습니다.")
     await fetchWorshipSchedules()
   }
 
@@ -247,7 +247,7 @@ export default function WorshipSchedulePage() {
                       .sort(
                         (a, b) =>
                           new Date(b.date).getTime() -
-                          new Date(a.date).getTime()
+                          new Date(a.date).getTime(),
                       )
                       .map((schedule) => (
                         <TableRow
@@ -395,7 +395,7 @@ export default function WorshipSchedulePage() {
                     onChange={(e) =>
                       editWorshipSchedule(
                         "isVisible",
-                        e.target.value === "true"
+                        e.target.value === "true",
                       )
                     }
                     size="small"

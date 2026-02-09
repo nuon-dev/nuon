@@ -14,24 +14,24 @@ import {
 } from "@mui/material"
 import { get } from "@/config/api"
 import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
 import { useRouter } from "next/navigation"
 import { Days, HowToMove } from "@server/entity/types"
 import { InOutInfo } from "@server/entity/retreat/inOutInfo"
 import Header from "@/components/retreat/admin/Header"
+import { useNotification } from "@/hooks/useNotification"
 
 let allInoutInfoList: InOutInfo[] = []
 
 export default function CarpoolingList() {
   const router = useRouter()
   const [moveTypeFilter, setMoveTypeFilter] = useState<HowToMove>(
-    HowToMove.none
+    HowToMove.none,
   )
   const [matchFilter, setMatchFilter] = useState<
     "true" | "false" | "undefined"
   >("undefined")
   const [inOutInfoList, setAllUserList] = useState<Array<InOutInfo>>([])
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
 
   useEffect(() => {
     ;(async () => {
@@ -43,7 +43,7 @@ export default function CarpoolingList() {
         }
       } catch {
         router.push("/retreat/admin")
-        setNotificationMessage("권한이 없습니다.")
+        error("권한이 없습니다.")
         return
       }
     })()
@@ -54,18 +54,18 @@ export default function CarpoolingList() {
     if (matchFilter === "true") {
       result = result.filter(
         (inOutInfo) =>
-          inOutInfo.userInTheCar.length > 0 || !!inOutInfo.rideCarInfo
+          inOutInfo.userInTheCar.length > 0 || !!inOutInfo.rideCarInfo,
       )
     } else if (matchFilter === "false") {
       result = result.filter(
         (inOutInfo) =>
-          inOutInfo.userInTheCar.length === 0 && !inOutInfo.rideCarInfo
+          inOutInfo.userInTheCar.length === 0 && !inOutInfo.rideCarInfo,
       )
     }
 
     if (moveTypeFilter !== HowToMove.none) {
       result = result.filter(
-        (inOutInfo) => inOutInfo.howToMove === moveTypeFilter
+        (inOutInfo) => inOutInfo.howToMove === moveTypeFilter,
       )
     }
 

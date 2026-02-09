@@ -4,8 +4,7 @@ import { get, post } from "@/config/api"
 import { useEffect, useState } from "react"
 import { Box, MenuItem, Select, Stack } from "@mui/material"
 import { useRouter } from "next/navigation"
-import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 import { InOutInfo } from "@server/entity/retreat/inOutInfo"
 import { Days, HowToMove, InOutType } from "@server/entity/types"
 import Header from "@/components/retreat/admin/Header"
@@ -13,7 +12,7 @@ import { RetreatAttend } from "@server/entity/retreat/retreatAttend"
 
 function Carpooling() {
   const router = useRouter()
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error } = useNotification()
   const [carList, setCarList] = useState([] as InOutInfo[])
   const [rideUserList, setRideUserList] = useState([] as InOutInfo[])
   const [selectedInfo, setSelectedInfo] = useState<InOutInfo>()
@@ -106,7 +105,7 @@ function Carpooling() {
       })
       .catch(() => {
         router.push("/retreat/admin")
-        setNotificationMessage("권한이 없습니다.")
+        error("권한이 없습니다.")
         return
       })
   }

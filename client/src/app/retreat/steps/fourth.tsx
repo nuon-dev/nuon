@@ -2,18 +2,16 @@
 
 import { Stack, Box } from "@mui/material"
 import useRetreat from "../hooks/useRetreat"
-import useAuth from "@/hooks/useAuth"
 import RetreatButton from "../components/Button"
 import { useEffect, useState } from "react"
 import { User } from "@server/entity/user"
-import { useSetAtom } from "jotai"
-import { NotificationMessage } from "@/state/notification"
+import { useNotification } from "@/hooks/useNotification"
 
 export default function FourthStep() {
   const [myInfo, setMyInfo] = useState<User | null>(null)
   const { saveRetreatAttend, getMyInfo, isWorker, isHalf, setStep } =
     useRetreat()
-  const setNotificationMessage = useSetAtom(NotificationMessage)
+  const { error, success } = useNotification()
 
   useEffect(() => {
     getMyInfo().then((data) => {
@@ -34,12 +32,12 @@ export default function FourthStep() {
   async function saveRetreatAttendWrapper() {
     try {
       const { data } = await saveRetreatAttend()
-      setNotificationMessage(data.result)
+      success(data.result)
       setStep(5)
     } catch (e) {
-      setNotificationMessage(
+      error(
         "참가 신청에 실패했습니다. 새로고침 후 다시 시도해주세요." +
-          e.toString()
+          e.toString(),
       )
     }
   }
