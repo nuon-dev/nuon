@@ -12,6 +12,13 @@ interface Newcomer {
   phone: string | null
   gender: "man" | "woman" | "" | null
   status?: "NORMAL" | "PROMOTED" | "PENDING" | "DELETED"
+  address?: string | null
+  occupation?: string | null
+  visitPath?: string | null
+  registrationMotivation?: string | null
+  faithLevel?: "초신자" | "세례" | "입교" | "학습" | null
+  previousChurch?: string | null
+  carNumber?: string | null
   newcomerManager?: {
     id: string
     user: { id: string; name: string }
@@ -204,6 +211,108 @@ export default function NewcomerForm({
           <MenuItem value="man">남</MenuItem>
           <MenuItem value="woman">여</MenuItem>
         </TextField>
+      </Stack>
+
+      <Stack direction="row" alignItems="center" gap="12px">
+        <Box width="80px" textAlign="right">
+          주소 :
+        </Box>
+        <TextField
+          value={selectedNewcomer.address || ""}
+          onChange={(e) => onDataChange("address", e.target.value)}
+          variant="outlined"
+          size="small"
+          sx={{ flex: 1 }}
+        />
+      </Stack>
+
+      <Stack direction="row" alignItems="center" gap="12px">
+        <Box width="80px" textAlign="right">
+          신분 :
+        </Box>
+        <TextField
+          value={selectedNewcomer.occupation || ""}
+          onChange={(e) => onDataChange("occupation", e.target.value)}
+          variant="outlined"
+          size="small"
+          placeholder="학생-학교/전공, 직장인-계열/분야 등"
+          sx={{ flex: 1 }}
+        />
+      </Stack>
+
+      <Stack direction="row" alignItems="center" gap="12px">
+        <Box width="80px" textAlign="right">
+          방문경로 :
+        </Box>
+        <TextField
+          value={selectedNewcomer.visitPath || ""}
+          onChange={(e) => onDataChange("visitPath", e.target.value)}
+          variant="outlined"
+          size="small"
+          sx={{ flex: 1 }}
+        />
+      </Stack>
+
+      <Stack direction="row" alignItems="center" gap="12px">
+        <Box width="80px" textAlign="right">
+          등록계기 :
+        </Box>
+        <TextField
+          value={selectedNewcomer.registrationMotivation || ""}
+          onChange={(e) =>
+            onDataChange("registrationMotivation", e.target.value)
+          }
+          variant="outlined"
+          size="small"
+          sx={{ flex: 1 }}
+        />
+      </Stack>
+
+      <Stack direction="row" alignItems="center" gap="12px">
+        <Box width="80px" textAlign="right">
+          신앙생활 :
+        </Box>
+        <TextField
+          select
+          value={selectedNewcomer.faithLevel || ""}
+          onChange={(e) => onDataChange("faithLevel", e.target.value)}
+          variant="outlined"
+          size="small"
+          sx={{ flex: 1 }}
+        >
+          <MenuItem value="">선택</MenuItem>
+          <MenuItem value="초신자">초신자</MenuItem>
+          <MenuItem value="학습">학습</MenuItem>
+          <MenuItem value="세례">세례</MenuItem>
+          <MenuItem value="입교">입교</MenuItem>
+        </TextField>
+      </Stack>
+
+      <Stack direction="row" alignItems="center" gap="12px">
+        <Box width="80px" textAlign="right">
+          전 출석교회 :
+        </Box>
+        <TextField
+          value={selectedNewcomer.previousChurch || ""}
+          onChange={(e) => onDataChange("previousChurch", e.target.value)}
+          variant="outlined"
+          size="small"
+          placeholder="교회명 / 담임목사님 성함"
+          sx={{ flex: 1 }}
+        />
+      </Stack>
+
+      <Stack direction="row" alignItems="center" gap="12px">
+        <Box width="80px" textAlign="right">
+          차량번호 :
+        </Box>
+        <TextField
+          value={selectedNewcomer.carNumber || ""}
+          onChange={(e) => onDataChange("carNumber", e.target.value)}
+          variant="outlined"
+          size="small"
+          sx={{ flex: 1 }}
+        />
       </Stack>
 
       <Stack direction="row" alignItems="center" gap="12px">

@@ -34,6 +34,13 @@ interface Newcomer {
   deletedAt?: string | null
   pendingDate?: string | null
   promotionDate?: string | null
+  address: string | null
+  occupation: string | null
+  visitPath: string | null
+  registrationMotivation: string | null
+  faithLevel: "초신자" | "세례" | "입교" | "학습" | null
+  previousChurch: string | null
+  carNumber: string | null
 }
 
 interface Manager {
@@ -55,6 +62,13 @@ const emptyNewcomer: Newcomer = {
   deletedAt: null,
   pendingDate: null,
   promotionDate: null,
+  address: null,
+  occupation: null,
+  visitPath: null,
+  registrationMotivation: null,
+  faithLevel: null,
+  previousChurch: null,
+  carNumber: null,
 }
 
 export default function NewcomerManagement() {
@@ -120,6 +134,15 @@ export default function NewcomerManagement() {
           guiderId: selectedNewcomer.guider?.id || null,
           assignmentId: selectedNewcomer.assignment?.id || null,
           status: selectedNewcomer.status,
+          pendingDate: selectedNewcomer.pendingDate,
+          promotionDate: selectedNewcomer.promotionDate,
+          address: selectedNewcomer.address,
+          occupation: selectedNewcomer.occupation,
+          visitPath: selectedNewcomer.visitPath,
+          registrationMotivation: selectedNewcomer.registrationMotivation,
+          faithLevel: selectedNewcomer.faithLevel,
+          previousChurch: selectedNewcomer.previousChurch,
+          carNumber: selectedNewcomer.carNumber,
         })
         notification.success("새신자 정보가 수정되었습니다.")
       } else {
@@ -129,6 +152,13 @@ export default function NewcomerManagement() {
           gender: selectedNewcomer.gender,
           phone: selectedNewcomer.phone,
           newcomerManagerId: selectedNewcomer.newcomerManager?.id || null,
+          address: selectedNewcomer.address,
+          occupation: selectedNewcomer.occupation,
+          visitPath: selectedNewcomer.visitPath,
+          registrationMotivation: selectedNewcomer.registrationMotivation,
+          faithLevel: selectedNewcomer.faithLevel,
+          previousChurch: selectedNewcomer.previousChurch,
+          carNumber: selectedNewcomer.carNumber,
         })
         notification.success("새신자가 추가되었습니다.")
       }

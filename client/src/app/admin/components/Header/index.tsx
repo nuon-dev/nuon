@@ -63,6 +63,7 @@ export default function AdminHeader() {
       path: "/admin/soon/attendance",
       type: "menu",
     },
+    /*
     {
       title: "AI로 데이터 분석",
       icon: <AutoAwesomeIcon fontSize="small" />,
@@ -71,7 +72,7 @@ export default function AdminHeader() {
     },
     {
       type: "divider",
-    },
+    },*/
     /* Todo: 지울지, 유지할지 결정 필요
     {
       title: "워십 콘테스트",
