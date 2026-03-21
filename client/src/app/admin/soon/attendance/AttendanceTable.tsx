@@ -13,7 +13,7 @@ interface AttendanceTableProps {
   leaders: User[]
   getAttendUserCount: (
     attendDataList: AttendData[],
-    worshipScheduleId: number
+    worshipScheduleId: number,
   ) => { count: number; attend: number }
 }
 
@@ -24,6 +24,7 @@ export default function AttendanceTable({
   leaders,
   getAttendUserCount,
 }: AttendanceTableProps) {
+  const isMobile = window.innerWidth < 600
   return (
     <Box sx={{ p: 2 }}>
       {/* 출석 테이블 제목 */}
@@ -52,10 +53,10 @@ export default function AttendanceTable({
         >
           <Box
             sx={{
-              width: 150,
-              minWidth: 150,
-              maxWidth: 150,
-              p: 1.5,
+              width: isMobile ? 104 : 150,
+              minWidth: isMobile ? 104 : 150,
+              maxWidth: isMobile ? 104 : 150,
+              p: isMobile ? 0.2 : 1.5,
               borderRight: "1px solid #e0e0e0",
               display: "flex",
               flexDirection: "column",
@@ -89,7 +90,7 @@ export default function AttendanceTable({
           {worshipScheduleMapList.map((worshipSchedule) => {
             const { attend, count } = getAttendUserCount(
               attendDataList,
-              worshipSchedule.id
+              worshipSchedule.id,
             )
             const percentage =
               count > 0 ? Math.round((attend / count) * 100) : 0
@@ -98,10 +99,10 @@ export default function AttendanceTable({
               <Box
                 key={worshipSchedule.id}
                 sx={{
-                  width: 98,
-                  minWidth: 98,
-                  maxWidth: 98,
-                  p: 1.5,
+                  width: isMobile ? 85 : 98,
+                  minWidth: isMobile ? 85 : 98,
+                  maxWidth: isMobile ? 85 : 98,
+                  p: isMobile ? 0.2 : 1.5,
                   borderRight: "1px solid #e0e0e0",
                   display: "flex",
                   flexDirection: "column",
@@ -135,24 +136,24 @@ export default function AttendanceTable({
                 bgcolor: isLeader
                   ? "#e3f2fd"
                   : isDeputyLeader
-                  ? "#f3e5f5"
-                  : "white",
+                    ? "#f3e5f5"
+                    : "white",
                 borderBottom: "1px solid #e0e0e0",
                 "&:hover": {
                   bgcolor: isLeader
                     ? "#bbdefb"
                     : isDeputyLeader
-                    ? "#e1bee7"
-                    : "#f5f5f5",
+                      ? "#e1bee7"
+                      : "#f5f5f5",
                 },
               }}
             >
               <Box
                 sx={{
-                  width: 150,
-                  minWidth: 150,
-                  maxWidth: 150,
-                  p: 1.5,
+                  width: isMobile ? 104 : 150,
+                  minWidth: isMobile ? 104 : 150,
+                  maxWidth: isMobile ? 104 : 150,
+                  p: isMobile ? 0.2 : 1.5,
                   borderRight: "1px solid #e0e0e0",
                   display: "flex",
                   alignItems: "center",
@@ -160,9 +161,6 @@ export default function AttendanceTable({
                 }}
               >
                 <Stack direction="row" alignItems="center" spacing={1}>
-                  {isLeader && (
-                    <StarIcon sx={{ fontSize: 16, color: "#1976d2" }} />
-                  )}
                   {isDeputyLeader && (
                     <StarBorderIcon sx={{ fontSize: 16, color: "#7b1fa2" }} />
                   )}
@@ -183,15 +181,15 @@ export default function AttendanceTable({
                 const attendData = attendDataList.find(
                   (data) =>
                     data.user.id === user.id &&
-                    data.worshipSchedule.id === worshipSchedule.id
+                    data.worshipSchedule.id === worshipSchedule.id,
                 )
                 return (
                   <Box
                     key={worshipSchedule.id}
                     sx={{
-                      width: 114,
-                      minWidth: 114,
-                      maxWidth: 114,
+                      width: isMobile ? 80 : 114,
+                      minWidth: isMobile ? 80 : 114,
+                      maxWidth: isMobile ? 80 : 114,
                       p: "4px",
                       borderRight: "1px solid #e0e0e0",
                       display: "flex",

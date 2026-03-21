@@ -43,6 +43,13 @@ router.post("/", async (req, res) => {
     guiderId,
     assignmentId,
     newcomerManagerId,
+    address,
+    occupation,
+    visitPath,
+    registrationMotivation,
+    faithLevel,
+    previousChurch,
+    carNumber,
   } = req.body
 
   if (!name) {
@@ -82,6 +89,13 @@ router.post("/", async (req, res) => {
       yearOfBirth: yearOfBirth ? parseInt(yearOfBirth, 10) : null,
       gender: gender || null,
       phone: phone?.replace(/[^\d]/g, "") || null,
+      address,
+      occupation,
+      visitPath,
+      registrationMotivation,
+      faithLevel: faithLevel || null,
+      previousChurch,
+      carNumber,
       guider,
       assignment,
       newcomerManager,
@@ -115,6 +129,13 @@ router.put("/:id", async (req, res) => {
     status,
     pendingDate,
     promotionDate,
+    address,
+    occupation,
+    visitPath,
+    registrationMotivation,
+    faithLevel,
+    previousChurch,
+    carNumber,
   } = req.body
 
   try {
@@ -130,6 +151,14 @@ router.put("/:id", async (req, res) => {
     if (gender !== undefined) newcomer.gender = gender || null
     if (phone !== undefined)
       newcomer.phone = phone?.replace(/[^\d]/g, "") || null
+    if (address !== undefined) newcomer.address = address
+    if (occupation !== undefined) newcomer.occupation = occupation
+    if (visitPath !== undefined) newcomer.visitPath = visitPath
+    if (registrationMotivation !== undefined)
+      newcomer.registrationMotivation = registrationMotivation
+    if (faithLevel !== undefined) newcomer.faithLevel = faithLevel || null
+    if (previousChurch !== undefined) newcomer.previousChurch = previousChurch
+    if (carNumber !== undefined) newcomer.carNumber = carNumber
     if (status) newcomer.status = status
     if (pendingDate !== undefined) newcomer.pendingDate = pendingDate
     if (promotionDate !== undefined) newcomer.promotionDate = promotionDate
@@ -343,6 +372,13 @@ router.get("/education", async (req, res) => {
         yearOfBirth: newcomer.yearOfBirth,
         gender: newcomer.gender,
         phone: newcomer.phone,
+        address: newcomer.address,
+        occupation: newcomer.occupation,
+        visitPath: newcomer.visitPath,
+        registrationMotivation: newcomer.registrationMotivation,
+        faithLevel: newcomer.faithLevel,
+        previousChurch: newcomer.previousChurch,
+        carNumber: newcomer.carNumber,
         status: newcomer.status,
         guider: newcomer.guider
           ? { id: newcomer.guider.id, name: newcomer.guider.name }

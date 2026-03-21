@@ -73,3 +73,10 @@ export enum NewcomerStatus {
   DELETED = "DELETED",
   PENDING = "PENDING",
 }
+
+export enum FaithLevel {
+  BEGINNER = "초신자",
+  BAPTIZED = "세례",
+  CONFIRMED = "입교",
+  LEARNING = "학습",
+}
