@@ -24,7 +24,7 @@ export default function AttendanceTable({
   leaders,
   getAttendUserCount,
 }: AttendanceTableProps) {
-  const isMobile = window.innerWidth < 600
+  const isMobile = global.innerWidth < 600
   return (
     <Box sx={{ p: 2 }}>
       {/* 출석 테이블 제목 */}
