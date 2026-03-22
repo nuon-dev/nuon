@@ -11,7 +11,7 @@ import {
 } from "typeorm"
 import { User } from "../user"
 import { Community } from "../community"
-import { NewcomerStatus } from "../types"
+import { NewcomerStatus, FaithLevel } from "../types"
 import { NewcomerEducation } from "./newcomerEducation"
 import { NewcomerManager } from "./newcomerManager"
 
@@ -31,6 +31,31 @@ export class Newcomer {
 
   @Column({ nullable: true })
   phone: string // 연락처
+
+  @Column({ nullable: true })
+  address: string // 주소
+
+  @Column({ nullable: true })
+  occupation: string // 신분(학생-학교/전공, 대학원생-학교/전공, 취업준비-준비계열/분야, 직장인-계열/분야)
+
+  @Column({ nullable: true })
+  visitPath: string // 방문경로
+
+  @Column({ nullable: true })
+  registrationMotivation: string // 등록계기
+
+  @Column({
+    type: "enum",
+    enum: FaithLevel,
+    nullable: true,
+  })
+  faithLevel: FaithLevel // 신앙생활(초신자, 세례, 입교, 학습)
+
+  @Column({ nullable: true })
+  previousChurch: string // 전 출석교회/담임목사님 성함
+
+  @Column({ nullable: true })
+  carNumber: string // 차량번호
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "guiderId" })
