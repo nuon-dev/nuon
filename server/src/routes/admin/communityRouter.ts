@@ -118,6 +118,15 @@ router.get("/no-community-user-list", async (req, res) => {
       name: Not(IsNull()),
       community: IsNull(),
     },
+    select: {
+      id: true,
+      name: true,
+      yearOfBirth: true,
+      gender: true,
+      phone: true,
+      etc: true,
+      profile: true,
+    },
   })
   res.send(userList)
 })

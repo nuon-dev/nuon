@@ -11,6 +11,20 @@ import _ from "lodash"
 
 const router = express.Router()
 
+function toSafeUserResponse(user: any) {
+  return {
+    id: user.id,
+    name: user.name,
+    yearOfBirth: user.yearOfBirth,
+    gender: user.gender,
+    phone: user.phone,
+    etc: user.etc,
+    profile: user.profile,
+    community: user.community,
+    hasKakaoId: !!user.kakaoId,
+  }
+}
+
 router.get("/get-all-user", async (req, res) => {
   const token = req.header("token")
   if (false === (await hasPermission(token, PermissionType.userList))) {
@@ -24,7 +38,7 @@ router.get("/get-all-user", async (req, res) => {
     },
   })
 
-  res.send(foundUser)
+  res.send(foundUser.map(toSafeUserResponse))
 })
 
 router.post("/insert-user", async (req, res) => {
@@ -43,7 +57,7 @@ router.post("/insert-user", async (req, res) => {
 
   const savedUser = await userDatabase.save(user)
 
-  res.status(200).send(savedUser)
+  res.status(200).send(toSafeUserResponse(savedUser))
 })
 
 router.put("/update-user", async (req, res) => {
@@ -94,7 +108,7 @@ router.post("/get-soon-list", async (req, res) => {
   function getAllChildIds(targetCommunityIds: number[]): number[] {
     const idsDoubleArray = targetCommunityIds.map((targetCommunityId) => {
       const foundCommunity = allOfCommunityList.find(
-        (community) => community.id === targetCommunityId
+        (community) => community.id === targetCommunityId,
       )
       if (!foundCommunity) {
         return []

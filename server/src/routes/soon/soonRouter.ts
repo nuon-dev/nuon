@@ -14,16 +14,35 @@ import { getKakaoIdFromAccessToken } from "../../util/auth"
 
 const router = express.Router()
 
-async function getAllSoonUsers(community: Community) {
+function toSafeUserResponse(user: User) {
+  return {
+    id: user.id,
+    name: user.name,
+    yearOfBirth: user.yearOfBirth,
+    gender: user.gender,
+    phone: user.phone,
+    community: user.community,
+    kakaoId: !!user.kakaoId,
+  }
+}
+
+async function getAllSoonUsers(community: Community | null): Promise<User[]> {
+  if (!community) {
+    return []
+  }
+
   const communityWithRelations = await communityDatabase.findOne({
     where: { id: community.id },
     relations: { children: true, users: true },
   })
-  let users: User[] = []
 
-  const childUsersPromise = await communityWithRelations.children.map(
-    async (childCommunity) => {
-      return await getAllSoonUsers(childCommunity)
+  if (!communityWithRelations) {
+    return []
+  }
+
+  const childUsersPromise = communityWithRelations.children.map(
+    async (childCommunity): Promise<User[]> => {
+      return getAllSoonUsers(childCommunity)
     },
   )
   const awaitedChildUsers = (await Promise.all(childUsersPromise)).flat()
@@ -44,7 +63,7 @@ router.get("/my-group-info", async (req, res) => {
   }
   const allUsers = await getAllSoonUsers(group)
   group.users = allUsers.map(
-    (user) =>
+    (user: User) =>
       ({
         id: user.id,
         name: user.name,
@@ -86,7 +105,7 @@ router.post("/add-user", async (req, res) => {
   if (existingUser) {
     existingUser.community = user.community
     await userDatabase.save(existingUser)
-    res.status(201).send(existingUser)
+    res.status(201).send(toSafeUserResponse(existingUser))
     return
   }
 
@@ -100,7 +119,7 @@ router.post("/add-user", async (req, res) => {
 
   try {
     await userDatabase.save(newSoon)
-    res.status(201).send(newSoon)
+    res.status(201).send(toSafeUserResponse(newSoon))
   } catch (error) {
     console.error("Error saving new user:", error)
     res.status(500).send({ error: "Failed to add user" })
@@ -137,7 +156,7 @@ router.get("/attendance", async (req, res) => {
   }
 
   const childrenUsers = await getAllSoonUsers(user.community)
-  const userIds = childrenUsers.map((user) => user.id)
+  const userIds = childrenUsers.map((user: User) => user.id)
 
   const attendDataList = await attendDataDatabase.find({
     where: {
@@ -317,7 +336,7 @@ router.get("/existing-users", async (req, res) => {
     name: existingUser.name,
     yearOfBirth: existingUser.yearOfBirth,
     gender: existingUser.gender,
-    kakaoId: existingUser.kakaoId,
+    kakaoId: !!existingUser.kakaoId,
   })
 })
 
@@ -333,7 +352,7 @@ router.get("/retreat-attendance-records", async (req, res) => {
   }
 
   const childrenUsers = await getAllSoonUsers(user.community)
-  const userIds = childrenUsers.map((user) => user.id)
+  const userIds = childrenUsers.map((user: User) => user.id)
 
   let attendDataList = await userDatabase.find({
     where: {
