@@ -13,10 +13,12 @@ interface Newcomer {
   id: string
   name: string
   yearOfBirth: number | null
+  birthday?: string | null
   phone: string | null
   gender: "man" | "woman" | "" | null
   status: string
   createdAt: string
+  registrationDate?: string | null
   deletedAt?: string | null
   pendingDate?: string | null
   promotionDate?: string | null
@@ -115,9 +117,9 @@ export default function NewcomerTable({
             </TableCell>
             <TableCell>
               <TableSortLabel
-                active={orderProperty === "createdAt"}
+                active={orderProperty === "registrationDate"}
                 direction={direction}
-                onClick={() => onSortClick("createdAt")}
+                onClick={() => onSortClick("registrationDate")}
               >
                 등록일
               </TableSortLabel>
@@ -150,8 +152,10 @@ export default function NewcomerTable({
               <TableCell>{newcomer.phone || ""}</TableCell>
               <TableCell>{getStatusLabel(newcomer.status)}</TableCell>
               <TableCell>
-                {newcomer.createdAt
-                  ? new Date(newcomer.createdAt).toLocaleDateString("ko-KR")
+                {newcomer.registrationDate || newcomer.createdAt
+                  ? new Date(
+                      newcomer.registrationDate || newcomer.createdAt,
+                    ).toLocaleDateString("ko-KR")
                   : ""}
               </TableCell>
               <TableCell>
