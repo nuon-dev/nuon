@@ -2,6 +2,7 @@ import { Box, Stack, Typography, Paper, Chip } from "@mui/material"
 import { User } from "@server/entity/user"
 import { AttendData } from "@server/entity/attendData"
 import { WorshipSchedule } from "@server/entity/worshipSchedule"
+import { AttendStatus } from "@server/entity/types"
 import AttendCell from "./AttendCell"
 import StarIcon from "@mui/icons-material/Star"
 import StarBorderIcon from "@mui/icons-material/StarBorder"
@@ -15,6 +16,13 @@ interface AttendanceTableProps {
     attendDataList: AttendData[],
     worshipScheduleId: number,
   ) => { count: number; attend: number }
+  editable?: boolean
+  onSaveCell?: (
+    userId: string,
+    worshipScheduleId: number,
+    status: AttendStatus,
+    memo: string,
+  ) => Promise<void>
 }
 
 export default function AttendanceTable({
@@ -23,6 +31,8 @@ export default function AttendanceTable({
   worshipScheduleMapList,
   leaders,
   getAttendUserCount,
+  editable = false,
+  onSaveCell,
 }: AttendanceTableProps) {
   const isMobile = global.innerWidth < 600
   return (
@@ -197,7 +207,16 @@ export default function AttendanceTable({
                       justifyContent: "center",
                     }}
                   >
-                    <AttendCell attendData={attendData} />
+                    <AttendCell
+                      attendData={attendData}
+                      editable={editable}
+                      onSave={
+                        onSaveCell
+                          ? (status, memo) =>
+                              onSaveCell(user.id, worshipSchedule.id, status, memo)
+                          : undefined
+                      }
+                    />
                   </Box>
                 )
               })}

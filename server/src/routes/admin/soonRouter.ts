@@ -1,5 +1,5 @@
 import express from "express"
-import { hasPermission } from "../../util/util"
+import { checkJwt, hasPermission } from "../../util/util"
 import { PermissionType } from "../../entity/types"
 import {
   attendDataDatabase,
@@ -8,6 +8,7 @@ import {
 } from "../../model/dataSource"
 import { In, Not, IsNull } from "typeorm"
 import _ from "lodash"
+import { jwtPayload } from "../../util/type"
 
 const router = express.Router()
 
@@ -184,6 +185,92 @@ router.post("/user-attendance", async (req, res) => {
     },
   })
   res.status(200).send(attendDataList)
+})
+
+async function isInSubtree(
+  ancestorId: number | undefined,
+  targetId: number | undefined,
+): Promise<boolean> {
+  if (!ancestorId || !targetId) return false
+  if (ancestorId === targetId) return true
+
+  const all = await communityDatabase.find({ relations: { children: true } })
+  const visited = new Set<number>()
+
+  function walk(id: number): boolean {
+    if (visited.has(id)) return false
+    visited.add(id)
+    if (id === targetId) return true
+    const node = all.find((c) => c.id === id)
+    if (!node) return false
+    return node.children.some((child) => walk(child.id))
+  }
+  return walk(ancestorId)
+}
+
+async function canEditUserAttendance(
+  requester: jwtPayload,
+  targetUserId: string,
+): Promise<boolean> {
+  // Admin은 어느 유저든 편집 가능
+  if (requester.role.Admin) return true
+
+  // 출석 관리 권한이 있는 역할: Leader (자기 다락방) 또는 VillageLeader (마을 트리 하위 전체)
+  if (!requester.role.Leader && !requester.role.VillageLeader) return false
+
+  const target = await userDatabase.findOne({
+    where: { id: targetUserId },
+    relations: { community: true },
+  })
+  if (!target?.community) return false
+
+  // 대상 유저의 community가 내 community의 하위(또는 동일)인지
+  return await isInSubtree(requester.community?.id, target.community.id)
+}
+
+router.post("/update-attendance", async (req, res) => {
+  const jwt = await checkJwt(req)
+  if (!jwt) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const { userId, worshipScheduleId, isAttend, memo } = req.body
+  if (!userId || !worshipScheduleId || !isAttend) {
+    res.status(400).send({ error: "Missing required fields" })
+    return
+  }
+
+  const allowed = await canEditUserAttendance(jwt, userId)
+  if (!allowed) {
+    res.status(403).send({ error: "해당 유저의 출석을 편집할 권한이 없습니다." })
+    return
+  }
+
+  const existing = await attendDataDatabase.findOne({
+    where: {
+      user: { id: userId },
+      worshipSchedule: { id: worshipScheduleId },
+    },
+  })
+
+  if (existing) {
+    existing.isAttend = isAttend
+    existing.memo = memo || ""
+    await attendDataDatabase.save(existing)
+    res.send({ result: "success" })
+    return
+  }
+
+  await attendDataDatabase.save(
+    attendDataDatabase.create({
+      user: { id: userId },
+      worshipSchedule: { id: worshipScheduleId },
+      isAttend,
+      memo: memo || "",
+    }),
+  )
+  res.send({ result: "success" })
 })
 
 export default router

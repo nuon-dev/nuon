@@ -2,6 +2,7 @@
 
 import axios from "@/config/axios"
 import { get } from "@/config/api"
+import CommunityBox from "./CommunityBox"
 import { User } from "@server/entity/user"
 import { Stack, Box, Card, CardContent, Typography } from "@mui/material"
 import { Community } from "@server/entity/community"
@@ -9,19 +10,14 @@ import { useEffect, useMemo, useState } from "react"
 import { AttendData } from "@server/entity/attendData"
 import { AttendStatus } from "@server/entity/types"
 import { WorshipKind, WorshipSchedule } from "@server/entity/worshipSchedule"
-import AttendanceTable from "@/app/admin/soon/attendance/AttendanceTable"
-import AttendanceFilter from "@/app/admin/soon/attendance/AttendanceFilter"
-import CommunityNavigation from "@/app/admin/soon/attendance/CommunityNavigation"
-import {
-  sortByCommunityId,
-  getAttendUserCount,
-} from "@/app/admin/soon/attendance/utils/attendanceUtils"
-import CommunityBox from "@/app/admin/soon/attendance/CommunityBox"
-import useAuth from "@/hooks/useAuth"
-import { useRouter } from "next/navigation"
+import AttendanceTable from "./AttendanceTable"
+import AttendanceFilter from "./AttendanceFilter"
+import CommunityNavigation from "./CommunityNavigation"
+import { sortByCommunityId, getAttendUserCount } from "./utils/attendanceUtils"
 import { useNotification } from "@/hooks/useNotification"
+import useAuth from "@/hooks/useAuth"
 
-export default function AttendanceAdminPage() {
+export default function OverviewTab() {
   const [communities, setCommunities] = useState<Community[]>([])
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(
     null,
@@ -33,9 +29,8 @@ export default function AttendanceAdminPage() {
     WorshipKind | "all"
   >("all")
 
-  const { authUserData } = useAuth()
-  const { push } = useRouter()
   const { error } = useNotification()
+  const { authUserData } = useAuth()
   const editable = Boolean(
     authUserData?.role.Admin ||
       authUserData?.role.VillageLeader ||
@@ -43,14 +38,8 @@ export default function AttendanceAdminPage() {
   )
 
   useEffect(() => {
-    // authUserData가 비동기로 로드되므로 준비될 때까지 판정 보류
-    if (!authUserData) return
     fetchCommunities()
-    if (!authUserData.role.VillageLeader) {
-      error("접근 권한이 없습니다.")
-      push("/leader")
-    }
-  }, [authUserData])
+  }, [])
 
   async function fetchCommunities() {
     const data = await get("/admin/community")
@@ -201,72 +190,62 @@ export default function AttendanceAdminPage() {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5" }}>
-      <Box sx={{ p: 2 }}>
-        {/* 커뮤니티 네비게이션 & 필터 통합 카드 */}
-        <Card sx={{ mb: 3 }}>
-          <CardContent sx={{ py: 2 }}>
-            <Stack spacing={2}>
-              {/* 상단: 네비게이션과 필터 */}
-              <Stack
-                direction={{ xs: "column", md: "row" }}
-                spacing={3}
-                alignItems="center"
-              >
-                <Box sx={{ flex: 1 }}>
-                  <CommunityNavigation
-                    communityStack={communityStack}
-                    handleBackClick={handleBackClick}
-                  />
-                </Box>
-                <Box>
-                  <AttendanceFilter
-                    worshipScheduleFilter={worshipScheduleFilter}
-                    setWorshipScheduleFilter={setWorshipScheduleFilter}
-                  />
-                </Box>
-              </Stack>
-
-              {/* 하단: 다락방 선택 */}
-              {filteredCommunities.length > 0 && (
-                <Box>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    gutterBottom
-                  >
-                    다락방 선택
-                  </Typography>
-                  <Stack direction="row" gap={2} flexWrap="wrap">
-                    {filteredCommunities.map((community) => (
-                      <CommunityBox
-                        key={community.id}
-                        community={community}
-                        setSelectedCommunity={handleCommunityClick}
-                      />
-                    ))}
-                  </Stack>
-                </Box>
-              )}
+    <Box sx={{ p: 2 }}>
+      <Card sx={{ mb: 3 }}>
+        <CardContent sx={{ py: 2 }}>
+          <Stack spacing={2}>
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              spacing={3}
+              alignItems="center"
+            >
+              <Box sx={{ flex: 1 }}>
+                <CommunityNavigation
+                  communityStack={communityStack}
+                  handleBackClick={handleBackClick}
+                />
+              </Box>
+              <Box>
+                <AttendanceFilter
+                  worshipScheduleFilter={worshipScheduleFilter}
+                  setWorshipScheduleFilter={setWorshipScheduleFilter}
+                />
+              </Box>
             </Stack>
-          </CardContent>
-        </Card>
 
-        {/* 출석 테이블 카드 */}
-        <Card>
-          <CardContent sx={{ p: 0 }}>
-            <AttendanceTable
-              soonList={soonList}
-              attendDataList={attendDataList}
-              worshipScheduleMapList={worshipScheduleMapList}
-              leaders={leaders}
-              getAttendUserCount={getAttendUserCount}
-              editable={editable}
-              onSaveCell={handleSaveCell}
-            />
-          </CardContent>
-        </Card>
-      </Box>
+            {filteredCommunities.length > 0 && (
+              <Box>
+                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                  다락방 선택
+                </Typography>
+                <Stack direction="row" gap={2} flexWrap="wrap">
+                  {filteredCommunities.map((community) => (
+                    <CommunityBox
+                      key={community.id}
+                      community={community}
+                      setSelectedCommunity={handleCommunityClick}
+                    />
+                  ))}
+                </Stack>
+              </Box>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent sx={{ p: 0 }}>
+          <AttendanceTable
+            soonList={soonList}
+            attendDataList={attendDataList}
+            worshipScheduleMapList={worshipScheduleMapList}
+            leaders={leaders}
+            getAttendUserCount={getAttendUserCount}
+            editable={editable}
+            onSaveCell={handleSaveCell}
+          />
+        </CardContent>
+      </Card>
     </Box>
   )
 }
