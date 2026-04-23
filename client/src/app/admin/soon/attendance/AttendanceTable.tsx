@@ -1,4 +1,12 @@
-import { Box, Stack, Typography, Paper, Chip } from "@mui/material"
+import {
+  Box,
+  Stack,
+  Typography,
+  Paper,
+  Chip,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import { User } from "@server/entity/user"
 import { AttendData } from "@server/entity/attendData"
 import { WorshipSchedule } from "@server/entity/worshipSchedule"
@@ -34,7 +42,9 @@ export default function AttendanceTable({
   editable = false,
   onSaveCell,
 }: AttendanceTableProps) {
-  const isMobile = global.innerWidth < 600
+  const theme = useTheme()
+  // SSR-safe: 서버 렌더 시엔 false, 마운트 후 실제 window 크기로 재계산
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   return (
     <Box sx={{ p: 2 }}>
       {/* 출석 테이블 제목 */}

@@ -29,6 +29,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack"
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"
 import CancelIcon from "@mui/icons-material/Cancel"
 import HelpIcon from "@mui/icons-material/Help"
+import CloseIcon from "@mui/icons-material/Close"
 
 import axios from "@/config/axios"
 import { get } from "@/config/api"
@@ -74,6 +75,8 @@ export default function EditTab() {
 
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
+  // bulk 버튼 라벨 숨김 기준 — 600px 미만에선 아이콘만
+  const isNarrow = useMediaQuery(theme.breakpoints.down("sm"))
 
   // 초기 로드
   useEffect(() => {
@@ -450,30 +453,48 @@ export default function EditTab() {
   }
 
   function statusChip(status: StatusFilter, memo?: string) {
+    // chip 공통 style — 긴 memo는 말줄임 처리
+    const base = {
+      fontWeight: 600,
+      maxWidth: { xs: 140, sm: 200, md: 260 },
+      // MUI Chip 기본 label엔 이미 ellipsis가 걸려있지만, 명시적으로 한 번 더
+      "& .MuiChip-label": {
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      },
+    }
     if (status === "ATTEND")
       return (
         <Chip
           size="small"
           label="출석"
-          sx={{ bgcolor: "rgb(184, 248, 93)", fontWeight: 600 }}
+          title="출석"
+          sx={{ ...base, bgcolor: "rgb(184, 248, 93)" }}
         />
       )
-    if (status === "ABSENT")
+    if (status === "ABSENT") {
+      const full = memo ? `결석 · ${memo}` : "결석"
       return (
         <Chip
           size="small"
-          label={memo ? `결석 · ${memo}` : "결석"}
-          sx={{ bgcolor: "rgb(240, 148, 128)", fontWeight: 600 }}
+          label={full}
+          title={full}
+          sx={{ ...base, bgcolor: "rgb(240, 148, 128)" }}
         />
       )
-    if (status === "ETC")
+    }
+    if (status === "ETC") {
+      const full = memo ? `기타 · ${memo}` : "기타"
       return (
         <Chip
           size="small"
-          label={memo ? `기타 · ${memo}` : "기타"}
-          sx={{ bgcolor: "rgb(253, 241, 113)", fontWeight: 600 }}
+          label={full}
+          title={full}
+          sx={{ ...base, bgcolor: "rgb(253, 241, 113)" }}
         />
       )
+    }
     return null
   }
 
@@ -495,31 +516,79 @@ export default function EditTab() {
   }
 
   return (
-    <Box sx={{ p: 2, pb: 12 }}>
-      {/* 예배 선택 */}
+    <Box
+      sx={{
+        p: 2,
+        // bulk bar 공간 + iPhone 홈 인디케이터 영역만큼 여유
+        pb: "calc(96px + env(safe-area-inset-bottom, 0px))",
+      }}
+    >
+      {/* 컨트롤 3종을 sticky 래퍼로 묶어 리스트 스크롤 시에도 상단 고정 */}
+      <Box
+        sx={{
+          position: "sticky",
+          top: 48, // Tabs 높이만큼 내려옴
+          zIndex: 5,
+          bgcolor: "#f5f5f5", // 외부 배경과 동일해서 리스트가 비쳐 보이지 않게
+          mx: -2, // 외부 p:2 상쇄
+          px: 2, // 다시 적용
+          pt: 2,
+          pb: 0.5,
+          mb: 1,
+          // 하단에 살짝 그림자 → 스크롤되어 띄워진 상태임을 암시
+          boxShadow: "0 2px 8px -4px rgba(0,0,0,0.12)",
+        }}
+      >
+      {/* 예배 선택 — 모바일: OS 네이티브 picker (iOS 휠, Android 다이얼로그) */}
       <Paper sx={{ p: 2, mb: 2 }}>
-        <FormControl fullWidth size="small">
-          <InputLabel>예배</InputLabel>
-          <Select
-            value={selectedScheduleId}
-            label="예배"
-            onChange={(e) => setSelectedScheduleId(e.target.value as number)}
-          >
-            {schedules.map((s) => (
-              <MenuItem key={s.id} value={s.id}>
-                {s.date} · {worshipKr(s.kind)}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <TextField
+          select
+          SelectProps={{ native: true }}
+          value={selectedScheduleId}
+          label="예배"
+          fullWidth
+          size="small"
+          onChange={(e) =>
+            setSelectedScheduleId(Number(e.target.value) || "")
+          }
+          InputLabelProps={{ shrink: true }}
+        >
+          {schedules.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.date} · {worshipKr(s.kind)}
+            </option>
+          ))}
+        </TextField>
       </Paper>
 
-      {/* 상태 필터 */}
+      {/* 상태 필터 — 모바일 친화적 가로 스크롤 */}
       <Paper sx={{ p: 2, mb: 2 }}>
         <Typography variant="caption" color="text.secondary">
           상태별 필터
         </Typography>
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap mt={1}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            mt: 1,
+            overflowX: "auto",
+            overflowY: "hidden",
+            // 각 chip이 줄어들지 않음
+            "& > *": { flexShrink: 0 },
+            // 스크롤바 숨김 (가독성)
+            "&::-webkit-scrollbar": { display: "none" },
+            scrollbarWidth: "none",
+            // iOS 모멘텀 스크롤
+            WebkitOverflowScrolling: "touch",
+            // 오른쪽 가장자리 페이드 힌트 (스크롤 가능 암시)
+            WebkitMaskImage:
+              "linear-gradient(to right, black calc(100% - 24px), transparent)",
+            maskImage:
+              "linear-gradient(to right, black calc(100% - 24px), transparent)",
+            pr: 3, // 페이드 영역 너비만큼 여유
+            pb: 0.5,
+          }}
+        >
           {(
             [
               { k: "all", label: "전체", count: counts.all },
@@ -538,7 +607,7 @@ export default function EditTab() {
               disabled={k !== "all" && count === 0}
             />
           ))}
-        </Stack>
+        </Box>
       </Paper>
 
       {/* 검색 */}
@@ -551,6 +620,8 @@ export default function EditTab() {
           onChange={(e) => setSearchText(e.target.value)}
         />
       </Paper>
+      </Box>
+      {/* ↑ sticky 래퍼 종료 */}
 
       {/* 3-column 리스트 */}
       <Paper sx={{ p: 2 }}>
@@ -895,7 +966,13 @@ export default function EditTab() {
           setUndoAction(null)
         }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        sx={{ mb: checkedIds.size > 0 ? 10 : 2 }}
+        sx={{
+          // bulk bar 위로 / 없으면 최소 여백. 모두 safe-area inset 추가
+          mb:
+            checkedIds.size > 0
+              ? "calc(80px + env(safe-area-inset-bottom, 0px))"
+              : "calc(16px + env(safe-area-inset-bottom, 0px))",
+        }}
         message={
           undoAction
             ? `${undoAction.userIds.length}명에게 '${statusLabel(
@@ -919,7 +996,10 @@ export default function EditTab() {
             bottom: 0,
             left: 0,
             right: 0,
-            p: 1.5,
+            pt: 1.5,
+            px: 1.5,
+            // 하단 padding에 iPhone 홈 인디케이터 인셋 포함
+            pb: "calc(12px + env(safe-area-inset-bottom, 0px))",
             zIndex: 100,
             borderTop: "2px solid #1976d2",
           }}
@@ -944,40 +1024,48 @@ export default function EditTab() {
               <Button
                 variant="contained"
                 color="success"
-                startIcon={<CheckCircleIcon />}
+                startIcon={isNarrow ? undefined : <CheckCircleIcon />}
                 onClick={() => handleBulkSave(AttendStatus.ATTEND)}
                 disabled={saving}
                 size="small"
+                title="출석"
+                sx={{ minWidth: { xs: 44, sm: "auto" }, px: { xs: 1, sm: 2 } }}
               >
-                출석
+                {isNarrow ? <CheckCircleIcon fontSize="small" /> : "출석"}
               </Button>
               <Button
                 variant="contained"
                 color="error"
-                startIcon={<CancelIcon />}
+                startIcon={isNarrow ? undefined : <CancelIcon />}
                 onClick={() => handleBulkSave(AttendStatus.ABSENT)}
                 disabled={saving}
                 size="small"
+                title="결석"
+                sx={{ minWidth: { xs: 44, sm: "auto" }, px: { xs: 1, sm: 2 } }}
               >
-                결석
+                {isNarrow ? <CancelIcon fontSize="small" /> : "결석"}
               </Button>
               <Button
                 variant="contained"
                 color="warning"
-                startIcon={<HelpIcon />}
+                startIcon={isNarrow ? undefined : <HelpIcon />}
                 onClick={() => handleBulkSave(AttendStatus.ETC)}
                 disabled={saving}
                 size="small"
+                title="기타"
+                sx={{ minWidth: { xs: 44, sm: "auto" }, px: { xs: 1, sm: 2 } }}
               >
-                기타
+                {isNarrow ? <HelpIcon fontSize="small" /> : "기타"}
               </Button>
               <Button
                 variant="outlined"
                 onClick={() => setCheckedIds(new Set())}
                 disabled={saving}
                 size="small"
+                title="선택 해제"
+                sx={{ minWidth: { xs: 44, sm: "auto" }, px: { xs: 1, sm: 2 } }}
               >
-                해제
+                {isNarrow ? <CloseIcon fontSize="small" /> : "해제"}
               </Button>
             </Stack>
           </Stack>
