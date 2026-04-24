@@ -250,4 +250,92 @@ router.post("/update-attendance", async (req, res) => {
   res.send({ result: "success" })
 })
 
+const BULK_MAX_ITEMS = 100
+
+type BulkResult = {
+  index: number
+  userId: string
+  status: "ok" | "forbidden" | "invalid" | "error"
+  error?: string
+}
+
+router.post("/update-attendance-bulk", async (req, res) => {
+  const jwt = await checkJwt(req)
+  if (!jwt) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const { worshipScheduleId, items } = req.body
+  if (!worshipScheduleId) {
+    res.status(400).send({ error: "Missing worshipScheduleId" })
+    return
+  }
+  if (!Array.isArray(items) || items.length === 0) {
+    res.status(400).send({ error: "Missing items" })
+    return
+  }
+  if (items.length > BULK_MAX_ITEMS) {
+    res.status(413).send({ error: "Too many items" })
+    return
+  }
+
+  const results: BulkResult[] = await Promise.all(
+    items.map(async (item, index): Promise<BulkResult> => {
+      const { userId, isAttend, memo } = item ?? {}
+
+      if (!userId || !isAttend) {
+        return { index, userId, status: "invalid", error: "Missing required fields" }
+      }
+      if (!(Object.values(AttendStatus) as string[]).includes(isAttend)) {
+        return { index, userId, status: "invalid", error: "Invalid isAttend value" }
+      }
+      if (memo !== undefined && memo !== null) {
+        if (typeof memo !== "string") {
+          return { index, userId, status: "invalid", error: "Invalid memo type" }
+        }
+        if (memo.length > 500) {
+          return { index, userId, status: "invalid", error: "Memo too long" }
+        }
+      }
+
+      const allowed = await canEditUserAttendance(jwt, userId)
+      if (!allowed) {
+        return { index, userId, status: "forbidden" }
+      }
+
+      try {
+        const existing = await attendDataDatabase.findOne({
+          where: {
+            user: { id: userId },
+            worshipSchedule: { id: worshipScheduleId },
+          },
+        })
+        if (existing) {
+          existing.isAttend = isAttend
+          if (typeof memo === "string") {
+            existing.memo = memo
+          }
+          await attendDataDatabase.save(existing)
+        } else {
+          await attendDataDatabase.save(
+            attendDataDatabase.create({
+              user: { id: userId },
+              worshipSchedule: { id: worshipScheduleId },
+              isAttend,
+              memo: typeof memo === "string" ? memo : "",
+            }),
+          )
+        }
+        return { index, userId, status: "ok" }
+      } catch {
+        return { index, userId, status: "error", error: "Save failed" }
+      }
+    }),
+  )
+
+  const hasFailure = results.some((r) => r.status !== "ok")
+  res.status(hasFailure ? 207 : 200).send({ results })
+})
+
 export default router

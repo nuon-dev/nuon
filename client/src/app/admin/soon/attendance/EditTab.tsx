@@ -334,26 +334,33 @@ export default function EditTab() {
     })
 
     setSaving(true)
-    const BULK_SAVE_BATCH_SIZE = 10
-    const results: PromiseSettledResult<unknown>[] = []
-    for (let i = 0; i < ids.length; i += BULK_SAVE_BATCH_SIZE) {
-      const batchIds = ids.slice(i, i + BULK_SAVE_BATCH_SIZE)
-      const batchResults = await Promise.allSettled(
-        batchIds.map((userId) =>
-          axios.post("/admin/soon/update-attendance", {
-            userId,
-            worshipScheduleId: selectedScheduleId,
-            isAttend: status,
-            memo,
-          }),
-        ),
-      )
-      results.push(...batchResults)
+    let successfulIds: string[] = []
+    let firstFailureMessage = ""
+    try {
+      const response = await axios.post<{
+        results: Array<{
+          index: number
+          userId: string
+          status: "ok" | "forbidden" | "invalid" | "error"
+          error?: string
+        }>
+      }>("/admin/soon/update-attendance-bulk", {
+        worshipScheduleId: selectedScheduleId,
+        items: ids.map((userId) => ({ userId, isAttend: status, memo })),
+      })
+      successfulIds = response.data.results
+        .filter((r) => r.status === "ok")
+        .map((r) => r.userId)
+      const firstFail = response.data.results.find((r) => r.status !== "ok")
+      if (firstFail) {
+        firstFailureMessage =
+          firstFail.status === "forbidden"
+            ? "해당 유저의 출석을 편집할 권한이 없습니다."
+            : firstFail.error || "저장에 실패했습니다."
+      }
+    } catch (e) {
+      firstFailureMessage = toAttendanceErrorMessage(e)
     }
-    const successfulIds: string[] = []
-    ids.forEach((id, i) => {
-      if (results[i].status === "fulfilled") successfulIds.push(id)
-    })
 
     setAttendData((prev) => {
       const map = new Map(prev.map((d) => [d.user.id, d]))
@@ -379,14 +386,10 @@ export default function EditTab() {
     setSaving(false)
     const failed = ids.length - successfulIds.length
     if (failed > 0) {
-      const firstFailure = results.find(
-        (r) => r.status === "rejected",
-      ) as PromiseRejectedResult | undefined
-      const reason = firstFailure
-        ? toAttendanceErrorMessage(firstFailure.reason)
-        : ""
       error(
-        reason ? `${failed}건 저장 실패 — ${reason}` : `${failed}건 저장 실패`,
+        firstFailureMessage
+          ? `${failed}건 저장 실패 — ${firstFailureMessage}`
+          : `${failed}건 저장 실패`,
       )
     }
 
@@ -426,20 +429,28 @@ export default function EditTab() {
       return
     }
 
-    const results = await Promise.allSettled(
-      restorable.map((userId) => {
-        const prev = action.previousStates.get(userId)!
-        return axios.post("/admin/soon/update-attendance", {
-          userId,
-          worshipScheduleId: action.scheduleId,
-          isAttend: prev.status,
-          memo: prev.memo,
-        })
-      }),
-    )
-    const successIds = restorable.filter(
-      (_, i) => results[i].status === "fulfilled",
-    )
+    let successIds: string[] = []
+    try {
+      const response = await axios.post<{
+        results: Array<{
+          index: number
+          userId: string
+          status: "ok" | "forbidden" | "invalid" | "error"
+          error?: string
+        }>
+      }>("/admin/soon/update-attendance-bulk", {
+        worshipScheduleId: action.scheduleId,
+        items: restorable.map((userId) => {
+          const prev = action.previousStates.get(userId)!
+          return { userId, isAttend: prev.status, memo: prev.memo }
+        }),
+      })
+      successIds = response.data.results
+        .filter((r) => r.status === "ok")
+        .map((r) => r.userId)
+    } catch {
+      // 네트워크 에러 등: successIds 빈 배열 유지
+    }
 
     // 로컬 상태 복원
     setAttendData((prev) => {
