@@ -39,11 +39,12 @@ export default function AttendanceAdminPage() {
   useEffect(() => {
     // authUserData가 비동기로 로드되므로 준비될 때까지 판정 보류
     if (!authUserData) return
-    fetchCommunities()
     if (!authUserData.role.VillageLeader) {
       error("접근 권한이 없습니다.")
       push("/leader")
+      return
     }
+    fetchCommunities()
   }, [authUserData])
 
   async function fetchCommunities() {
