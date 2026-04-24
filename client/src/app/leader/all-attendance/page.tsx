@@ -37,9 +37,7 @@ export default function AttendanceAdminPage() {
   const { push } = useRouter()
   const { error } = useNotification()
   const editable = Boolean(
-    authUserData?.role.Admin ||
-      authUserData?.role.VillageLeader ||
-      authUserData?.role.Leader,
+    authUserData?.role.Admin || authUserData?.role.VillageLeader,
   )
 
   useEffect(() => {
