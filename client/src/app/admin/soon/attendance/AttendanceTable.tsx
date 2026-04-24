@@ -1,5 +1,3 @@
-"use client"
-
 import {
   Box,
   Stack,
@@ -45,7 +43,7 @@ export default function AttendanceTable({
   onSaveCell,
 }: AttendanceTableProps) {
   const theme = useTheme()
-  // SSR-safe: 서버 렌더 시엔 false, 마운트 후 실제 window 크기로 재계산
+  // SSG: 빌드 시엔 false, 마운트 후 실제 window 크기로 재계산
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   return (
     <Box sx={{ p: 2 }}>
@@ -205,6 +203,10 @@ export default function AttendanceTable({
                     data.user.id === user.id &&
                     data.worshipSchedule.id === worshipSchedule.id,
                 )
+                const handleSave = onSaveCell
+                  ? (status: AttendStatus, memo: string) =>
+                      onSaveCell(user.id, worshipSchedule.id, status, memo)
+                  : undefined
                 return (
                   <Box
                     key={worshipSchedule.id}
@@ -222,12 +224,7 @@ export default function AttendanceTable({
                     <AttendCell
                       attendData={attendData}
                       editable={editable}
-                      onSave={
-                        onSaveCell
-                          ? (status, memo) =>
-                              onSaveCell(user.id, worshipSchedule.id, status, memo)
-                          : undefined
-                      }
+                      onSave={handleSave}
                     />
                   </Box>
                 )
