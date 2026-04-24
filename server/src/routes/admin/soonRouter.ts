@@ -243,7 +243,7 @@ router.post("/update-attendance", async (req, res) => {
 
   const allowed = await canEditUserAttendance(jwt, userId)
   if (!allowed) {
-    res.status(403).send({ error: "해당 유저의 출석을 편집할 권한이 없습니다." })
+    res.status(403).send({ error: "Forbidden" })
     return
   }
 
