@@ -7,7 +7,6 @@ import { Stack, Box, Card, CardContent, Typography } from "@mui/material"
 import { Community } from "@server/entity/community"
 import { useEffect, useMemo, useState } from "react"
 import { AttendData } from "@server/entity/attendData"
-import { AttendStatus } from "@server/entity/types"
 import { WorshipKind, WorshipSchedule } from "@server/entity/worshipSchedule"
 import AttendanceTable from "@/app/admin/soon/attendance/AttendanceTable"
 import AttendanceFilter from "@/app/admin/soon/attendance/AttendanceFilter"
@@ -36,9 +35,6 @@ export default function AttendanceAdminPage() {
   const { authUserData } = useAuth()
   const { push } = useRouter()
   const { error } = useNotification()
-  const editable = Boolean(
-    authUserData?.role.Admin || authUserData?.role.VillageLeader,
-  )
 
   useEffect(() => {
     // authUserData가 비동기로 로드되므로 준비될 때까지 판정 보류
@@ -137,50 +133,6 @@ export default function AttendanceAdminPage() {
     })
   }, [attendDataList, worshipScheduleFilter])
 
-  async function handleSaveCell(
-    userId: string,
-    worshipScheduleId: number,
-    status: AttendStatus,
-    memo: string,
-  ) {
-    try {
-      await axios.post("/admin/soon/update-attendance", {
-        userId,
-        worshipScheduleId,
-        isAttend: status,
-        memo,
-      })
-
-      setAttendDataList((prev) => {
-        const idx = prev.findIndex(
-          (d) =>
-            d.user.id === userId && d.worshipSchedule.id === worshipScheduleId,
-        )
-        if (idx >= 0) {
-          const updated = [...prev]
-          updated[idx] = { ...updated[idx], isAttend: status, memo }
-          return updated
-        }
-        const schedule = worshipScheduleMapList.find(
-          (ws) => ws.id === worshipScheduleId,
-        )
-        return [
-          ...prev,
-          {
-            user: { id: userId } as User,
-            worshipSchedule: (schedule ?? {
-              id: worshipScheduleId,
-            }) as WorshipSchedule,
-            isAttend: status,
-            memo,
-          } as AttendData,
-        ]
-      })
-    } catch (e: any) {
-      error("저장 실패: " + (e?.response?.data?.error || e?.message || ""))
-    }
-  }
-
   function handleCommunityClick(community: Community) {
     setSelectedCommunity(community)
     setCommunityStack((prev) => {
@@ -259,8 +211,6 @@ export default function AttendanceAdminPage() {
               worshipScheduleMapList={worshipScheduleMapList}
               leaders={leaders}
               getAttendUserCount={getAttendUserCount}
-              editable={editable}
-              onSaveCell={handleSaveCell}
             />
           </CardContent>
         </Card>
