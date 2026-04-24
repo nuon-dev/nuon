@@ -453,7 +453,6 @@ export default function EditTab() {
   }
 
   function statusChip(status: StatusFilter, memo?: string) {
-    // chip 공통 style — 긴 memo는 말줄임 처리
     const base = {
       fontWeight: 600,
       maxWidth: { xs: 140, sm: 200, md: 260 },
@@ -1075,6 +1074,12 @@ export default function EditTab() {
   )
 }
 
+function statusLabel(status: AttendStatus) {
+  if (status === AttendStatus.ATTEND) return "출석"
+  if (status === AttendStatus.ABSENT) return "결석"
+  return "기타"
+}
+
 /* --- 하위 컴포넌트 --- */
 
 function ColumnBox({
@@ -1151,10 +1156,4 @@ function EmptyState({ children }: { children: React.ReactNode }) {
       <Typography variant="body2">{children}</Typography>
     </Box>
   )
-}
-
-function statusLabel(status: AttendStatus) {
-  if (status === AttendStatus.ATTEND) return "출석"
-  if (status === AttendStatus.ABSENT) return "결석"
-  return "기타"
 }
