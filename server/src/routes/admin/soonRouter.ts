@@ -1,6 +1,6 @@
 import express from "express"
 import { checkJwt, hasPermission } from "../../util/util"
-import { PermissionType } from "../../entity/types"
+import { AttendStatus, PermissionType } from "../../entity/types"
 import {
   attendDataDatabase,
   communityDatabase,
@@ -239,6 +239,22 @@ router.post("/update-attendance", async (req, res) => {
   if (!userId || !worshipScheduleId || !isAttend) {
     res.status(400).send({ error: "Missing required fields" })
     return
+  }
+
+  if (!(Object.values(AttendStatus) as string[]).includes(isAttend)) {
+    res.status(400).send({ error: "Invalid isAttend value" })
+    return
+  }
+
+  if (memo !== undefined && memo !== null) {
+    if (typeof memo !== "string") {
+      res.status(400).send({ error: "Invalid memo type" })
+      return
+    }
+    if (memo.length > 500) {
+      res.status(400).send({ error: "Memo too long" })
+      return
+    }
   }
 
   const allowed = await canEditUserAttendance(jwt, userId)
