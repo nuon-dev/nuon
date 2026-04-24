@@ -16,6 +16,7 @@ import CommunityNavigation from "./CommunityNavigation"
 import { sortByCommunityId, getAttendUserCount } from "./utils/attendanceUtils"
 import { useNotification } from "@/hooks/useNotification"
 import useAuth from "@/hooks/useAuth"
+import { toAttendanceErrorMessage } from "@/util/attendanceError"
 
 export default function OverviewTab() {
   const [communities, setCommunities] = useState<Community[]>([])
@@ -167,8 +168,8 @@ export default function OverviewTab() {
           } as AttendData,
         ]
       })
-    } catch (e: any) {
-      error("저장 실패: " + (e?.response?.data?.error || e?.message || ""))
+    } catch (e) {
+      error(toAttendanceErrorMessage(e))
     }
   }
 

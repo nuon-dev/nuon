@@ -5,10 +5,6 @@ import {
   Box,
   Stack,
   Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   TextField,
   Checkbox,
   Button,
@@ -39,6 +35,7 @@ import { Community } from "@server/entity/community"
 import { User } from "@server/entity/user"
 import { WorshipSchedule } from "@server/entity/worshipSchedule"
 import { worshipKr } from "@/util/worship"
+import { toAttendanceErrorMessage } from "@/util/attendanceError"
 import { useNotification } from "@/hooks/useNotification"
 
 type StatusFilter = "all" | "unrecorded" | "ATTEND" | "ABSENT" | "ETC"
@@ -337,16 +334,22 @@ export default function EditTab() {
     })
 
     setSaving(true)
-    const results = await Promise.allSettled(
-      ids.map((userId) =>
-        axios.post("/admin/soon/update-attendance", {
-          userId,
-          worshipScheduleId: selectedScheduleId,
-          isAttend: status,
-          memo,
-        }),
-      ),
-    )
+    const BULK_SAVE_BATCH_SIZE = 10
+    const results: PromiseSettledResult<unknown>[] = []
+    for (let i = 0; i < ids.length; i += BULK_SAVE_BATCH_SIZE) {
+      const batchIds = ids.slice(i, i + BULK_SAVE_BATCH_SIZE)
+      const batchResults = await Promise.allSettled(
+        batchIds.map((userId) =>
+          axios.post("/admin/soon/update-attendance", {
+            userId,
+            worshipScheduleId: selectedScheduleId,
+            isAttend: status,
+            memo,
+          }),
+        ),
+      )
+      results.push(...batchResults)
+    }
     const successfulIds: string[] = []
     ids.forEach((id, i) => {
       if (results[i].status === "fulfilled") successfulIds.push(id)
@@ -376,7 +379,15 @@ export default function EditTab() {
     setSaving(false)
     const failed = ids.length - successfulIds.length
     if (failed > 0) {
-      error(`${failed}건 저장 실패`)
+      const firstFailure = results.find(
+        (r) => r.status === "rejected",
+      ) as PromiseRejectedResult | undefined
+      const reason = firstFailure
+        ? toAttendanceErrorMessage(firstFailure.reason)
+        : ""
+      error(
+        reason ? `${failed}건 저장 실패 — ${reason}` : `${failed}건 저장 실패`,
+      )
     }
 
     // Phase 3: Undo 액션 준비 (성공한 것만)
