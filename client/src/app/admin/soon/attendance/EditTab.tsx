@@ -35,7 +35,11 @@ import { Community } from "@server/entity/community"
 import { User } from "@server/entity/user"
 import { WorshipSchedule } from "@server/entity/worshipSchedule"
 import { worshipKr } from "@/util/worship"
-import { toAttendanceErrorMessage } from "@/util/attendanceError"
+import {
+  BulkAttendanceResponse,
+  toAttendanceErrorMessage,
+  toBulkResultMessage,
+} from "@/util/attendanceError"
 import { useNotification } from "@/hooks/useNotification"
 
 type StatusFilter = "all" | "unrecorded" | "ATTEND" | "ABSENT" | "ETC"
@@ -337,26 +341,19 @@ export default function EditTab() {
     let successfulIds: string[] = []
     let firstFailureMessage = ""
     try {
-      const response = await axios.post<{
-        results: Array<{
-          index: number
-          userId: string
-          status: "ok" | "forbidden" | "invalid" | "error"
-          error?: string
-        }>
-      }>("/admin/soon/update-attendance-bulk", {
-        worshipScheduleId: selectedScheduleId,
-        items: ids.map((userId) => ({ userId, isAttend: status, memo })),
-      })
+      const response = await axios.post<BulkAttendanceResponse>(
+        "/admin/soon/update-attendance-bulk",
+        {
+          worshipScheduleId: selectedScheduleId,
+          items: ids.map((userId) => ({ userId, isAttend: status, memo })),
+        },
+      )
       successfulIds = response.data.results
         .filter((r) => r.status === "ok")
         .map((r) => r.userId)
       const firstFail = response.data.results.find((r) => r.status !== "ok")
       if (firstFail) {
-        firstFailureMessage =
-          firstFail.status === "forbidden"
-            ? "해당 유저의 출석을 편집할 권한이 없습니다."
-            : firstFail.error || "저장에 실패했습니다."
+        firstFailureMessage = toBulkResultMessage(firstFail)
       }
     } catch (e) {
       firstFailureMessage = toAttendanceErrorMessage(e)
@@ -431,20 +428,16 @@ export default function EditTab() {
 
     let successIds: string[] = []
     try {
-      const response = await axios.post<{
-        results: Array<{
-          index: number
-          userId: string
-          status: "ok" | "forbidden" | "invalid" | "error"
-          error?: string
-        }>
-      }>("/admin/soon/update-attendance-bulk", {
-        worshipScheduleId: action.scheduleId,
-        items: restorable.map((userId) => {
-          const prev = action.previousStates.get(userId)!
-          return { userId, isAttend: prev.status, memo: prev.memo }
-        }),
-      })
+      const response = await axios.post<BulkAttendanceResponse>(
+        "/admin/soon/update-attendance-bulk",
+        {
+          worshipScheduleId: action.scheduleId,
+          items: restorable.map((userId) => {
+            const prev = action.previousStates.get(userId)!
+            return { userId, isAttend: prev.status, memo: prev.memo }
+          }),
+        },
+      )
       successIds = response.data.results
         .filter((r) => r.status === "ok")
         .map((r) => r.userId)
