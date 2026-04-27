@@ -148,6 +148,9 @@ const AiModel = {
         chats: { createdAt: "ASC" },
       },
     })
+    if (!chatRoom) {
+      throw new Error("Chat room not found")
+    }
     if (!isSystemChatIncluded) {
       chatRoom.chats = chatRoom.chats.filter(
         (chat) => chat.type !== ChatType.SYSTEM,
