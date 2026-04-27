@@ -37,10 +37,10 @@ export class User {
   })
   etc?: string
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   token: string
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   expire: Date
 
   @Column({ nullable: true, default: 0 })

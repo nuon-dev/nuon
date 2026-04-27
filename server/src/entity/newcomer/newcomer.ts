@@ -27,6 +27,9 @@ export class Newcomer {
   yearOfBirth: number
 
   @Column({ nullable: true })
+  birthday: string
+
+  @Column({ nullable: true })
   gender: "man" | "woman" | ""
 
   @Column({ nullable: true })
@@ -56,6 +59,9 @@ export class Newcomer {
 
   @Column({ nullable: true })
   carNumber: string // 차량번호
+
+  @Column({ nullable: true })
+  registrationDate: string // 등록일
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "guiderId" })

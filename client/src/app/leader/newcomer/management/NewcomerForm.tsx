@@ -9,6 +9,8 @@ interface Newcomer {
   id: string
   name: string
   yearOfBirth: number | null
+  birthday?: string | null
+  registrationDate?: string | null
   phone: string | null
   gender: "man" | "woman" | "" | null
   status?: "NORMAL" | "PROMOTED" | "PENDING" | "DELETED"
@@ -179,6 +181,42 @@ export default function NewcomerForm({
           size="small"
           type="number"
           placeholder="예: 1990"
+          sx={{ flex: 1 }}
+        />
+      </Stack>
+
+      <Stack direction="row" alignItems="center" gap="12px">
+        <Box width="80px" textAlign="right">
+          생일 :
+        </Box>
+        <TextField
+          value={selectedNewcomer.birthday || ""}
+          onChange={(e) => onDataChange("birthday", e.target.value || null)}
+          variant="outlined"
+          size="small"
+          type="date"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          sx={{ flex: 1 }}
+        />
+      </Stack>
+
+      <Stack direction="row" alignItems="center" gap="12px">
+        <Box width="80px" textAlign="right">
+          등록일 :
+        </Box>
+        <TextField
+          value={selectedNewcomer.registrationDate || ""}
+          onChange={(e) =>
+            onDataChange("registrationDate", e.target.value || null)
+          }
+          variant="outlined"
+          size="small"
+          type="date"
+          InputLabelProps={{
+            shrink: true,
+          }}
           sx={{ flex: 1 }}
         />
       </Stack>
