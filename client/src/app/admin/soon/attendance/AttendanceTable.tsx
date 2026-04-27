@@ -1,7 +1,16 @@
-import { Box, Stack, Typography, Paper, Chip } from "@mui/material"
+import {
+  Box,
+  Stack,
+  Typography,
+  Paper,
+  Chip,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import { User } from "@server/entity/user"
 import { AttendData } from "@server/entity/attendData"
 import { WorshipSchedule } from "@server/entity/worshipSchedule"
+import { AttendStatus } from "@server/entity/types"
 import AttendCell from "./AttendCell"
 import StarIcon from "@mui/icons-material/Star"
 import StarBorderIcon from "@mui/icons-material/StarBorder"
@@ -15,6 +24,13 @@ interface AttendanceTableProps {
     attendDataList: AttendData[],
     worshipScheduleId: number,
   ) => { count: number; attend: number }
+  editable?: boolean
+  onSaveCell?: (
+    userId: string,
+    worshipScheduleId: number,
+    status: AttendStatus,
+    memo: string,
+  ) => Promise<void>
 }
 
 export default function AttendanceTable({
@@ -23,8 +39,12 @@ export default function AttendanceTable({
   worshipScheduleMapList,
   leaders,
   getAttendUserCount,
+  editable = false,
+  onSaveCell,
 }: AttendanceTableProps) {
-  const isMobile = global.innerWidth < 600
+  const theme = useTheme()
+  // SSG: 빌드 시엔 false, 마운트 후 실제 window 크기로 재계산
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   return (
     <Box sx={{ p: 2 }}>
       {/* 출석 테이블 제목 */}
@@ -183,6 +203,10 @@ export default function AttendanceTable({
                     data.user.id === user.id &&
                     data.worshipSchedule.id === worshipSchedule.id,
                 )
+                const handleSave = onSaveCell
+                  ? (status: AttendStatus, memo: string) =>
+                      onSaveCell(user.id, worshipSchedule.id, status, memo)
+                  : undefined
                 return (
                   <Box
                     key={worshipSchedule.id}
@@ -197,7 +221,11 @@ export default function AttendanceTable({
                       justifyContent: "center",
                     }}
                   >
-                    <AttendCell attendData={attendData} />
+                    <AttendCell
+                      attendData={attendData}
+                      editable={editable}
+                      onSave={handleSave}
+                    />
                   </Box>
                 )
               })}
