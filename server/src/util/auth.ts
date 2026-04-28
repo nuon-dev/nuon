@@ -52,7 +52,7 @@ async function getRole(user: User): Promise<Role> {
       children: true,
     },
   })
-  if (myCommunity.children.length > 0) {
+  if (myCommunity && myCommunity.children.length > 0) {
     villageLeader = true
   }
 
