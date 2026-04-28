@@ -53,6 +53,8 @@ export default function EditTab() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [searchText, setSearchText] = useState("")
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
+  // 4단 drill-down: 담당(d1) → 마을(d2) → 다락방(d3) → 순원(user)
+  const [focusedDangId, setFocusedDangId] = useState<number | null>(null)
   const [focusedVillageId, setFocusedVillageId] = useState<number | null>(null)
   const [focusedDarakId, setFocusedDarakId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
@@ -66,7 +68,6 @@ export default function EditTab() {
     scheduleId: number
   } | null>(null)
 
-  // Phase 3: 공통 사유 다이얼로그
   const [memoDialog, setMemoDialog] = useState<{
     status: AttendStatus
     memo: string
@@ -76,7 +77,6 @@ export default function EditTab() {
 
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
-  // bulk 버튼 라벨 숨김 기준 — 600px 미만에선 아이콘만
   const isNarrow = useMediaQuery(theme.breakpoints.down("sm"))
 
   // 초기 로드
@@ -100,7 +100,6 @@ export default function EditTab() {
     })()
   }, [])
 
-  // 전체 유저 로드
   useEffect(() => {
     if (communities.length === 0) return
     const topIds = communities
@@ -113,7 +112,6 @@ export default function EditTab() {
       .then((resp) => setAllUsers(resp.data))
   }, [communities])
 
-  // 선택된 예배의 출석 데이터 로드
   useEffect(() => {
     if (allUsers.length === 0 || !selectedScheduleId) return
     const userIds = allUsers.map((u) => u.id).join(",")
@@ -152,8 +150,9 @@ export default function EditTab() {
     return d.isAttend as StatusFilter
   }
 
-  function findVillageId(darakId: number): number {
-    let cur = darakId
+  // 트리 끝까지 거슬러 올라가 d1(담당) id 반환
+  function findDangId(communityId: number): number {
+    let cur = communityId
     for (let i = 0; i < 10; i++) {
       const parent = parentMap.get(cur)
       if (parent === null || parent === undefined) return cur
@@ -162,7 +161,34 @@ export default function EditTab() {
     return cur
   }
 
-  // 필터링된 유저
+  // d2(마을) id: 부모가 d1인 노드. user.community가 d1이면 null.
+  function findVillageId(communityId: number): number | null {
+    let cur = communityId
+    for (let i = 0; i < 10; i++) {
+      const parent = parentMap.get(cur)
+      if (parent === null || parent === undefined) return null
+      const grand = parentMap.get(parent)
+      if (grand === null || grand === undefined) return cur
+      cur = parent
+    }
+    return null
+  }
+
+  // d3(다락방) id: 부모의 부모가 d1인 노드. user.community가 d2 이상이면 null.
+  function findDarakId(communityId: number): number | null {
+    let cur = communityId
+    for (let i = 0; i < 10; i++) {
+      const parent = parentMap.get(cur)
+      if (parent === null || parent === undefined) return null
+      const grand = parentMap.get(parent)
+      if (grand === null || grand === undefined) return null
+      const ggrand = parentMap.get(grand)
+      if (ggrand === null || ggrand === undefined) return cur
+      cur = parent
+    }
+    return null
+  }
+
   const filteredUsers = useMemo(() => {
     return allUsers.filter((u) => {
       const status = getUserStatus(u.id)
@@ -172,37 +198,81 @@ export default function EditTab() {
     })
   }, [allUsers, statusFilter, searchText, attendMap])
 
-  // 마을별 유저 매핑
-  const usersByVillage = useMemo(() => {
+  // 담당별 user 매핑 (subtree 합)
+  const usersByDang = useMemo(() => {
     const m = new Map<number, User[]>()
     filteredUsers.forEach((u) => {
       if (!u.community) return
-      const vid = findVillageId(u.community.id)
-      if (!m.has(vid)) m.set(vid, [])
-      m.get(vid)!.push(u)
+      const id = findDangId(u.community.id)
+      if (!m.has(id)) m.set(id, [])
+      m.get(id)!.push(u)
     })
     return m
   }, [filteredUsers, parentMap])
 
-  // 다락방별 유저 매핑
+  // 마을별 user 매핑 (subtree 합 — d2 직속 + 그 d3들의 user)
+  const usersByVillage = useMemo(() => {
+    const m = new Map<number, User[]>()
+    filteredUsers.forEach((u) => {
+      if (!u.community) return
+      const id = findVillageId(u.community.id)
+      if (id == null) return
+      if (!m.has(id)) m.set(id, [])
+      m.get(id)!.push(u)
+    })
+    return m
+  }, [filteredUsers, parentMap])
+
+  // 다락방별 user 매핑 (d3 직속 user)
   const usersByDarak = useMemo(() => {
     const m = new Map<number, User[]>()
     filteredUsers.forEach((u) => {
       if (!u.community) return
-      if (!m.has(u.community.id)) m.set(u.community.id, [])
-      m.get(u.community.id)!.push(u)
+      const id = findDarakId(u.community.id)
+      if (id == null) return
+      if (!m.has(id)) m.set(id, [])
+      m.get(id)!.push(u)
     })
     return m
-  }, [filteredUsers])
+  }, [filteredUsers, parentMap])
 
-  // 컬럼 1: 최상위 마을들
-  const villagesCol = useMemo(() => {
-    return communities
-      .filter((c) => !c.parent)
-      .sort((a, b) => a.id - b.id)
+  // 컬럼 1: 담당(d1)
+  const dangsCol = useMemo(() => {
+    return communities.filter((c) => !c.parent).sort((a, b) => a.id - b.id)
   }, [communities])
 
-  // 컬럼 2: 포커스된 마을의 직계 다락방들
+  // 사역팀처럼 평탄한 d1: focusedDang에 직속 매달린 user들
+  const directUsersOfDang = useMemo(() => {
+    if (!focusedDangId) return []
+    return [...filteredUsers]
+      .filter((u) => u.community?.id === focusedDangId)
+      .sort((a, b) => {
+        const aLead =
+          a.community?.leader?.id === a.id
+            ? -2
+            : a.community?.deputyLeader?.id === a.id
+              ? -1
+              : 0
+        const bLead =
+          b.community?.leader?.id === b.id
+            ? -2
+            : b.community?.deputyLeader?.id === b.id
+              ? -1
+              : 0
+        if (aLead !== bLead) return aLead - bLead
+        return (a.name || "").localeCompare(b.name || "")
+      })
+  }, [filteredUsers, focusedDangId])
+
+  // 컬럼 2: 선택된 담당의 직계 자식 (= 마을)
+  const villagesCol = useMemo(() => {
+    if (!focusedDangId) return []
+    return communities
+      .filter((c) => c.parent?.id === focusedDangId)
+      .sort((a, b) => a.id - b.id)
+  }, [communities, focusedDangId])
+
+  // 컬럼 3: 선택된 마을의 직계 자식 (= 다락방)
   const daraksCol = useMemo(() => {
     if (!focusedVillageId) return []
     return communities
@@ -210,8 +280,14 @@ export default function EditTab() {
       .sort((a, b) => a.id - b.id)
   }, [communities, focusedVillageId])
 
-  // 컬럼 3: 포커스된 다락방의 순원들 (필터링된 것 중)
-  const usersCol = useMemo(() => {
+  // 평탄 모드 여부 (사역팀처럼 마을 단계가 없는 담당이 선택됨)
+  const isFlatDangMode =
+    focusedDangId != null &&
+    villagesCol.length === 0 &&
+    directUsersOfDang.length > 0
+
+  // 컬럼 4: 선택된 다락방의 순원들
+  const soonwonsCol = useMemo(() => {
     if (!focusedDarakId) return []
     const users = usersByDarak.get(focusedDarakId) || []
     return [...users].sort((a, b) => {
@@ -232,22 +308,32 @@ export default function EditTab() {
     })
   }, [usersByDarak, focusedDarakId])
 
-  // 검색 시 평면 리스트용 (마을 → 다락방 → 이름 순)
+  // 검색용 평면 리스트
   const searchResultUsers = useMemo(() => {
     return [...filteredUsers].sort((a, b) => {
-      const aVid = a.community ? findVillageId(a.community.id) : 0
-      const bVid = b.community ? findVillageId(b.community.id) : 0
+      const aDang = a.community ? findDangId(a.community.id) : 0
+      const bDang = b.community ? findDangId(b.community.id) : 0
+      if (aDang !== bDang) return aDang - bDang
+      const aVid = a.community ? (findVillageId(a.community.id) ?? 0) : 0
+      const bVid = b.community ? (findVillageId(b.community.id) ?? 0) : 0
       if (aVid !== bVid) return aVid - bVid
-      const aDid = a.community?.id || 0
-      const bDid = b.community?.id || 0
+      const aDid = a.community ? (findDarakId(a.community.id) ?? 0) : 0
+      const bDid = b.community ? (findDarakId(b.community.id) ?? 0) : 0
       if (aDid !== bDid) return aDid - bDid
       return (a.name || "").localeCompare(b.name || "")
     })
   }, [filteredUsers, parentMap])
 
-  // 필터 변경으로 포커스 그룹이 비었을 경우 자동 해제
+  // 필터 변경으로 포커스 그룹이 비었으면 자동 해제
   useEffect(() => {
     if (
+      focusedDangId &&
+      (usersByDang.get(focusedDangId)?.length ?? 0) === 0
+    ) {
+      setFocusedDangId(null)
+      setFocusedVillageId(null)
+      setFocusedDarakId(null)
+    } else if (
       focusedVillageId &&
       (usersByVillage.get(focusedVillageId)?.length ?? 0) === 0
     ) {
@@ -259,7 +345,7 @@ export default function EditTab() {
     ) {
       setFocusedDarakId(null)
     }
-  }, [usersByVillage, usersByDarak])
+  }, [usersByDang, usersByVillage, usersByDarak])
 
   // 필터 chip 카운트
   const counts = useMemo(() => {
@@ -275,7 +361,6 @@ export default function EditTab() {
     return c
   }, [allUsers, attendMap, searchText])
 
-  // 선택 헬퍼
   function toggleUser(id: string) {
     setCheckedIds((prev) => {
       const next = new Set(prev)
@@ -306,17 +391,14 @@ export default function EditTab() {
     })
   }
 
-  // Bulk 저장 진입점 — ABSENT/ETC는 사유 다이얼로그 경유
   function handleBulkSave(status: AttendStatus) {
     if (!selectedScheduleId) return
     if (checkedIds.size === 0) return
 
     if (status === AttendStatus.ABSENT || status === AttendStatus.ETC) {
-      // 공통 사유 다이얼로그 오픈
       setMemoDialog({ status, memo: "" })
       return
     }
-    // ATTEND는 다이얼로그 없이 바로
     runBulkSave(status, "")
   }
 
@@ -325,7 +407,6 @@ export default function EditTab() {
     const ids = Array.from(checkedIds)
     if (ids.length === 0) return
 
-    // Phase 3: 스냅샷 저장 (undo용)
     const previousStates = new Map<
       string,
       { status: StatusFilter; memo: string }
@@ -390,7 +471,6 @@ export default function EditTab() {
       )
     }
 
-    // Phase 3: Undo 액션 준비 (성공한 것만)
     if (successfulIds.length > 0) {
       const snapshot = new Map<
         string,
@@ -410,11 +490,10 @@ export default function EditTab() {
     setCheckedIds(new Set())
   }
 
-  // Phase 3: Undo 실행
   async function handleUndo() {
     if (!undoAction) return
     const action = undoAction
-    setUndoAction(null) // 스낵바 먼저 닫기
+    setUndoAction(null)
 
     const restorable = action.userIds.filter(
       (id) => action.previousStates.get(id)?.status !== "unrecorded",
@@ -442,10 +521,9 @@ export default function EditTab() {
         .filter((r) => r.status === "ok")
         .map((r) => r.userId)
     } catch {
-      // 네트워크 에러 등: successIds 빈 배열 유지
+      // ignore
     }
 
-    // 로컬 상태 복원
     setAttendData((prev) => {
       const map = new Map(prev.map((d) => [d.user.id, d]))
       successIds.forEach((userId) => {
@@ -471,7 +549,6 @@ export default function EditTab() {
     const base = {
       fontWeight: 600,
       maxWidth: { xs: 140, sm: 200, md: 260 },
-      // MUI Chip 기본 label엔 이미 ellipsis가 걸려있지만, 명시적으로 한 번 더
       "& .MuiChip-label": {
         overflow: "hidden",
         textOverflow: "ellipsis",
@@ -521,6 +598,9 @@ export default function EditTab() {
     return count
   }, [filteredUsers, checkedIds])
 
+  // 4단 → 3컬럼 윈도우. focusedDarakId 있으면 [마을, 다락방, 순원], 아니면 [담당, 마을, 다락방].
+  const showSoonwonMode = focusedDarakId != null
+
   if (loading) {
     return (
       <Box p={4} textAlign="center">
@@ -533,113 +613,100 @@ export default function EditTab() {
     <Box
       sx={{
         p: 2,
-        // bulk bar 공간 + iPhone 홈 인디케이터 영역만큼 여유
         pb: "calc(96px + env(safe-area-inset-bottom, 0px))",
       }}
     >
-      {/* 컨트롤 3종을 sticky 래퍼로 묶어 리스트 스크롤 시에도 상단 고정 */}
       <Box
         sx={{
           position: "sticky",
-          top: 48, // Tabs 높이만큼 내려옴
+          top: 48,
           zIndex: 5,
-          bgcolor: "#f5f5f5", // 외부 배경과 동일해서 리스트가 비쳐 보이지 않게
-          mx: -2, // 외부 p:2 상쇄
-          px: 2, // 다시 적용
+          bgcolor: "#f5f5f5",
+          mx: -2,
+          px: 2,
           pt: 2,
           pb: 0.5,
           mb: 1,
-          // 하단에 살짝 그림자 → 스크롤되어 띄워진 상태임을 암시
           boxShadow: "0 2px 8px -4px rgba(0,0,0,0.12)",
         }}
       >
-      {/* 예배 선택 — 모바일: OS 네이티브 picker (iOS 휠, Android 다이얼로그) */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <TextField
-          select
-          SelectProps={{ native: true }}
-          value={selectedScheduleId}
-          label="예배"
-          fullWidth
-          size="small"
-          onChange={(e) =>
-            setSelectedScheduleId(Number(e.target.value) || "")
-          }
-          InputLabelProps={{ shrink: true }}
-        >
-          {schedules.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.date} · {worshipKr(s.kind)}
-            </option>
-          ))}
-        </TextField>
-      </Paper>
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <TextField
+            select
+            SelectProps={{ native: true }}
+            value={selectedScheduleId}
+            label="예배"
+            fullWidth
+            size="small"
+            onChange={(e) =>
+              setSelectedScheduleId(Number(e.target.value) || "")
+            }
+            InputLabelProps={{ shrink: true }}
+          >
+            {schedules.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.date} · {worshipKr(s.kind)}
+              </option>
+            ))}
+          </TextField>
+        </Paper>
 
-      {/* 상태 필터 — 모바일 친화적 가로 스크롤 */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="caption" color="text.secondary">
-          상태별 필터
-        </Typography>
-        <Box
-          sx={{
-            display: "flex",
-            gap: 1,
-            mt: 1,
-            overflowX: "auto",
-            overflowY: "hidden",
-            // 각 chip이 줄어들지 않음
-            "& > *": { flexShrink: 0 },
-            // 스크롤바 숨김 (가독성)
-            "&::-webkit-scrollbar": { display: "none" },
-            scrollbarWidth: "none",
-            // iOS 모멘텀 스크롤
-            WebkitOverflowScrolling: "touch",
-            // 오른쪽 가장자리 페이드 힌트 (스크롤 가능 암시)
-            WebkitMaskImage:
-              "linear-gradient(to right, black calc(100% - 24px), transparent)",
-            maskImage:
-              "linear-gradient(to right, black calc(100% - 24px), transparent)",
-            pr: 3, // 페이드 영역 너비만큼 여유
-            pb: 0.5,
-          }}
-        >
-          {(
-            [
-              { k: "all", label: "전체", count: counts.all },
-              { k: "unrecorded", label: "기록안됨", count: counts.unrecorded },
-              { k: "ATTEND", label: "출석", count: counts.ATTEND },
-              { k: "ABSENT", label: "결석", count: counts.ABSENT },
-              { k: "ETC", label: "기타", count: counts.ETC },
-            ] as { k: StatusFilter; label: string; count: number }[]
-          ).map(({ k, label, count }) => (
-            <Chip
-              key={k}
-              label={`${label} · ${count}`}
-              color={statusFilter === k ? "primary" : "default"}
-              variant={statusFilter === k ? "filled" : "outlined"}
-              onClick={() => setStatusFilter(k)}
-              disabled={k !== "all" && count === 0}
-            />
-          ))}
-        </Box>
-      </Paper>
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <Typography variant="caption" color="text.secondary">
+            상태별 필터
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              mt: 1,
+              overflowX: "auto",
+              overflowY: "hidden",
+              "& > *": { flexShrink: 0 },
+              "&::-webkit-scrollbar": { display: "none" },
+              scrollbarWidth: "none",
+              WebkitOverflowScrolling: "touch",
+              WebkitMaskImage:
+                "linear-gradient(to right, black calc(100% - 24px), transparent)",
+              maskImage:
+                "linear-gradient(to right, black calc(100% - 24px), transparent)",
+              pr: 3,
+              pb: 0.5,
+            }}
+          >
+            {(
+              [
+                { k: "all", label: "전체", count: counts.all },
+                { k: "unrecorded", label: "기록안됨", count: counts.unrecorded },
+                { k: "ATTEND", label: "출석", count: counts.ATTEND },
+                { k: "ABSENT", label: "결석", count: counts.ABSENT },
+                { k: "ETC", label: "기타", count: counts.ETC },
+              ] as { k: StatusFilter; label: string; count: number }[]
+            ).map(({ k, label, count }) => (
+              <Chip
+                key={k}
+                label={`${label} · ${count}`}
+                color={statusFilter === k ? "primary" : "default"}
+                variant={statusFilter === k ? "filled" : "outlined"}
+                onClick={() => setStatusFilter(k)}
+                disabled={k !== "all" && count === 0}
+              />
+            ))}
+          </Box>
+        </Paper>
 
-      {/* 검색 */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="이름 검색"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-        />
-      </Paper>
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="이름 검색"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+        </Paper>
       </Box>
-      {/* ↑ sticky 래퍼 종료 */}
 
-      {/* 3-column 리스트 */}
       <Paper sx={{ p: 2 }}>
-        {/* 전체 선택 헤더 */}
         <Stack
           direction="row"
           alignItems="center"
@@ -663,7 +730,6 @@ export default function EditTab() {
         </Stack>
 
         {searchText ? (
-          /* 검색 중: 평면 리스트 */
           <Box
             sx={{
               border: "1px solid #e0e0e0",
@@ -696,13 +762,21 @@ export default function EditTab() {
                   const isLeader = u.community?.leader?.id === u.id
                   const isDeputy = u.community?.deputyLeader?.id === u.id
                   const checked = checkedIds.has(u.id)
-                  const vId = u.community
+                  const dangId = u.community
+                    ? findDangId(u.community.id)
+                    : null
+                  const villageId = u.community
                     ? findVillageId(u.community.id)
                     : null
-                  const vName = vId ? nameMap.get(vId) : ""
-                  const dName = u.community
-                    ? nameMap.get(u.community.id)
-                    : ""
+                  const darakId = u.community
+                    ? findDarakId(u.community.id)
+                    : null
+                  const dangName = dangId ? nameMap.get(dangId) : ""
+                  const villageName = villageId ? nameMap.get(villageId) : ""
+                  const darakName = darakId ? nameMap.get(darakId) : ""
+                  const path = [dangName, villageName, darakName]
+                    .filter(Boolean)
+                    .join(" › ")
                   return (
                     <RowButton
                       key={u.id}
@@ -741,7 +815,7 @@ export default function EditTab() {
                           color="text.secondary"
                           noWrap
                         >
-                          {vName} › {dName} · {u.yearOfBirth}년생 ·{" "}
+                          {path} · {u.yearOfBirth}년생 ·{" "}
                           {u.gender === "man" ? "남" : "여"}
                         </Typography>
                       </Stack>
@@ -754,175 +828,410 @@ export default function EditTab() {
           </Box>
         ) : (
           <>
-          {/* 모바일 전용: 뒤로가기 + 경로 */}
-          {isMobile && focusedVillageId != null && (
-            <Stack direction="row" alignItems="center" sx={{ mb: 1, pl: 0.5 }}>
-              <IconButton
-                size="small"
-                onClick={() => {
-                  if (focusedDarakId != null) setFocusedDarakId(null)
-                  else setFocusedVillageId(null)
-                }}
+            {/* 모드 표시 + 뒤로가기 */}
+            {showSoonwonMode && (
+              <Stack
+                direction="row"
+                alignItems="center"
+                sx={{ mb: 1, pl: 0.5 }}
               >
-                <ArrowBackIcon fontSize="small" />
-              </IconButton>
-              <Typography variant="body2" color="text.secondary">
-                {nameMap.get(focusedVillageId)}
-                {focusedDarakId != null &&
-                  ` › ${nameMap.get(focusedDarakId)}`}
-              </Typography>
-            </Stack>
-          )}
-
-          <Stack
-            direction={{ xs: "column", md: "row" }}
-            gap={1.5}
-            sx={{ minHeight: 440 }}
-          >
-          {/* 컬럼 1: 마을 — 모바일에선 focused 상태일 때 숨김 */}
-          {(!isMobile || focusedVillageId == null) && (
-          <ColumnBox title="마을" flex={1}>
-            {villagesCol.map((v) => {
-              const users = usersByVillage.get(v.id) || []
-              const count = users.length
-              const state = getGroupState(users)
-              const isFocused = focusedVillageId === v.id
-              return (
-                <RowButton
-                  key={v.id}
-                  focused={isFocused}
-                  onClick={() => {
-                    setFocusedVillageId(v.id)
-                    setFocusedDarakId(null)
-                  }}
+                <IconButton
+                  size="small"
+                  onClick={() => setFocusedDarakId(null)}
+                  title="담당으로 돌아가기"
                 >
-                  <Checkbox
-                    size="small"
-                    checked={state === "all"}
-                    indeterminate={state === "some"}
-                    disabled={count === 0}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={() => toggleGroup(users)}
-                  />
-                  <Stack flex={1} overflow="hidden">
-                    <Typography noWrap fontWeight={isFocused ? 700 : 500}>
-                      {v.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {count}명
-                    </Typography>
-                  </Stack>
-                  <ChevronRightIcon fontSize="small" color="disabled" />
-                </RowButton>
-              )
-            })}
-          </ColumnBox>
-
-          )}
-
-          {/* 컬럼 2: 다락방 — 모바일에선 마을 선택됐고 다락방 미선택일 때만 */}
-          {(!isMobile ||
-            (focusedVillageId != null && focusedDarakId == null)) && (
-          <ColumnBox title="다락방" flex={1}>
-            {!focusedVillageId ? (
-              <EmptyState>마을을 선택하세요</EmptyState>
-            ) : daraksCol.length === 0 ? (
-              <EmptyState>하위 다락방 없음</EmptyState>
-            ) : (
-              daraksCol.map((d) => {
-                const users = usersByDarak.get(d.id) || []
-                const count = users.length
-                const state = getGroupState(users)
-                const isFocused = focusedDarakId === d.id
-                return (
-                  <RowButton
-                    key={d.id}
-                    focused={isFocused}
-                    onClick={() => setFocusedDarakId(d.id)}
-                  >
-                    <Checkbox
-                      size="small"
-                      checked={state === "all"}
-                      indeterminate={state === "some"}
-                      disabled={count === 0}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={() => toggleGroup(users)}
-                    />
-                    <Stack flex={1} overflow="hidden">
-                      <Typography noWrap fontWeight={isFocused ? 700 : 500}>
-                        {d.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {count}명
-                      </Typography>
-                    </Stack>
-                    <ChevronRightIcon fontSize="small" color="disabled" />
-                  </RowButton>
-                )
-              })
+                  <ArrowBackIcon fontSize="small" />
+                </IconButton>
+                <Typography variant="body2" color="text.secondary">
+                  {focusedDangId && nameMap.get(focusedDangId)} ›{" "}
+                  {focusedVillageId && nameMap.get(focusedVillageId)} ›{" "}
+                  {focusedDarakId && nameMap.get(focusedDarakId)}
+                </Typography>
+              </Stack>
             )}
-          </ColumnBox>
+            {!showSoonwonMode && focusedDangId != null && (
+              <Stack
+                direction="row"
+                alignItems="center"
+                sx={{ mb: 1, pl: 0.5 }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  {nameMap.get(focusedDangId)}
+                  {focusedVillageId &&
+                    ` › ${nameMap.get(focusedVillageId)}`}
+                </Typography>
+              </Stack>
+            )}
 
-          )}
-
-          {/* 컬럼 3: 순원 — 모바일에선 다락방 선택됐을 때만 */}
-          {(!isMobile || focusedDarakId != null) && (
-          <ColumnBox title="순원" flex={1.4}>
-            {!focusedDarakId ? (
-              <EmptyState>다락방을 선택하세요</EmptyState>
-            ) : usersCol.length === 0 ? (
-              <EmptyState>해당 조건의 순원 없음</EmptyState>
-            ) : (
-              usersCol.map((u) => {
-                const status = getUserStatus(u.id)
-                const memo = attendMap.get(u.id)?.memo
-                const isLeader = u.community?.leader?.id === u.id
-                const isDeputy = u.community?.deputyLeader?.id === u.id
-                const checked = checkedIds.has(u.id)
-                return (
-                  <RowButton
-                    key={u.id}
-                    focused={checked}
-                    onClick={() => toggleUser(u.id)}
-                  >
-                    <Checkbox
-                      size="small"
-                      checked={checked}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={() => toggleUser(u.id)}
-                    />
-                    <Stack flex={1} overflow="hidden">
-                      <Stack direction="row" alignItems="center" spacing={0.5}>
-                        <Typography noWrap>{u.name}</Typography>
-                        {(isLeader || isDeputy) && (
-                          <Chip
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              gap={1.5}
+              sx={{ minHeight: 440 }}
+            >
+              {showSoonwonMode ? (
+                <>
+                  {/* 모드 B: [마을, 다락방, 순원] */}
+                  <ColumnBox title="마을" flex={1}>
+                    {villagesCol.map((v) => {
+                      const users = usersByVillage.get(v.id) || []
+                      const count = users.length
+                      const state = getGroupState(users)
+                      const isFocused = focusedVillageId === v.id
+                      return (
+                        <RowButton
+                          key={v.id}
+                          focused={isFocused}
+                          onClick={() => {
+                            setFocusedVillageId(v.id)
+                            setFocusedDarakId(null)
+                          }}
+                        >
+                          <Checkbox
                             size="small"
-                            label={isLeader ? "순장" : "부순장"}
-                            sx={{
-                              height: 18,
-                              fontSize: 10,
-                              bgcolor: isLeader ? "#e3f2fd" : "#f3e5f5",
-                            }}
+                            checked={state === "all"}
+                            indeterminate={state === "some"}
+                            disabled={count === 0}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={() => toggleGroup(users)}
                           />
-                        )}
-                      </Stack>
-                      <Typography variant="caption" color="text.secondary">
-                        {u.yearOfBirth}년생 · {u.gender === "man" ? "남" : "여"}
-                      </Typography>
-                    </Stack>
-                    <Box>{statusChip(status, memo)}</Box>
-                  </RowButton>
-                )
-              })
-            )}
-          </ColumnBox>
-          )}
-          </Stack>
+                          <Stack flex={1} overflow="hidden">
+                            <Typography
+                              noWrap
+                              fontWeight={isFocused ? 700 : 500}
+                            >
+                              {v.name}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {count}명
+                            </Typography>
+                          </Stack>
+                          <ChevronRightIcon fontSize="small" color="disabled" />
+                        </RowButton>
+                      )
+                    })}
+                  </ColumnBox>
+
+                  <ColumnBox title="다락방" flex={1}>
+                    {daraksCol.length === 0 ? (
+                      <EmptyState>하위 다락방 없음</EmptyState>
+                    ) : (
+                      daraksCol.map((d) => {
+                        const users = usersByDarak.get(d.id) || []
+                        const count = users.length
+                        const state = getGroupState(users)
+                        const isFocused = focusedDarakId === d.id
+                        return (
+                          <RowButton
+                            key={d.id}
+                            focused={isFocused}
+                            onClick={() => setFocusedDarakId(d.id)}
+                          >
+                            <Checkbox
+                              size="small"
+                              checked={state === "all"}
+                              indeterminate={state === "some"}
+                              disabled={count === 0}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={() => toggleGroup(users)}
+                            />
+                            <Stack flex={1} overflow="hidden">
+                              <Typography
+                                noWrap
+                                fontWeight={isFocused ? 700 : 500}
+                              >
+                                {d.name}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {count}명
+                              </Typography>
+                            </Stack>
+                            <ChevronRightIcon
+                              fontSize="small"
+                              color="disabled"
+                            />
+                          </RowButton>
+                        )
+                      })
+                    )}
+                  </ColumnBox>
+
+                  <ColumnBox title="순원" flex={1.4}>
+                    {soonwonsCol.length === 0 ? (
+                      <EmptyState>순원 없음</EmptyState>
+                    ) : (
+                      soonwonsCol.map((u) => {
+                        const status = getUserStatus(u.id)
+                        const memo = attendMap.get(u.id)?.memo
+                        const isLeader = u.community?.leader?.id === u.id
+                        const isDeputy =
+                          u.community?.deputyLeader?.id === u.id
+                        const checked = checkedIds.has(u.id)
+                        return (
+                          <RowButton
+                            key={u.id}
+                            focused={checked}
+                            onClick={() => toggleUser(u.id)}
+                          >
+                            <Checkbox
+                              size="small"
+                              checked={checked}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={() => toggleUser(u.id)}
+                            />
+                            <Stack flex={1} overflow="hidden">
+                              <Stack
+                                direction="row"
+                                alignItems="center"
+                                spacing={0.5}
+                              >
+                                <Typography noWrap>{u.name}</Typography>
+                                {(isLeader || isDeputy) && (
+                                  <Chip
+                                    size="small"
+                                    label={isLeader ? "순장" : "부순장"}
+                                    sx={{
+                                      height: 18,
+                                      fontSize: 10,
+                                      bgcolor: isLeader
+                                        ? "#e3f2fd"
+                                        : "#f3e5f5",
+                                    }}
+                                  />
+                                )}
+                              </Stack>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {u.yearOfBirth}년생 ·{" "}
+                                {u.gender === "man" ? "남" : "여"}
+                              </Typography>
+                            </Stack>
+                            <Box>{statusChip(status, memo)}</Box>
+                          </RowButton>
+                        )
+                      })
+                    )}
+                  </ColumnBox>
+                </>
+              ) : (
+                <>
+                  {/* 모드 A: [담당, 마을, 다락방] */}
+                  <ColumnBox title="담당" flex={1}>
+                    {dangsCol.map((dang) => {
+                      const users = usersByDang.get(dang.id) || []
+                      const count = users.length
+                      const state = getGroupState(users)
+                      const isFocused = focusedDangId === dang.id
+                      return (
+                        <RowButton
+                          key={dang.id}
+                          focused={isFocused}
+                          onClick={() => {
+                            setFocusedDangId(dang.id)
+                            setFocusedVillageId(null)
+                            setFocusedDarakId(null)
+                          }}
+                        >
+                          <Checkbox
+                            size="small"
+                            checked={state === "all"}
+                            indeterminate={state === "some"}
+                            disabled={count === 0}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={() => toggleGroup(users)}
+                          />
+                          <Stack flex={1} overflow="hidden">
+                            <Typography
+                              noWrap
+                              fontWeight={isFocused ? 700 : 500}
+                            >
+                              {dang.name}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {count}명
+                            </Typography>
+                          </Stack>
+                          <ChevronRightIcon fontSize="small" color="disabled" />
+                        </RowButton>
+                      )
+                    })}
+                  </ColumnBox>
+
+                  <ColumnBox title="마을" flex={1}>
+                    {!focusedDangId ? (
+                      <EmptyState>담당을 선택하세요</EmptyState>
+                    ) : villagesCol.length === 0 ? (
+                      <EmptyState>하위 마을 없음</EmptyState>
+                    ) : (
+                      villagesCol.map((v) => {
+                        const users = usersByVillage.get(v.id) || []
+                        const count = users.length
+                        const state = getGroupState(users)
+                        const isFocused = focusedVillageId === v.id
+                        return (
+                          <RowButton
+                            key={v.id}
+                            focused={isFocused}
+                            onClick={() => {
+                              setFocusedVillageId(v.id)
+                              setFocusedDarakId(null)
+                            }}
+                          >
+                            <Checkbox
+                              size="small"
+                              checked={state === "all"}
+                              indeterminate={state === "some"}
+                              disabled={count === 0}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={() => toggleGroup(users)}
+                            />
+                            <Stack flex={1} overflow="hidden">
+                              <Typography
+                                noWrap
+                                fontWeight={isFocused ? 700 : 500}
+                              >
+                                {v.name}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {count}명
+                              </Typography>
+                            </Stack>
+                            <ChevronRightIcon
+                              fontSize="small"
+                              color="disabled"
+                            />
+                          </RowButton>
+                        )
+                      })
+                    )}
+                  </ColumnBox>
+
+                  <ColumnBox
+                    title={isFlatDangMode ? "순원" : "다락방"}
+                    flex={isFlatDangMode ? 1.4 : 1}
+                  >
+                    {isFlatDangMode ? (
+                      // 사역팀처럼 평탄한 담당: 다락방 자리에 user 직접
+                      directUsersOfDang.map((u) => {
+                        const status = getUserStatus(u.id)
+                        const memo = attendMap.get(u.id)?.memo
+                        const isLeader = u.community?.leader?.id === u.id
+                        const isDeputy =
+                          u.community?.deputyLeader?.id === u.id
+                        const checked = checkedIds.has(u.id)
+                        return (
+                          <RowButton
+                            key={u.id}
+                            focused={checked}
+                            onClick={() => toggleUser(u.id)}
+                          >
+                            <Checkbox
+                              size="small"
+                              checked={checked}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={() => toggleUser(u.id)}
+                            />
+                            <Stack flex={1} overflow="hidden">
+                              <Stack
+                                direction="row"
+                                alignItems="center"
+                                spacing={0.5}
+                              >
+                                <Typography noWrap>{u.name}</Typography>
+                                {(isLeader || isDeputy) && (
+                                  <Chip
+                                    size="small"
+                                    label={isLeader ? "순장" : "부순장"}
+                                    sx={{
+                                      height: 18,
+                                      fontSize: 10,
+                                      bgcolor: isLeader
+                                        ? "#e3f2fd"
+                                        : "#f3e5f5",
+                                    }}
+                                  />
+                                )}
+                              </Stack>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {u.yearOfBirth}년생 ·{" "}
+                                {u.gender === "man" ? "남" : "여"}
+                              </Typography>
+                            </Stack>
+                            <Box>{statusChip(status, memo)}</Box>
+                          </RowButton>
+                        )
+                      })
+                    ) : !focusedVillageId ? (
+                      <EmptyState>마을을 선택하세요</EmptyState>
+                    ) : daraksCol.length === 0 ? (
+                      <EmptyState>하위 다락방 없음</EmptyState>
+                    ) : (
+                      daraksCol.map((d) => {
+                        const users = usersByDarak.get(d.id) || []
+                        const count = users.length
+                        const state = getGroupState(users)
+                        const isFocused = focusedDarakId === d.id
+                        return (
+                          <RowButton
+                            key={d.id}
+                            focused={isFocused}
+                            onClick={() => setFocusedDarakId(d.id)}
+                          >
+                            <Checkbox
+                              size="small"
+                              checked={state === "all"}
+                              indeterminate={state === "some"}
+                              disabled={count === 0}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={() => toggleGroup(users)}
+                            />
+                            <Stack flex={1} overflow="hidden">
+                              <Typography
+                                noWrap
+                                fontWeight={isFocused ? 700 : 500}
+                              >
+                                {d.name}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {count}명
+                              </Typography>
+                            </Stack>
+                            <ChevronRightIcon
+                              fontSize="small"
+                              color="disabled"
+                            />
+                          </RowButton>
+                        )
+                      })
+                    )}
+                  </ColumnBox>
+                </>
+              )}
+            </Stack>
           </>
         )}
       </Paper>
 
-      {/* Phase 3: 공통 사유 다이얼로그 */}
+      {/* 공통 사유 다이얼로그 */}
       <Dialog
         open={Boolean(memoDialog)}
         onClose={() => setMemoDialog(null)}
@@ -971,7 +1280,6 @@ export default function EditTab() {
         </DialogActions>
       </Dialog>
 
-      {/* Phase 3: Undo 스낵바 */}
       <Snackbar
         open={Boolean(undoAction)}
         autoHideDuration={10000}
@@ -981,7 +1289,6 @@ export default function EditTab() {
         }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         sx={{
-          // bulk bar 위로 / 없으면 최소 여백. 모두 safe-area inset 추가
           mb:
             checkedIds.size > 0
               ? "calc(80px + env(safe-area-inset-bottom, 0px))"
@@ -1001,7 +1308,6 @@ export default function EditTab() {
         }
       />
 
-      {/* Sticky bulk action bar */}
       {checkedIds.size > 0 && (
         <Paper
           elevation={8}
@@ -1012,7 +1318,6 @@ export default function EditTab() {
             right: 0,
             pt: 1.5,
             px: 1.5,
-            // 하단 padding에 iPhone 홈 인디케이터 인셋 포함
             pb: "calc(12px + env(safe-area-inset-bottom, 0px))",
             zIndex: 100,
             borderTop: "2px solid #1976d2",
@@ -1094,8 +1399,6 @@ function statusLabel(status: AttendStatus) {
   if (status === AttendStatus.ABSENT) return "결석"
   return "기타"
 }
-
-/* --- 하위 컴포넌트 --- */
 
 function ColumnBox({
   title,
