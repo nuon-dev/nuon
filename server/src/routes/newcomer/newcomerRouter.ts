@@ -38,6 +38,7 @@ router.post("/", async (req, res) => {
   const {
     name,
     yearOfBirth,
+    birthday,
     gender,
     phone,
     guiderId,
@@ -50,6 +51,7 @@ router.post("/", async (req, res) => {
     faithLevel,
     previousChurch,
     carNumber,
+    registrationDate,
   } = req.body
 
   if (!name) {
@@ -87,6 +89,7 @@ router.post("/", async (req, res) => {
     const newcomer = newcomerDatabase.create({
       name,
       yearOfBirth: yearOfBirth ? parseInt(yearOfBirth, 10) : null,
+      birthday: birthday || null,
       gender: gender || null,
       phone: phone?.replace(/[^\d]/g, "") || null,
       address,
@@ -99,6 +102,8 @@ router.post("/", async (req, res) => {
       guider,
       assignment,
       newcomerManager,
+      registrationDate:
+        registrationDate || new Date().toISOString().split("T")[0],
       status: NewcomerStatus.NORMAL,
     })
 
@@ -121,6 +126,7 @@ router.put("/:id", async (req, res) => {
   const {
     name,
     yearOfBirth,
+    birthday,
     gender,
     phone,
     guiderId,
@@ -136,6 +142,7 @@ router.put("/:id", async (req, res) => {
     faithLevel,
     previousChurch,
     carNumber,
+    registrationDate,
   } = req.body
 
   try {
@@ -148,6 +155,7 @@ router.put("/:id", async (req, res) => {
     if (name) newcomer.name = name
     if (yearOfBirth !== undefined)
       newcomer.yearOfBirth = yearOfBirth ? parseInt(yearOfBirth, 10) : null
+    if (birthday !== undefined) newcomer.birthday = birthday || null
     if (gender !== undefined) newcomer.gender = gender || null
     if (phone !== undefined)
       newcomer.phone = phone?.replace(/[^\d]/g, "") || null
@@ -159,6 +167,8 @@ router.put("/:id", async (req, res) => {
     if (faithLevel !== undefined) newcomer.faithLevel = faithLevel || null
     if (previousChurch !== undefined) newcomer.previousChurch = previousChurch
     if (carNumber !== undefined) newcomer.carNumber = carNumber
+    if (registrationDate !== undefined)
+      newcomer.registrationDate = registrationDate || null
     if (status) newcomer.status = status
     if (pendingDate !== undefined) newcomer.pendingDate = pendingDate
     if (promotionDate !== undefined) newcomer.promotionDate = promotionDate
@@ -257,6 +267,7 @@ router.get("/", async (req, res) => {
         },
       },
       order: {
+        registrationDate: "DESC",
         createdAt: "DESC",
       },
     })
@@ -379,6 +390,8 @@ router.get("/education", async (req, res) => {
         faithLevel: newcomer.faithLevel,
         previousChurch: newcomer.previousChurch,
         carNumber: newcomer.carNumber,
+        birthday: newcomer.birthday,
+        registrationDate: newcomer.registrationDate,
         status: newcomer.status,
         guider: newcomer.guider
           ? { id: newcomer.guider.id, name: newcomer.guider.name }

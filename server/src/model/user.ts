@@ -7,7 +7,7 @@ export const REFRESH_TOKEN_EXPIRE_DAYS = 21
 async function loginFromKakaoId(kakaoId: string): Promise<{
   accessToken: string
   refreshToken: string
-}> {
+} | null> {
   const foundUser = await userDatabase.findOne({
     where: {
       kakaoId: kakaoId,
@@ -39,7 +39,7 @@ async function loginFromKakaoId(kakaoId: string): Promise<{
 }
 
 async function registerNewUser(
-  kakaoId: string
+  kakaoId: string,
 ): Promise<{ accessToken: string; refreshToken: string }> {
   const now = new Date()
   const createUser = new User()
@@ -49,7 +49,7 @@ async function registerNewUser(
   const newRefreshToken = generateRefreshToken(createUser)
   createUser.token = newRefreshToken
   createUser.expire = new Date(
-    now.setDate(now.getDate() + REFRESH_TOKEN_EXPIRE_DAYS)
+    now.setDate(now.getDate() + REFRESH_TOKEN_EXPIRE_DAYS),
   )
   await userDatabase.save(createUser)
   const newAccessToken = await generateAccessToken(createUser)

@@ -21,6 +21,7 @@ interface Newcomer {
   id: string
   name: string
   yearOfBirth: number | null
+  birthday: string | null
   phone: string | null
   gender: "man" | "woman" | "" | null
   status: "NORMAL" | "PROMOTED" | "PENDING" | "DELETED"
@@ -31,6 +32,7 @@ interface Newcomer {
   } | null
   assignment: { id: number; name: string } | null
   createdAt: string
+  registrationDate: string | null
   deletedAt?: string | null
   pendingDate?: string | null
   promotionDate?: string | null
@@ -52,6 +54,7 @@ const emptyNewcomer: Newcomer = {
   id: "",
   name: "",
   yearOfBirth: null,
+  birthday: null,
   phone: null,
   gender: "man",
   status: "NORMAL",
@@ -59,6 +62,7 @@ const emptyNewcomer: Newcomer = {
   newcomerManager: null,
   assignment: null,
   createdAt: "",
+  registrationDate: null,
   deletedAt: null,
   pendingDate: null,
   promotionDate: null,
@@ -128,6 +132,7 @@ export default function NewcomerManagement() {
         await axios.put(`/newcomer/${selectedNewcomer.id}`, {
           name: selectedNewcomer.name,
           yearOfBirth: selectedNewcomer.yearOfBirth,
+          birthday: selectedNewcomer.birthday,
           gender: selectedNewcomer.gender,
           phone: selectedNewcomer.phone,
           newcomerManagerId: selectedNewcomer.newcomerManager?.id || null,
@@ -143,12 +148,14 @@ export default function NewcomerManagement() {
           faithLevel: selectedNewcomer.faithLevel,
           previousChurch: selectedNewcomer.previousChurch,
           carNumber: selectedNewcomer.carNumber,
+          registrationDate: selectedNewcomer.registrationDate,
         })
         notification.success("새신자 정보가 수정되었습니다.")
       } else {
         await axios.post("/newcomer", {
           name: selectedNewcomer.name,
           yearOfBirth: selectedNewcomer.yearOfBirth,
+          birthday: selectedNewcomer.birthday,
           gender: selectedNewcomer.gender,
           phone: selectedNewcomer.phone,
           newcomerManagerId: selectedNewcomer.newcomerManager?.id || null,
@@ -159,6 +166,7 @@ export default function NewcomerManagement() {
           faithLevel: selectedNewcomer.faithLevel,
           previousChurch: selectedNewcomer.previousChurch,
           carNumber: selectedNewcomer.carNumber,
+          registrationDate: selectedNewcomer.registrationDate,
         })
         notification.success("새신자가 추가되었습니다.")
       }
@@ -291,6 +299,14 @@ export default function NewcomerManagement() {
             return aYear - bYear
           }
           return bYear - aYear
+        }
+        if (orderProperty === "registrationDate") {
+          const aDate = a.registrationDate || a.createdAt || ""
+          const bDate = b.registrationDate || b.createdAt || ""
+          if (direction === "asc") {
+            return aDate.localeCompare(bDate)
+          }
+          return bDate.localeCompare(aDate)
         }
         return 0
       })

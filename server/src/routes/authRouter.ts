@@ -1,6 +1,6 @@
 import express from "express"
 import { getUserFromToken } from "../util/util"
-import { communityDatabase } from "../model/dataSource"
+import { userDatabase } from "../model/dataSource"
 import { User } from "../entity/user"
 import userModel from "../model/user"
 import {
@@ -27,7 +27,16 @@ router.post("/edit-my-information", async (req, res) => {
     return
   }
 
-  await userModel.updateUserData(user)
+  const allowedUpdate: Partial<User> = {
+    name: user.name,
+    yearOfBirth: user.yearOfBirth,
+    gender: user.gender,
+    phone: user.phone,
+    etc: user.etc,
+    profile: user.profile,
+  }
+
+  await userDatabase.update({ id: me.id }, allowedUpdate)
   res.send({ result: "success" })
 })
 

@@ -11,12 +11,12 @@ import type { Newcomer } from "./newcomer"
 @Entity()
 export class NewcomerManager {
   @PrimaryGeneratedColumn("uuid")
-  id: string
+  id!: string
 
   @OneToOne(() => User)
   @JoinColumn({ name: "userId" })
-  user: User
+  user!: User
 
   @OneToMany("Newcomer", "newcomerManager")
-  newcomers: Newcomer[]
+  newcomers!: Newcomer[]
 }
