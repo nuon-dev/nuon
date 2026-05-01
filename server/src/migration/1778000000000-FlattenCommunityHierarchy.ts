@@ -33,6 +33,12 @@ export class FlattenCommunityHierarchy1778000000000
       await queryRunner.query(
         `UPDATE community SET parentId = NULL WHERE parentId IN (${ids})`,
       )
+      // 전도사 본인 user들이 자기 담당 노드를 community로 가리키고 있어
+      // FK 위반을 일으키므로, 삭제 전 그 user들의 community를 NULL로 풀어줌.
+      // 전도사들은 출석 체크 대상이 아니므로 community 미소속이 정상 상태.
+      await queryRunner.query(
+        `UPDATE user SET communityId = NULL WHERE communityId IN (${ids})`,
+      )
       await queryRunner.query(
         `DELETE FROM community WHERE id IN (${ids})`,
       )
