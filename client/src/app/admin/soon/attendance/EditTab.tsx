@@ -41,6 +41,7 @@ import {
   toBulkResultMessage,
 } from "@/util/attendanceError"
 import { useNotification } from "@/hooks/useNotification"
+import { getEvangelistMeta } from "./evangelistMap"
 
 type StatusFilter = "all" | "unrecorded" | "ATTEND" | "ABSENT" | "ETC"
 
@@ -805,9 +806,28 @@ export default function EditTab() {
                     onChange={() => toggleGroup(users)}
                   />
                   <Stack flex={1} overflow="hidden">
-                    <Typography noWrap fontWeight={isFocused ? 700 : 500}>
-                      {v.name}
-                    </Typography>
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                      <Typography noWrap fontWeight={isFocused ? 700 : 500}>
+                        {v.name}
+                      </Typography>
+                      {(() => {
+                        const ev = getEvangelistMeta(v.name)
+                        if (!ev) return null
+                        return (
+                          <Chip
+                            size="small"
+                            label={ev.label}
+                            sx={{
+                              height: 18,
+                              fontSize: 10,
+                              bgcolor: ev.color,
+                              color: "white",
+                              "& .MuiChip-label": { px: 0.75 },
+                            }}
+                          />
+                        )
+                      })()}
+                    </Stack>
                     <Typography variant="caption" color="text.secondary">
                       {count}명
                     </Typography>
