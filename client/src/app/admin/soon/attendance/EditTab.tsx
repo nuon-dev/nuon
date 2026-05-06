@@ -27,26 +27,12 @@ import CancelIcon from "@mui/icons-material/Cancel"
 import HelpIcon from "@mui/icons-material/Help"
 import CloseIcon from "@mui/icons-material/Close"
 
-import axios from "@/config/axios"
-import { get } from "@/config/api"
-import { AttendData } from "@server/entity/attendData"
 import { AttendStatus } from "@server/entity/types"
-import { Community } from "@server/entity/community"
 import { User } from "@server/entity/user"
-import { WorshipSchedule } from "@server/entity/worshipSchedule"
 import { worshipKr } from "@/util/worship"
-import {
-  BulkAttendanceResponse,
-  toAttendanceErrorMessage,
-  toBulkResultMessage,
-} from "@/util/attendanceError"
-import { useNotification } from "@/hooks/useNotification"
 import { getEvangelistMeta } from "./evangelistMap"
 import {
   StatusFilter,
-  buildAttendMap,
-  buildNameMap,
-  buildParentMap,
   findVillageId,
   getGroupState,
   getUserAttendStatus,
@@ -54,94 +40,49 @@ import {
   sortUsersByVillagePath,
   statusLabel,
 } from "./utils/attendanceUtils"
+import { useAttendanceData } from "./useAttendanceData"
+import { useSelection } from "./useSelection"
+import { useDrillDownFocus } from "./useDrillDownFocus"
+import { useBulkAttendance } from "./useBulkAttendance"
 
 export default function EditTab() {
-  const [communities, setCommunities] = useState<Community[]>([])
-  const [allUsers, setAllUsers] = useState<User[]>([])
-  const [schedules, setSchedules] = useState<WorshipSchedule[]>([])
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | "">("")
-  const [attendData, setAttendData] = useState<AttendData[]>([])
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [searchText, setSearchText] = useState("")
-  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
-  const [focusedVillageId, setFocusedVillageId] = useState<number | null>(null)
-  const [focusedDarakId, setFocusedDarakId] = useState<number | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-
-  // Phase 3: Undo 스낵바
-  const [undoAction, setUndoAction] = useState<{
-    userIds: string[]
-    previousStates: Map<string, { status: StatusFilter; memo: string }>
-    newStatus: AttendStatus
-    scheduleId: number
-  } | null>(null)
-
-  // Phase 3: 공통 사유 다이얼로그
   const [memoDialog, setMemoDialog] = useState<{
     status: AttendStatus
     memo: string
   } | null>(null)
-
-  const { success, error } = useNotification()
 
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
   // bulk 버튼 라벨 숨김 기준 — 600px 미만에선 아이콘만
   const isNarrow = useMediaQuery(theme.breakpoints.down("sm"))
 
-  // 초기 로드
-  useEffect(() => {
-    ;(async () => {
-      try {
-        const [commData, schedResp] = await Promise.all([
-          get("/admin/community"),
-          axios.get<WorshipSchedule[]>("/soon/worship-schedule"),
-        ])
-        setCommunities(commData)
-        setSchedules(schedResp.data)
-        if (schedResp.data.length > 0) {
-          setSelectedScheduleId(schedResp.data[0].id)
-        }
-      } catch (e) {
-        error("데이터 로드 실패")
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [])
+  const {
+    communities,
+    allUsers,
+    schedules,
+    attendMap,
+    parentMap,
+    nameMap,
+    loading,
+    setAttendData,
+  } = useAttendanceData(selectedScheduleId)
 
-  // 전체 유저 로드
+  // 첫 schedule 자동 선택
   useEffect(() => {
-    if (communities.length === 0) return
-    const topIds = communities
-      .filter((c) => !c.parent)
-      .map((c) => c.id)
-      .join(",")
-    if (!topIds) return
-    axios
-      .post<User[]>("/admin/soon/get-soon-list", { ids: topIds })
-      .then((resp) => setAllUsers(resp.data))
-  }, [communities])
+    if (selectedScheduleId === "" && schedules.length > 0) {
+      setSelectedScheduleId(schedules[0].id)
+    }
+  }, [schedules])
 
-  // 선택된 예배의 출석 데이터 로드
-  useEffect(() => {
-    if (allUsers.length === 0 || !selectedScheduleId) return
-    const userIds = allUsers.map((u) => u.id).join(",")
-    axios
-      .post<AttendData[]>("/admin/soon/user-attendance", { ids: userIds })
-      .then((resp) => {
-        const filtered = resp.data.filter(
-          (d) => d.worshipSchedule.id === selectedScheduleId,
-        )
-        setAttendData(filtered)
-      })
-  }, [allUsers, selectedScheduleId])
-
-  // Memos
-  const attendMap = useMemo(() => buildAttendMap(attendData), [attendData])
-  const parentMap = useMemo(() => buildParentMap(communities), [communities])
-  const nameMap = useMemo(() => buildNameMap(communities), [communities])
+  const {
+    checkedIds,
+    toggleUser,
+    toggleGroup,
+    clear: clearSelection,
+  } = useSelection()
 
   // 필터링된 유저
   const filteredUsers = useMemo(() => {
@@ -176,6 +117,14 @@ export default function EditTab() {
     return m
   }, [filteredUsers])
 
+  const {
+    focusedVillageId,
+    focusedDarakId,
+    focusVillage,
+    focusDarak,
+    back: focusBack,
+  } = useDrillDownFocus({ usersByVillage, usersByDarak })
+
   // 컬럼 1: 최상위 마을들
   const villagesCol = useMemo(() => {
     return communities
@@ -203,22 +152,6 @@ export default function EditTab() {
     [filteredUsers, parentMap],
   )
 
-  // 필터 변경으로 포커스 그룹이 비었을 경우 자동 해제
-  useEffect(() => {
-    if (
-      focusedVillageId &&
-      (usersByVillage.get(focusedVillageId)?.length ?? 0) === 0
-    ) {
-      setFocusedVillageId(null)
-      setFocusedDarakId(null)
-    } else if (
-      focusedDarakId &&
-      (usersByDarak.get(focusedDarakId)?.length ?? 0) === 0
-    ) {
-      setFocusedDarakId(null)
-    }
-  }, [usersByVillage, usersByDarak])
-
   // 필터 chip 카운트
   const counts = useMemo(() => {
     const base = searchText
@@ -233,188 +166,30 @@ export default function EditTab() {
     return c
   }, [allUsers, attendMap, searchText])
 
-  // 선택 헬퍼
-  function toggleUser(id: string) {
-    setCheckedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
+  const { saving, undoAction, runBulkSave, handleUndo, dismissUndo } =
+    useBulkAttendance({
+      scheduleId: selectedScheduleId,
+      attendMap,
+      setAttendData,
     })
-  }
 
-  function toggleGroup(users: User[]) {
-    const state = getGroupState(checkedIds, users)
-    setCheckedIds((prev) => {
-      const next = new Set(prev)
-      if (state === "all") {
-        users.forEach((u) => next.delete(u.id))
-      } else {
-        users.forEach((u) => next.add(u.id))
-      }
-      return next
-    })
-  }
-
-  // Bulk 저장 진입점 — ABSENT/ETC는 사유 다이얼로그 경유
+  // ABSENT/ETC는 사유 다이얼로그를 거쳐 saved → 선택 해제.
   function handleBulkSave(status: AttendStatus) {
     if (!selectedScheduleId) return
     if (checkedIds.size === 0) return
 
     if (status === AttendStatus.ABSENT || status === AttendStatus.ETC) {
-      // 공통 사유 다이얼로그 오픈
       setMemoDialog({ status, memo: "" })
       return
     }
-    // ATTEND는 다이얼로그 없이 바로
-    runBulkSave(status, "")
+    void runBulkSave(checkedIds, status, "").then(clearSelection)
   }
 
-  async function runBulkSave(status: AttendStatus, memo: string) {
-    if (!selectedScheduleId) return
-    const ids = Array.from(checkedIds)
-    if (ids.length === 0) return
-
-    // Phase 3: 스냅샷 저장 (undo용)
-    const previousStates = new Map<
-      string,
-      { status: StatusFilter; memo: string }
-    >()
-    ids.forEach((userId) => {
-      previousStates.set(userId, {
-        status: getUserAttendStatus(attendMap, userId),
-        memo: attendMap.get(userId)?.memo || "",
-      })
-    })
-
-    setSaving(true)
-    let successfulIds: string[] = []
-    let firstFailureMessage = ""
-    try {
-      const response = await axios.post<BulkAttendanceResponse>(
-        "/admin/soon/update-attendance-bulk",
-        {
-          worshipScheduleId: selectedScheduleId,
-          items: ids.map((userId) => ({ userId, isAttend: status, memo })),
-        },
-      )
-      successfulIds = response.data.results
-        .filter((r) => r.status === "ok")
-        .map((r) => r.userId)
-      const firstFail = response.data.results.find((r) => r.status !== "ok")
-      if (firstFail) {
-        firstFailureMessage = toBulkResultMessage(firstFail)
-      }
-    } catch (e) {
-      firstFailureMessage = toAttendanceErrorMessage(e)
-    }
-
-    setAttendData((prev) => {
-      const map = new Map(prev.map((d) => [d.user.id, d]))
-      successfulIds.forEach((userId) => {
-        const existing = map.get(userId)
-        if (existing) {
-          map.set(userId, { ...existing, isAttend: status, memo })
-        } else {
-          map.set(userId, {
-            id: "local-" + userId,
-            user: { id: userId } as User,
-            worshipSchedule: {
-              id: Number(selectedScheduleId),
-            } as WorshipSchedule,
-            isAttend: status,
-            memo,
-          } as AttendData)
-        }
-      })
-      return Array.from(map.values())
-    })
-
-    setSaving(false)
-    const failed = ids.length - successfulIds.length
-    if (failed > 0) {
-      error(
-        firstFailureMessage
-          ? `${failed}건 저장 실패 — ${firstFailureMessage}`
-          : `${failed}건 저장 실패`,
-      )
-    }
-
-    // Phase 3: Undo 액션 준비 (성공한 것만)
-    if (successfulIds.length > 0) {
-      const snapshot = new Map<
-        string,
-        { status: StatusFilter; memo: string }
-      >()
-      successfulIds.forEach((id) => {
-        const prev = previousStates.get(id)
-        if (prev) snapshot.set(id, prev)
-      })
-      setUndoAction({
-        userIds: successfulIds,
-        previousStates: snapshot,
-        newStatus: status,
-        scheduleId: Number(selectedScheduleId),
-      })
-    }
-    setCheckedIds(new Set())
-  }
-
-  // Phase 3: Undo 실행
-  async function handleUndo() {
-    if (!undoAction) return
-    const action = undoAction
-    setUndoAction(null) // 스낵바 먼저 닫기
-
-    const restorable = action.userIds.filter(
-      (id) => action.previousStates.get(id)?.status !== "unrecorded",
-    )
-    const unrecoverable = action.userIds.length - restorable.length
-
-    if (restorable.length === 0) {
-      error("이전 상태가 '기록안됨'이라 복구할 수 없습니다")
-      return
-    }
-
-    let successIds: string[] = []
-    try {
-      const response = await axios.post<BulkAttendanceResponse>(
-        "/admin/soon/update-attendance-bulk",
-        {
-          worshipScheduleId: action.scheduleId,
-          items: restorable.map((userId) => {
-            const prev = action.previousStates.get(userId)!
-            return { userId, isAttend: prev.status, memo: prev.memo }
-          }),
-        },
-      )
-      successIds = response.data.results
-        .filter((r) => r.status === "ok")
-        .map((r) => r.userId)
-    } catch {
-      // 네트워크 에러 등: successIds 빈 배열 유지
-    }
-
-    // 로컬 상태 복원
-    setAttendData((prev) => {
-      const map = new Map(prev.map((d) => [d.user.id, d]))
-      successIds.forEach((userId) => {
-        const target = action.previousStates.get(userId)!
-        const existing = map.get(userId)
-        if (existing) {
-          map.set(userId, {
-            ...existing,
-            isAttend: target.status as AttendStatus,
-            memo: target.memo,
-          })
-        }
-      })
-      return Array.from(map.values())
-    })
-
-    let msg = `${successIds.length}명 복구됨`
-    if (unrecoverable > 0) msg += ` (${unrecoverable}명은 복구 불가)`
-    success(msg)
+  function applyMemoDialog() {
+    if (!memoDialog) return
+    const { status, memo } = memoDialog
+    setMemoDialog(null)
+    void runBulkSave(checkedIds, status, memo).then(clearSelection)
   }
 
   function statusChip(status: StatusFilter, memo?: string) {
@@ -707,13 +482,7 @@ export default function EditTab() {
           {/* 모바일 전용: 뒤로가기 + 경로 */}
           {isMobile && focusedVillageId != null && (
             <Stack direction="row" alignItems="center" sx={{ mb: 1, pl: 0.5 }}>
-              <IconButton
-                size="small"
-                onClick={() => {
-                  if (focusedDarakId != null) setFocusedDarakId(null)
-                  else setFocusedVillageId(null)
-                }}
-              >
+              <IconButton size="small" onClick={focusBack}>
                 <ArrowBackIcon fontSize="small" />
               </IconButton>
               <Typography variant="body2" color="text.secondary">
@@ -741,10 +510,7 @@ export default function EditTab() {
                 <RowButton
                   key={v.id}
                   focused={isFocused}
-                  onClick={() => {
-                    setFocusedVillageId(v.id)
-                    setFocusedDarakId(null)
-                  }}
+                  onClick={() => focusVillage(v.id)}
                 >
                   <Checkbox
                     size="small"
@@ -807,7 +573,7 @@ export default function EditTab() {
                   <RowButton
                     key={d.id}
                     focused={isFocused}
-                    onClick={() => setFocusedDarakId(d.id)}
+                    onClick={() => focusDarak(d.id)}
                   >
                     <Checkbox
                       size="small"
@@ -916,25 +682,13 @@ export default function EditTab() {
               setMemoDialog({ ...memoDialog, memo: e.target.value })
             }
             onKeyDown={(e) => {
-              if (e.key === "Enter" && memoDialog) {
-                const { status, memo } = memoDialog
-                setMemoDialog(null)
-                runBulkSave(status, memo)
-              }
+              if (e.key === "Enter") applyMemoDialog()
             }}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setMemoDialog(null)}>취소</Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              if (!memoDialog) return
-              const { status, memo } = memoDialog
-              setMemoDialog(null)
-              runBulkSave(status, memo)
-            }}
-          >
+          <Button variant="contained" onClick={applyMemoDialog}>
             적용
           </Button>
         </DialogActions>
@@ -946,7 +700,7 @@ export default function EditTab() {
         autoHideDuration={10000}
         onClose={(_, reason) => {
           if (reason === "clickaway") return
-          setUndoAction(null)
+          dismissUndo()
         }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         sx={{
@@ -1042,7 +796,7 @@ export default function EditTab() {
               </Button>
               <Button
                 variant="outlined"
-                onClick={() => setCheckedIds(new Set())}
+                onClick={clearSelection}
                 disabled={saving}
                 size="small"
                 title="선택 해제"
