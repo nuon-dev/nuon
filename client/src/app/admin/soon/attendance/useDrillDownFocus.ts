@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { User } from "@server/entity/user"
 
 type Params = {
@@ -26,19 +26,23 @@ export function useDrillDownFocus({ usersByVillage, usersByDarak }: Params) {
     }
   }, [usersByVillage, usersByDarak])
 
-  function focusVillage(id: number) {
+  const focusVillage = useCallback((id: number) => {
     setFocusedVillageId(id)
     setFocusedDarakId(null)
-  }
+  }, [])
 
-  function focusDarak(id: number) {
+  const focusDarak = useCallback((id: number) => {
     setFocusedDarakId(id)
-  }
+  }, [])
 
-  function back() {
-    if (focusedDarakId != null) setFocusedDarakId(null)
-    else setFocusedVillageId(null)
-  }
+  // 다락방 → 마을 → null 순으로 한 단계씩 빠져나감.
+  const back = useCallback(() => {
+    setFocusedDarakId((prevDarak) => {
+      if (prevDarak != null) return null
+      setFocusedVillageId(null)
+      return prevDarak
+    })
+  }, [])
 
   return { focusedVillageId, focusedDarakId, focusVillage, focusDarak, back }
 }

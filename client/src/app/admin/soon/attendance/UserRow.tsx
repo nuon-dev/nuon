@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import { Box, Checkbox, Chip, Stack, Typography } from "@mui/material"
 import { User } from "@server/entity/user"
 import { RowButton } from "./Primitives"
@@ -12,20 +13,23 @@ type Props = {
   memo?: string
   checked: boolean
   onToggle: (id: string) => void
-  // 마을→다락방 경로 표시 (검색 결과에서만 사용)
-  lineage?: { vName: string; dName: string }
+  // 마을→다락방 경로 — 검색 결과에서만 채워짐. 둘 다 비면 lineage 미표시.
+  vName?: string
+  dName?: string
 }
 
-export function UserRow({
+export const UserRow = memo(function UserRow({
   user,
   status,
   memo,
   checked,
   onToggle,
-  lineage,
+  vName,
+  dName,
 }: Props) {
   const isLeader = user.community?.leader?.id === user.id
   const isDeputy = user.community?.deputyLeader?.id === user.id
+  const hasLineage = Boolean(vName || dName)
 
   return (
     <RowButton focused={checked} onClick={() => onToggle(user.id)}>
@@ -37,7 +41,7 @@ export function UserRow({
       />
       <Stack flex={1} overflow="hidden">
         <Stack direction="row" alignItems="center" spacing={0.5}>
-          <Typography noWrap fontWeight={lineage ? 500 : undefined}>
+          <Typography noWrap fontWeight={hasLineage ? 500 : undefined}>
             {user.name}
           </Typography>
           {(isLeader || isDeputy) && (
@@ -52,12 +56,8 @@ export function UserRow({
             />
           )}
         </Stack>
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          noWrap={Boolean(lineage)}
-        >
-          {lineage ? `${lineage.vName} › ${lineage.dName} · ` : ""}
+        <Typography variant="caption" color="text.secondary" noWrap={hasLineage}>
+          {hasLineage ? `${vName} › ${dName} · ` : ""}
           {user.yearOfBirth}년생 · {user.gender === "man" ? "남" : "여"}
         </Typography>
       </Stack>
@@ -66,4 +66,4 @@ export function UserRow({
       </Box>
     </RowButton>
   )
-}
+})

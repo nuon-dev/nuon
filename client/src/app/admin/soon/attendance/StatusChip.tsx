@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import { Chip } from "@mui/material"
 import { StatusFilter } from "./utils/attendanceUtils"
 
@@ -13,7 +14,7 @@ const baseSx = {
   },
 }
 
-export function StatusChip({
+export const StatusChip = memo(function StatusChip({
   status,
   memo,
 }: {
@@ -53,4 +54,4 @@ export function StatusChip({
     )
   }
   return null
-}
+})

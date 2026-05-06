@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import axios from "@/config/axios"
 import { AttendData } from "@server/entity/attendData"
 import { AttendStatus } from "@server/entity/types"
@@ -37,7 +37,7 @@ export function useBulkAttendance({
   const [saving, setSaving] = useState(false)
   const [undoAction, setUndoAction] = useState<UndoAction | null>(null)
 
-  async function runBulkSave(
+  const runBulkSave = useCallback(async function runBulkSave(
     checkedIds: Set<string>,
     status: AttendStatus,
     memo: string,
@@ -123,9 +123,9 @@ export function useBulkAttendance({
         scheduleId: Number(scheduleId),
       })
     }
-  }
+  }, [scheduleId, attendMap, setAttendData, error])
 
-  async function handleUndo() {
+  const handleUndo = useCallback(async function handleUndo() {
     if (!undoAction) return
     const action = undoAction
     setUndoAction(null)
@@ -178,13 +178,9 @@ export function useBulkAttendance({
     let msg = `${successIds.length}명 복구됨`
     if (unrecoverable > 0) msg += ` (${unrecoverable}명은 복구 불가)`
     success(msg)
-  }
+  }, [undoAction, setAttendData, success, error])
 
-  return {
-    saving,
-    undoAction,
-    runBulkSave,
-    handleUndo,
-    dismissUndo: () => setUndoAction(null),
-  }
+  const dismissUndo = useCallback(() => setUndoAction(null), [])
+
+  return { saving, undoAction, runBulkSave, handleUndo, dismissUndo }
 }

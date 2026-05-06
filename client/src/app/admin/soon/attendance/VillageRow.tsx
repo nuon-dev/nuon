@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import { Checkbox, Chip, Stack, Typography } from "@mui/material"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 import { Community } from "@server/entity/community"
@@ -17,7 +18,7 @@ type Props = {
   onToggleGroup: (users: User[]) => void
 }
 
-export function VillageRow({
+export const VillageRow = memo(function VillageRow({
   village,
   users,
   groupState,
@@ -64,4 +65,4 @@ export function VillageRow({
       <ChevronRightIcon fontSize="small" color="disabled" />
     </RowButton>
   )
-}
+})

@@ -278,10 +278,6 @@ export default function EditTab() {
                   const vId = u.community
                     ? findVillageId(parentMap, u.community.id)
                     : null
-                  const vName = vId ? (nameMap.get(vId) ?? "") : ""
-                  const dName = u.community
-                    ? (nameMap.get(u.community.id) ?? "")
-                    : ""
                   return (
                     <UserRow
                       key={u.id}
@@ -290,7 +286,8 @@ export default function EditTab() {
                       memo={attendMap.get(u.id)?.memo}
                       checked={checkedIds.has(u.id)}
                       onToggle={toggleUser}
-                      lineage={{ vName, dName }}
+                      vName={vId ? nameMap.get(vId) : undefined}
+                      dName={u.community ? nameMap.get(u.community.id) : undefined}
                     />
                   )
                 })

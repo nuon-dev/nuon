@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import { Checkbox, Stack, Typography } from "@mui/material"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 import { Community } from "@server/entity/community"
@@ -16,7 +17,7 @@ type Props = {
   onToggleGroup: (users: User[]) => void
 }
 
-export function DarakRow({
+export const DarakRow = memo(function DarakRow({
   darak,
   users,
   groupState,
@@ -47,4 +48,4 @@ export function DarakRow({
       <ChevronRightIcon fontSize="small" color="disabled" />
     </RowButton>
   )
-}
+})
