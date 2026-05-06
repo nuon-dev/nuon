@@ -20,7 +20,11 @@ export async function hasPermission(
   token: string | undefined,
   permissionType: PermissionType,
 ): Promise<boolean> {
-  const payload = jwt.verify<jwtPayload>(token, env.JWT_SECRET) as jwtPayload
+  if (!token) {
+    return false
+  }
+
+  const payload = jwt.verify(token, env.JWT_SECRET) as jwtPayload
 
   if (payload.role.Admin) {
     return true
@@ -34,10 +38,6 @@ export async function hasPermission(
       permissions: true,
     },
   })
-
-  if (!token) {
-    return false
-  }
 
   if (!foundUser) {
     return false
@@ -73,7 +73,7 @@ export async function getUserFromToken(req: express.Request) {
     return null
   }
   try {
-    const { id } = jwt.verify(token, env.JWT_SECRET)
+    const { id } = jwt.verify(token, env.JWT_SECRET) as jwtPayload
     return await userDatabase.findOne({
       relations: {
         community: true,
@@ -93,7 +93,7 @@ export async function checkJwt(req: express.Request) {
     return null
   }
   try {
-    const payload = jwt.verify<jwtPayload>(token, env.JWT_SECRET) as jwtPayload
+    const payload = jwt.verify(token, env.JWT_SECRET) as jwtPayload
     return payload
   } catch (e) {
     return null
