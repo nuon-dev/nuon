@@ -42,8 +42,18 @@ import {
 } from "@/util/attendanceError"
 import { useNotification } from "@/hooks/useNotification"
 import { getEvangelistMeta } from "./evangelistMap"
-
-type StatusFilter = "all" | "unrecorded" | "ATTEND" | "ABSENT" | "ETC"
+import {
+  StatusFilter,
+  buildAttendMap,
+  buildNameMap,
+  buildParentMap,
+  findVillageId,
+  getGroupState,
+  getUserAttendStatus,
+  sortUsersByLeadership,
+  sortUsersByVillagePath,
+  statusLabel,
+} from "./utils/attendanceUtils"
 
 export default function EditTab() {
   const [communities, setCommunities] = useState<Community[]>([])
@@ -129,44 +139,14 @@ export default function EditTab() {
   }, [allUsers, selectedScheduleId])
 
   // Memos
-  const attendMap = useMemo(() => {
-    const m = new Map<string, AttendData>()
-    attendData.forEach((d) => m.set(d.user.id, d))
-    return m
-  }, [attendData])
-
-  const parentMap = useMemo(() => {
-    const m = new Map<number, number | null>()
-    communities.forEach((c) => m.set(c.id, c.parent?.id ?? null))
-    return m
-  }, [communities])
-
-  const nameMap = useMemo(() => {
-    const m = new Map<number, string>()
-    communities.forEach((c) => m.set(c.id, c.name))
-    return m
-  }, [communities])
-
-  function getUserStatus(userId: string): StatusFilter {
-    const d = attendMap.get(userId)
-    if (!d) return "unrecorded"
-    return d.isAttend as StatusFilter
-  }
-
-  function findVillageId(darakId: number): number {
-    let cur = darakId
-    for (let i = 0; i < 10; i++) {
-      const parent = parentMap.get(cur)
-      if (parent === null || parent === undefined) return cur
-      cur = parent
-    }
-    return cur
-  }
+  const attendMap = useMemo(() => buildAttendMap(attendData), [attendData])
+  const parentMap = useMemo(() => buildParentMap(communities), [communities])
+  const nameMap = useMemo(() => buildNameMap(communities), [communities])
 
   // 필터링된 유저
   const filteredUsers = useMemo(() => {
     return allUsers.filter((u) => {
-      const status = getUserStatus(u.id)
+      const status = getUserAttendStatus(attendMap, u.id)
       if (statusFilter !== "all" && status !== statusFilter) return false
       if (searchText && !(u.name || "").includes(searchText)) return false
       return true
@@ -178,7 +158,7 @@ export default function EditTab() {
     const m = new Map<number, User[]>()
     filteredUsers.forEach((u) => {
       if (!u.community) return
-      const vid = findVillageId(u.community.id)
+      const vid = findVillageId(parentMap, u.community.id)
       if (!m.has(vid)) m.set(vid, [])
       m.get(vid)!.push(u)
     })
@@ -214,37 +194,14 @@ export default function EditTab() {
   // 컬럼 3: 포커스된 다락방의 순원들 (필터링된 것 중)
   const usersCol = useMemo(() => {
     if (!focusedDarakId) return []
-    const users = usersByDarak.get(focusedDarakId) || []
-    return [...users].sort((a, b) => {
-      const aLead =
-        a.community?.leader?.id === a.id
-          ? -2
-          : a.community?.deputyLeader?.id === a.id
-            ? -1
-            : 0
-      const bLead =
-        b.community?.leader?.id === b.id
-          ? -2
-          : b.community?.deputyLeader?.id === b.id
-            ? -1
-            : 0
-      if (aLead !== bLead) return aLead - bLead
-      return (a.name || "").localeCompare(b.name || "")
-    })
+    return sortUsersByLeadership(usersByDarak.get(focusedDarakId) || [])
   }, [usersByDarak, focusedDarakId])
 
   // 검색 시 평면 리스트용 (마을 → 다락방 → 이름 순)
-  const searchResultUsers = useMemo(() => {
-    return [...filteredUsers].sort((a, b) => {
-      const aVid = a.community ? findVillageId(a.community.id) : 0
-      const bVid = b.community ? findVillageId(b.community.id) : 0
-      if (aVid !== bVid) return aVid - bVid
-      const aDid = a.community?.id || 0
-      const bDid = b.community?.id || 0
-      if (aDid !== bDid) return aDid - bDid
-      return (a.name || "").localeCompare(b.name || "")
-    })
-  }, [filteredUsers, parentMap])
+  const searchResultUsers = useMemo(
+    () => sortUsersByVillagePath(filteredUsers, parentMap),
+    [filteredUsers, parentMap],
+  )
 
   // 필터 변경으로 포커스 그룹이 비었을 경우 자동 해제
   useEffect(() => {
@@ -269,7 +226,7 @@ export default function EditTab() {
       : allUsers
     const c = { all: base.length, unrecorded: 0, ATTEND: 0, ABSENT: 0, ETC: 0 }
     base.forEach((u) => {
-      const s = getUserStatus(u.id)
+      const s = getUserAttendStatus(attendMap, u.id)
       if (s === "unrecorded") c.unrecorded++
       else (c as any)[s]++
     })
@@ -286,16 +243,8 @@ export default function EditTab() {
     })
   }
 
-  function getGroupState(users: User[]): "none" | "some" | "all" {
-    if (users.length === 0) return "none"
-    const n = users.filter((u) => checkedIds.has(u.id)).length
-    if (n === 0) return "none"
-    if (n === users.length) return "all"
-    return "some"
-  }
-
   function toggleGroup(users: User[]) {
-    const state = getGroupState(users)
+    const state = getGroupState(checkedIds, users)
     setCheckedIds((prev) => {
       const next = new Set(prev)
       if (state === "all") {
@@ -333,7 +282,7 @@ export default function EditTab() {
     >()
     ids.forEach((userId) => {
       previousStates.set(userId, {
-        status: getUserStatus(userId),
+        status: getUserAttendStatus(attendMap, userId),
         memo: attendMap.get(userId)?.memo || "",
       })
     })
@@ -692,13 +641,13 @@ export default function EditTab() {
                 <EmptyState>검색 결과가 없습니다</EmptyState>
               ) : (
                 searchResultUsers.map((u) => {
-                  const status = getUserStatus(u.id)
+                  const status = getUserAttendStatus(attendMap, u.id)
                   const memo = attendMap.get(u.id)?.memo
                   const isLeader = u.community?.leader?.id === u.id
                   const isDeputy = u.community?.deputyLeader?.id === u.id
                   const checked = checkedIds.has(u.id)
                   const vId = u.community
-                    ? findVillageId(u.community.id)
+                    ? findVillageId(parentMap, u.community.id)
                     : null
                   const vName = vId ? nameMap.get(vId) : ""
                   const dName = u.community
@@ -786,7 +735,7 @@ export default function EditTab() {
             {villagesCol.map((v) => {
               const users = usersByVillage.get(v.id) || []
               const count = users.length
-              const state = getGroupState(users)
+              const state = getGroupState(checkedIds, users)
               const isFocused = focusedVillageId === v.id
               return (
                 <RowButton
@@ -852,7 +801,7 @@ export default function EditTab() {
               daraksCol.map((d) => {
                 const users = usersByDarak.get(d.id) || []
                 const count = users.length
-                const state = getGroupState(users)
+                const state = getGroupState(checkedIds, users)
                 const isFocused = focusedDarakId === d.id
                 return (
                   <RowButton
@@ -894,7 +843,7 @@ export default function EditTab() {
               <EmptyState>해당 조건의 순원 없음</EmptyState>
             ) : (
               usersCol.map((u) => {
-                const status = getUserStatus(u.id)
+                const status = getUserAttendStatus(attendMap, u.id)
                 const memo = attendMap.get(u.id)?.memo
                 const isLeader = u.community?.leader?.id === u.id
                 const isDeputy = u.community?.deputyLeader?.id === u.id
@@ -1107,12 +1056,6 @@ export default function EditTab() {
       )}
     </Box>
   )
-}
-
-function statusLabel(status: AttendStatus) {
-  if (status === AttendStatus.ATTEND) return "출석"
-  if (status === AttendStatus.ABSENT) return "결석"
-  return "기타"
 }
 
 /* --- 하위 컴포넌트 --- */
