@@ -3,11 +3,11 @@
 import { memo } from "react"
 import { Box, Checkbox, Chip, Stack, Typography } from "@mui/material"
 import { User } from "@server/entity/user"
-import { RowButton } from "./Primitives"
-import { StatusChip } from "./StatusChip"
+import RowButton from "./RowButton"
+import StatusChip from "./StatusChip"
 import { StatusFilter } from "./utils/attendanceUtils"
 
-type Props = {
+interface UserRowProps {
   user: User
   status: StatusFilter
   memo?: string
@@ -18,7 +18,7 @@ type Props = {
   dName?: string
 }
 
-export const UserRow = memo(function UserRow({
+function UserRow({
   user,
   status,
   memo,
@@ -26,7 +26,7 @@ export const UserRow = memo(function UserRow({
   onToggle,
   vName,
   dName,
-}: Props) {
+}: UserRowProps) {
   const isLeader = user.community?.leader?.id === user.id
   const isDeputy = user.community?.deputyLeader?.id === user.id
   const hasLineage = Boolean(vName || dName)
@@ -66,4 +66,6 @@ export const UserRow = memo(function UserRow({
       </Box>
     </RowButton>
   )
-})
+}
+
+export default memo(UserRow)

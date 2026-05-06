@@ -4,19 +4,19 @@ import { Button, Snackbar } from "@mui/material"
 import { statusLabel } from "./utils/attendanceUtils"
 import { UndoAction } from "./useBulkAttendance"
 
-type Props = {
+interface UndoSnackbarProps {
   action: UndoAction | null
   bulkBarVisible: boolean
   onUndo: () => void
   onDismiss: () => void
 }
 
-export function UndoSnackbar({
+export default function UndoSnackbar({
   action,
   bulkBarVisible,
   onUndo,
   onDismiss,
-}: Props) {
+}: UndoSnackbarProps) {
   return (
     <Snackbar
       open={Boolean(action)}

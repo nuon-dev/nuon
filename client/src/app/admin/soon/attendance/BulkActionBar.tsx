@@ -15,7 +15,7 @@ import HelpIcon from "@mui/icons-material/Help"
 import CloseIcon from "@mui/icons-material/Close"
 import { AttendStatus } from "@server/entity/types"
 
-type Props = {
+interface BulkActionBarProps {
   selectedCount: number
   hiddenSelectedCount: number
   saving: boolean
@@ -23,13 +23,13 @@ type Props = {
   onClear: () => void
 }
 
-export function BulkActionBar({
+export default function BulkActionBar({
   selectedCount,
   hiddenSelectedCount,
   saving,
   onSave,
   onClear,
-}: Props) {
+}: BulkActionBarProps) {
   const theme = useTheme()
   // 600px 미만에선 라벨 숨기고 아이콘만
   const isNarrow = useMediaQuery(theme.breakpoints.down("sm"))

@@ -16,14 +16,19 @@ export type MemoDialogState = {
   memo: string
 }
 
-type Props = {
+interface MemoDialogProps {
   state: MemoDialogState | null
   selectedCount: number
   onChange: (next: MemoDialogState | null) => void
   onApply: () => void
 }
 
-export function MemoDialog({ state, selectedCount, onChange, onApply }: Props) {
+export default function MemoDialog({
+  state,
+  selectedCount,
+  onChange,
+  onApply,
+}: MemoDialogProps) {
   const close = () => onChange(null)
 
   return (

@@ -3,7 +3,7 @@
 import { Box, Chip, Paper, Typography } from "@mui/material"
 import { StatusFilter } from "./utils/attendanceUtils"
 
-type Counts = {
+export type StatusCounts = {
   all: number
   unrecorded: number
   ATTEND: number
@@ -11,8 +11,8 @@ type Counts = {
   ETC: number
 }
 
-type Props = {
-  counts: Counts
+interface StatusFilterBarProps {
+  counts: StatusCounts
   value: StatusFilter
   onChange: (next: StatusFilter) => void
 }
@@ -25,7 +25,11 @@ const FILTERS: { k: StatusFilter; label: string }[] = [
   { k: "ETC", label: "기타" },
 ]
 
-export function StatusFilterBar({ counts, value, onChange }: Props) {
+export default function StatusFilterBar({
+  counts,
+  value,
+  onChange,
+}: StatusFilterBarProps) {
   return (
     <Paper sx={{ p: 2, mb: 2 }}>
       <Typography variant="caption" color="text.secondary">
@@ -68,5 +72,3 @@ export function StatusFilterBar({ counts, value, onChange }: Props) {
     </Paper>
   )
 }
-
-export type { Counts }

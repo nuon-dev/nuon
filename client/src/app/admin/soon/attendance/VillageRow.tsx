@@ -5,11 +5,11 @@ import { Checkbox, Chip, Stack, Typography } from "@mui/material"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 import { Community } from "@server/entity/community"
 import { User } from "@server/entity/user"
-import { RowButton } from "./Primitives"
+import RowButton from "./RowButton"
 import { GroupState } from "./utils/attendanceUtils"
 import { getEvangelistMeta } from "./evangelistMap"
 
-type Props = {
+interface VillageRowProps {
   village: Community
   users: User[]
   groupState: GroupState
@@ -18,14 +18,14 @@ type Props = {
   onToggleGroup: (users: User[]) => void
 }
 
-export const VillageRow = memo(function VillageRow({
+function VillageRow({
   village,
   users,
   groupState,
   isFocused,
   onFocus,
   onToggleGroup,
-}: Props) {
+}: VillageRowProps) {
   const count = users.length
   const ev = getEvangelistMeta(village.name)
 
@@ -65,4 +65,6 @@ export const VillageRow = memo(function VillageRow({
       <ChevronRightIcon fontSize="small" color="disabled" />
     </RowButton>
   )
-})
+}
+
+export default memo(VillageRow)

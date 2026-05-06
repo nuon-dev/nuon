@@ -4,6 +4,11 @@ import { memo } from "react"
 import { Chip } from "@mui/material"
 import { StatusFilter } from "./utils/attendanceUtils"
 
+interface StatusChipProps {
+  status: StatusFilter
+  memo?: string
+}
+
 const baseSx = {
   fontWeight: 600,
   maxWidth: { xs: 140, sm: 200, md: 260 },
@@ -14,13 +19,7 @@ const baseSx = {
   },
 }
 
-export const StatusChip = memo(function StatusChip({
-  status,
-  memo,
-}: {
-  status: StatusFilter
-  memo?: string
-}) {
+function StatusChip({ status, memo }: StatusChipProps) {
   if (status === "ATTEND") {
     return (
       <Chip
@@ -54,4 +53,6 @@ export const StatusChip = memo(function StatusChip({
     )
   }
   return null
-})
+}
+
+export default memo(StatusChip)

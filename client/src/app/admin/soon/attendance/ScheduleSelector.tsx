@@ -4,14 +4,18 @@ import { Paper, TextField } from "@mui/material"
 import { WorshipSchedule } from "@server/entity/worshipSchedule"
 import { worshipKr } from "@/util/worship"
 
-type Props = {
+interface ScheduleSelectorProps {
   schedules: WorshipSchedule[]
   value: number | ""
   onChange: (id: number | "") => void
 }
 
 // 모바일에서 OS 네이티브 picker(iOS 휠, Android 다이얼로그)를 쓰려고 native select.
-export function ScheduleSelector({ schedules, value, onChange }: Props) {
+export default function ScheduleSelector({
+  schedules,
+  value,
+  onChange,
+}: ScheduleSelectorProps) {
   return (
     <Paper sx={{ p: 2, mb: 2 }}>
       <TextField

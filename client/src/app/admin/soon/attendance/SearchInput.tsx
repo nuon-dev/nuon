@@ -2,12 +2,12 @@
 
 import { Paper, TextField } from "@mui/material"
 
-type Props = {
+interface SearchInputProps {
   value: string
   onChange: (next: string) => void
 }
 
-export function SearchInput({ value, onChange }: Props) {
+export default function SearchInput({ value, onChange }: SearchInputProps) {
   return (
     <Paper sx={{ p: 2, mb: 2 }}>
       <TextField

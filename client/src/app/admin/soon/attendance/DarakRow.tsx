@@ -5,10 +5,10 @@ import { Checkbox, Stack, Typography } from "@mui/material"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 import { Community } from "@server/entity/community"
 import { User } from "@server/entity/user"
-import { RowButton } from "./Primitives"
+import RowButton from "./RowButton"
 import { GroupState } from "./utils/attendanceUtils"
 
-type Props = {
+interface DarakRowProps {
   darak: Community
   users: User[]
   groupState: GroupState
@@ -17,14 +17,14 @@ type Props = {
   onToggleGroup: (users: User[]) => void
 }
 
-export const DarakRow = memo(function DarakRow({
+function DarakRow({
   darak,
   users,
   groupState,
   isFocused,
   onFocus,
   onToggleGroup,
-}: Props) {
+}: DarakRowProps) {
   const count = users.length
 
   return (
@@ -48,4 +48,6 @@ export const DarakRow = memo(function DarakRow({
       <ChevronRightIcon fontSize="small" color="disabled" />
     </RowButton>
   )
-})
+}
+
+export default memo(DarakRow)
