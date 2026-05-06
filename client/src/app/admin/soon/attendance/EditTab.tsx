@@ -3,34 +3,20 @@
 import { useEffect, useMemo, useState } from "react"
 import {
   Box,
+  Checkbox,
+  CircularProgress,
+  IconButton,
+  Paper,
   Stack,
   Typography,
-  TextField,
-  Checkbox,
-  Button,
-  Chip,
-  Paper,
-  CircularProgress,
-  Snackbar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
   useMediaQuery,
   useTheme,
 } from "@mui/material"
-import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
-import CheckCircleIcon from "@mui/icons-material/CheckCircle"
-import CancelIcon from "@mui/icons-material/Cancel"
-import HelpIcon from "@mui/icons-material/Help"
-import CloseIcon from "@mui/icons-material/Close"
 
 import { AttendStatus } from "@server/entity/types"
 import { User } from "@server/entity/user"
-import { worshipKr } from "@/util/worship"
-import { getEvangelistMeta } from "./evangelistMap"
+
 import {
   StatusFilter,
   findVillageId,
@@ -38,26 +24,30 @@ import {
   getUserAttendStatus,
   sortUsersByLeadership,
   sortUsersByVillagePath,
-  statusLabel,
 } from "./utils/attendanceUtils"
 import { useAttendanceData } from "./useAttendanceData"
 import { useSelection } from "./useSelection"
 import { useDrillDownFocus } from "./useDrillDownFocus"
 import { useBulkAttendance } from "./useBulkAttendance"
+import { ColumnBox, EmptyState } from "./Primitives"
+import { ScheduleSelector } from "./ScheduleSelector"
+import { StatusFilterBar } from "./StatusFilterBar"
+import { SearchInput } from "./SearchInput"
+import { UserRow } from "./UserRow"
+import { VillageRow } from "./VillageRow"
+import { DarakRow } from "./DarakRow"
+import { MemoDialog, MemoDialogState } from "./MemoDialog"
+import { UndoSnackbar } from "./UndoSnackbar"
+import { BulkActionBar } from "./BulkActionBar"
 
 export default function EditTab() {
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | "">("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [searchText, setSearchText] = useState("")
-  const [memoDialog, setMemoDialog] = useState<{
-    status: AttendStatus
-    memo: string
-  } | null>(null)
+  const [memoDialog, setMemoDialog] = useState<MemoDialogState | null>(null)
 
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
-  // bulk 버튼 라벨 숨김 기준 — 600px 미만에선 아이콘만
-  const isNarrow = useMediaQuery(theme.breakpoints.down("sm"))
 
   const {
     communities,
@@ -84,7 +74,6 @@ export default function EditTab() {
     clear: clearSelection,
   } = useSelection()
 
-  // 필터링된 유저
   const filteredUsers = useMemo(() => {
     return allUsers.filter((u) => {
       const status = getUserAttendStatus(attendMap, u.id)
@@ -94,7 +83,6 @@ export default function EditTab() {
     })
   }, [allUsers, statusFilter, searchText, attendMap])
 
-  // 마을별 유저 매핑
   const usersByVillage = useMemo(() => {
     const m = new Map<number, User[]>()
     filteredUsers.forEach((u) => {
@@ -106,7 +94,6 @@ export default function EditTab() {
     return m
   }, [filteredUsers, parentMap])
 
-  // 다락방별 유저 매핑
   const usersByDarak = useMemo(() => {
     const m = new Map<number, User[]>()
     filteredUsers.forEach((u) => {
@@ -125,14 +112,11 @@ export default function EditTab() {
     back: focusBack,
   } = useDrillDownFocus({ usersByVillage, usersByDarak })
 
-  // 컬럼 1: 최상위 마을들
-  const villagesCol = useMemo(() => {
-    return communities
-      .filter((c) => !c.parent)
-      .sort((a, b) => a.id - b.id)
-  }, [communities])
+  const villagesCol = useMemo(
+    () => communities.filter((c) => !c.parent).sort((a, b) => a.id - b.id),
+    [communities],
+  )
 
-  // 컬럼 2: 포커스된 마을의 직계 다락방들
   const daraksCol = useMemo(() => {
     if (!focusedVillageId) return []
     return communities
@@ -140,19 +124,16 @@ export default function EditTab() {
       .sort((a, b) => a.id - b.id)
   }, [communities, focusedVillageId])
 
-  // 컬럼 3: 포커스된 다락방의 순원들 (필터링된 것 중)
   const usersCol = useMemo(() => {
     if (!focusedDarakId) return []
     return sortUsersByLeadership(usersByDarak.get(focusedDarakId) || [])
   }, [usersByDarak, focusedDarakId])
 
-  // 검색 시 평면 리스트용 (마을 → 다락방 → 이름 순)
   const searchResultUsers = useMemo(
     () => sortUsersByVillagePath(filteredUsers, parentMap),
     [filteredUsers, parentMap],
   )
 
-  // 필터 chip 카운트
   const counts = useMemo(() => {
     const base = searchText
       ? allUsers.filter((u) => (u.name || "").includes(searchText))
@@ -173,11 +154,9 @@ export default function EditTab() {
       setAttendData,
     })
 
-  // ABSENT/ETC는 사유 다이얼로그를 거쳐 saved → 선택 해제.
   function handleBulkSave(status: AttendStatus) {
     if (!selectedScheduleId) return
     if (checkedIds.size === 0) return
-
     if (status === AttendStatus.ABSENT || status === AttendStatus.ETC) {
       setMemoDialog({ status, memo: "" })
       return
@@ -190,51 +169,6 @@ export default function EditTab() {
     const { status, memo } = memoDialog
     setMemoDialog(null)
     void runBulkSave(checkedIds, status, memo).then(clearSelection)
-  }
-
-  function statusChip(status: StatusFilter, memo?: string) {
-    const base = {
-      fontWeight: 600,
-      maxWidth: { xs: 140, sm: 200, md: 260 },
-      // MUI Chip 기본 label엔 이미 ellipsis가 걸려있지만, 명시적으로 한 번 더
-      "& .MuiChip-label": {
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-      },
-    }
-    if (status === "ATTEND")
-      return (
-        <Chip
-          size="small"
-          label="출석"
-          title="출석"
-          sx={{ ...base, bgcolor: "rgb(184, 248, 93)" }}
-        />
-      )
-    if (status === "ABSENT") {
-      const full = memo ? `결석 · ${memo}` : "결석"
-      return (
-        <Chip
-          size="small"
-          label={full}
-          title={full}
-          sx={{ ...base, bgcolor: "rgb(240, 148, 128)" }}
-        />
-      )
-    }
-    if (status === "ETC") {
-      const full = memo ? `기타 · ${memo}` : "기타"
-      return (
-        <Chip
-          size="small"
-          label={full}
-          title={full}
-          sx={{ ...base, bgcolor: "rgb(253, 241, 113)" }}
-        />
-      )
-    }
-    return null
   }
 
   const hiddenSelectedCount = useMemo(() => {
@@ -258,113 +192,39 @@ export default function EditTab() {
     <Box
       sx={{
         p: 2,
-        // bulk bar 공간 + iPhone 홈 인디케이터 영역만큼 여유
+        // bulk bar 공간 + iPhone 홈 인디케이터
         pb: "calc(96px + env(safe-area-inset-bottom, 0px))",
       }}
     >
-      {/* 컨트롤 3종을 sticky 래퍼로 묶어 리스트 스크롤 시에도 상단 고정 */}
+      {/* sticky 컨트롤 — 리스트 스크롤 시에도 상단 고정 */}
       <Box
         sx={{
           position: "sticky",
-          top: 48, // Tabs 높이만큼 내려옴
+          top: 48,
           zIndex: 5,
-          bgcolor: "#f5f5f5", // 외부 배경과 동일해서 리스트가 비쳐 보이지 않게
-          mx: -2, // 외부 p:2 상쇄
-          px: 2, // 다시 적용
+          bgcolor: "#f5f5f5",
+          mx: -2,
+          px: 2,
           pt: 2,
           pb: 0.5,
           mb: 1,
-          // 하단에 살짝 그림자 → 스크롤되어 띄워진 상태임을 암시
           boxShadow: "0 2px 8px -4px rgba(0,0,0,0.12)",
         }}
       >
-      {/* 예배 선택 — 모바일: OS 네이티브 picker (iOS 휠, Android 다이얼로그) */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <TextField
-          select
-          SelectProps={{ native: true }}
+        <ScheduleSelector
+          schedules={schedules}
           value={selectedScheduleId}
-          label="예배"
-          fullWidth
-          size="small"
-          onChange={(e) =>
-            setSelectedScheduleId(Number(e.target.value) || "")
-          }
-          InputLabelProps={{ shrink: true }}
-        >
-          {schedules.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.date} · {worshipKr(s.kind)}
-            </option>
-          ))}
-        </TextField>
-      </Paper>
-
-      {/* 상태 필터 — 모바일 친화적 가로 스크롤 */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="caption" color="text.secondary">
-          상태별 필터
-        </Typography>
-        <Box
-          sx={{
-            display: "flex",
-            gap: 1,
-            mt: 1,
-            overflowX: "auto",
-            overflowY: "hidden",
-            // 각 chip이 줄어들지 않음
-            "& > *": { flexShrink: 0 },
-            // 스크롤바 숨김 (가독성)
-            "&::-webkit-scrollbar": { display: "none" },
-            scrollbarWidth: "none",
-            // iOS 모멘텀 스크롤
-            WebkitOverflowScrolling: "touch",
-            // 오른쪽 가장자리 페이드 힌트 (스크롤 가능 암시)
-            WebkitMaskImage:
-              "linear-gradient(to right, black calc(100% - 24px), transparent)",
-            maskImage:
-              "linear-gradient(to right, black calc(100% - 24px), transparent)",
-            pr: 3, // 페이드 영역 너비만큼 여유
-            pb: 0.5,
-          }}
-        >
-          {(
-            [
-              { k: "all", label: "전체", count: counts.all },
-              { k: "unrecorded", label: "기록안됨", count: counts.unrecorded },
-              { k: "ATTEND", label: "출석", count: counts.ATTEND },
-              { k: "ABSENT", label: "결석", count: counts.ABSENT },
-              { k: "ETC", label: "기타", count: counts.ETC },
-            ] as { k: StatusFilter; label: string; count: number }[]
-          ).map(({ k, label, count }) => (
-            <Chip
-              key={k}
-              label={`${label} · ${count}`}
-              color={statusFilter === k ? "primary" : "default"}
-              variant={statusFilter === k ? "filled" : "outlined"}
-              onClick={() => setStatusFilter(k)}
-              disabled={k !== "all" && count === 0}
-            />
-          ))}
-        </Box>
-      </Paper>
-
-      {/* 검색 */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="이름 검색"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+          onChange={setSelectedScheduleId}
         />
-      </Paper>
+        <StatusFilterBar
+          counts={counts}
+          value={statusFilter}
+          onChange={setStatusFilter}
+        />
+        <SearchInput value={searchText} onChange={setSearchText} />
       </Box>
-      {/* ↑ sticky 래퍼 종료 */}
 
-      {/* 3-column 리스트 */}
       <Paper sx={{ p: 2 }}>
-        {/* 전체 선택 헤더 */}
         <Stack
           direction="row"
           alignItems="center"
@@ -388,7 +248,6 @@ export default function EditTab() {
         </Stack>
 
         {searchText ? (
-          /* 검색 중: 평면 리스트 */
           <Box
             sx={{
               border: "1px solid #e0e0e0",
@@ -416,62 +275,23 @@ export default function EditTab() {
                 <EmptyState>검색 결과가 없습니다</EmptyState>
               ) : (
                 searchResultUsers.map((u) => {
-                  const status = getUserAttendStatus(attendMap, u.id)
-                  const memo = attendMap.get(u.id)?.memo
-                  const isLeader = u.community?.leader?.id === u.id
-                  const isDeputy = u.community?.deputyLeader?.id === u.id
-                  const checked = checkedIds.has(u.id)
                   const vId = u.community
                     ? findVillageId(parentMap, u.community.id)
                     : null
-                  const vName = vId ? nameMap.get(vId) : ""
+                  const vName = vId ? (nameMap.get(vId) ?? "") : ""
                   const dName = u.community
-                    ? nameMap.get(u.community.id)
+                    ? (nameMap.get(u.community.id) ?? "")
                     : ""
                   return (
-                    <RowButton
+                    <UserRow
                       key={u.id}
-                      focused={checked}
-                      onClick={() => toggleUser(u.id)}
-                    >
-                      <Checkbox
-                        size="small"
-                        checked={checked}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={() => toggleUser(u.id)}
-                      />
-                      <Stack flex={1} overflow="hidden">
-                        <Stack
-                          direction="row"
-                          alignItems="center"
-                          spacing={0.5}
-                        >
-                          <Typography noWrap fontWeight={500}>
-                            {u.name}
-                          </Typography>
-                          {(isLeader || isDeputy) && (
-                            <Chip
-                              size="small"
-                              label={isLeader ? "순장" : "부순장"}
-                              sx={{
-                                height: 18,
-                                fontSize: 10,
-                                bgcolor: isLeader ? "#e3f2fd" : "#f3e5f5",
-                              }}
-                            />
-                          )}
-                        </Stack>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          noWrap
-                        >
-                          {vName} › {dName} · {u.yearOfBirth}년생 ·{" "}
-                          {u.gender === "man" ? "남" : "여"}
-                        </Typography>
-                      </Stack>
-                      <Box>{statusChip(status, memo)}</Box>
-                    </RowButton>
+                      user={u}
+                      status={getUserAttendStatus(attendMap, u.id)}
+                      memo={attendMap.get(u.id)?.memo}
+                      checked={checkedIds.has(u.id)}
+                      onToggle={toggleUser}
+                      lineage={{ vName, dName }}
+                    />
                   )
                 })
               )}
@@ -479,413 +299,119 @@ export default function EditTab() {
           </Box>
         ) : (
           <>
-          {/* 모바일 전용: 뒤로가기 + 경로 */}
-          {isMobile && focusedVillageId != null && (
-            <Stack direction="row" alignItems="center" sx={{ mb: 1, pl: 0.5 }}>
-              <IconButton size="small" onClick={focusBack}>
-                <ArrowBackIcon fontSize="small" />
-              </IconButton>
-              <Typography variant="body2" color="text.secondary">
-                {nameMap.get(focusedVillageId)}
-                {focusedDarakId != null &&
-                  ` › ${nameMap.get(focusedDarakId)}`}
-              </Typography>
+            {isMobile && focusedVillageId != null && (
+              <Stack
+                direction="row"
+                alignItems="center"
+                sx={{ mb: 1, pl: 0.5 }}
+              >
+                <IconButton size="small" onClick={focusBack}>
+                  <ArrowBackIcon fontSize="small" />
+                </IconButton>
+                <Typography variant="body2" color="text.secondary">
+                  {nameMap.get(focusedVillageId)}
+                  {focusedDarakId != null &&
+                    ` › ${nameMap.get(focusedDarakId)}`}
+                </Typography>
+              </Stack>
+            )}
+
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              gap={1.5}
+              sx={{ minHeight: 440 }}
+            >
+              {(!isMobile || focusedVillageId == null) && (
+                <ColumnBox title="마을" flex={1}>
+                  {villagesCol.map((v) => {
+                    const users = usersByVillage.get(v.id) || []
+                    return (
+                      <VillageRow
+                        key={v.id}
+                        village={v}
+                        users={users}
+                        groupState={getGroupState(checkedIds, users)}
+                        isFocused={focusedVillageId === v.id}
+                        onFocus={focusVillage}
+                        onToggleGroup={toggleGroup}
+                      />
+                    )
+                  })}
+                </ColumnBox>
+              )}
+
+              {(!isMobile ||
+                (focusedVillageId != null && focusedDarakId == null)) && (
+                <ColumnBox title="다락방" flex={1}>
+                  {!focusedVillageId ? (
+                    <EmptyState>마을을 선택하세요</EmptyState>
+                  ) : daraksCol.length === 0 ? (
+                    <EmptyState>하위 다락방 없음</EmptyState>
+                  ) : (
+                    daraksCol.map((d) => {
+                      const users = usersByDarak.get(d.id) || []
+                      return (
+                        <DarakRow
+                          key={d.id}
+                          darak={d}
+                          users={users}
+                          groupState={getGroupState(checkedIds, users)}
+                          isFocused={focusedDarakId === d.id}
+                          onFocus={focusDarak}
+                          onToggleGroup={toggleGroup}
+                        />
+                      )
+                    })
+                  )}
+                </ColumnBox>
+              )}
+
+              {(!isMobile || focusedDarakId != null) && (
+                <ColumnBox title="순원" flex={1.4}>
+                  {!focusedDarakId ? (
+                    <EmptyState>다락방을 선택하세요</EmptyState>
+                  ) : usersCol.length === 0 ? (
+                    <EmptyState>해당 조건의 순원 없음</EmptyState>
+                  ) : (
+                    usersCol.map((u) => (
+                      <UserRow
+                        key={u.id}
+                        user={u}
+                        status={getUserAttendStatus(attendMap, u.id)}
+                        memo={attendMap.get(u.id)?.memo}
+                        checked={checkedIds.has(u.id)}
+                        onToggle={toggleUser}
+                      />
+                    ))
+                  )}
+                </ColumnBox>
+              )}
             </Stack>
-          )}
-
-          <Stack
-            direction={{ xs: "column", md: "row" }}
-            gap={1.5}
-            sx={{ minHeight: 440 }}
-          >
-          {/* 컬럼 1: 마을 — 모바일에선 focused 상태일 때 숨김 */}
-          {(!isMobile || focusedVillageId == null) && (
-          <ColumnBox title="마을" flex={1}>
-            {villagesCol.map((v) => {
-              const users = usersByVillage.get(v.id) || []
-              const count = users.length
-              const state = getGroupState(checkedIds, users)
-              const isFocused = focusedVillageId === v.id
-              return (
-                <RowButton
-                  key={v.id}
-                  focused={isFocused}
-                  onClick={() => focusVillage(v.id)}
-                >
-                  <Checkbox
-                    size="small"
-                    checked={state === "all"}
-                    indeterminate={state === "some"}
-                    disabled={count === 0}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={() => toggleGroup(users)}
-                  />
-                  <Stack flex={1} overflow="hidden">
-                    <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <Typography noWrap fontWeight={isFocused ? 700 : 500}>
-                        {v.name}
-                      </Typography>
-                      {(() => {
-                        const ev = getEvangelistMeta(v.name)
-                        if (!ev) return null
-                        return (
-                          <Chip
-                            size="small"
-                            label={ev.label}
-                            sx={{
-                              height: 18,
-                              fontSize: 10,
-                              bgcolor: ev.color,
-                              color: "white",
-                              "& .MuiChip-label": { px: 0.75 },
-                            }}
-                          />
-                        )
-                      })()}
-                    </Stack>
-                    <Typography variant="caption" color="text.secondary">
-                      {count}명
-                    </Typography>
-                  </Stack>
-                  <ChevronRightIcon fontSize="small" color="disabled" />
-                </RowButton>
-              )
-            })}
-          </ColumnBox>
-
-          )}
-
-          {/* 컬럼 2: 다락방 — 모바일에선 마을 선택됐고 다락방 미선택일 때만 */}
-          {(!isMobile ||
-            (focusedVillageId != null && focusedDarakId == null)) && (
-          <ColumnBox title="다락방" flex={1}>
-            {!focusedVillageId ? (
-              <EmptyState>마을을 선택하세요</EmptyState>
-            ) : daraksCol.length === 0 ? (
-              <EmptyState>하위 다락방 없음</EmptyState>
-            ) : (
-              daraksCol.map((d) => {
-                const users = usersByDarak.get(d.id) || []
-                const count = users.length
-                const state = getGroupState(checkedIds, users)
-                const isFocused = focusedDarakId === d.id
-                return (
-                  <RowButton
-                    key={d.id}
-                    focused={isFocused}
-                    onClick={() => focusDarak(d.id)}
-                  >
-                    <Checkbox
-                      size="small"
-                      checked={state === "all"}
-                      indeterminate={state === "some"}
-                      disabled={count === 0}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={() => toggleGroup(users)}
-                    />
-                    <Stack flex={1} overflow="hidden">
-                      <Typography noWrap fontWeight={isFocused ? 700 : 500}>
-                        {d.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {count}명
-                      </Typography>
-                    </Stack>
-                    <ChevronRightIcon fontSize="small" color="disabled" />
-                  </RowButton>
-                )
-              })
-            )}
-          </ColumnBox>
-
-          )}
-
-          {/* 컬럼 3: 순원 — 모바일에선 다락방 선택됐을 때만 */}
-          {(!isMobile || focusedDarakId != null) && (
-          <ColumnBox title="순원" flex={1.4}>
-            {!focusedDarakId ? (
-              <EmptyState>다락방을 선택하세요</EmptyState>
-            ) : usersCol.length === 0 ? (
-              <EmptyState>해당 조건의 순원 없음</EmptyState>
-            ) : (
-              usersCol.map((u) => {
-                const status = getUserAttendStatus(attendMap, u.id)
-                const memo = attendMap.get(u.id)?.memo
-                const isLeader = u.community?.leader?.id === u.id
-                const isDeputy = u.community?.deputyLeader?.id === u.id
-                const checked = checkedIds.has(u.id)
-                return (
-                  <RowButton
-                    key={u.id}
-                    focused={checked}
-                    onClick={() => toggleUser(u.id)}
-                  >
-                    <Checkbox
-                      size="small"
-                      checked={checked}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={() => toggleUser(u.id)}
-                    />
-                    <Stack flex={1} overflow="hidden">
-                      <Stack direction="row" alignItems="center" spacing={0.5}>
-                        <Typography noWrap>{u.name}</Typography>
-                        {(isLeader || isDeputy) && (
-                          <Chip
-                            size="small"
-                            label={isLeader ? "순장" : "부순장"}
-                            sx={{
-                              height: 18,
-                              fontSize: 10,
-                              bgcolor: isLeader ? "#e3f2fd" : "#f3e5f5",
-                            }}
-                          />
-                        )}
-                      </Stack>
-                      <Typography variant="caption" color="text.secondary">
-                        {u.yearOfBirth}년생 · {u.gender === "man" ? "남" : "여"}
-                      </Typography>
-                    </Stack>
-                    <Box>{statusChip(status, memo)}</Box>
-                  </RowButton>
-                )
-              })
-            )}
-          </ColumnBox>
-          )}
-          </Stack>
           </>
         )}
       </Paper>
 
-      {/* Phase 3: 공통 사유 다이얼로그 */}
-      <Dialog
-        open={Boolean(memoDialog)}
-        onClose={() => setMemoDialog(null)}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle>
-          {memoDialog?.status === AttendStatus.ABSENT ? "결석" : "기타"} 사유
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            {checkedIds.size}명에게 공통으로 적용할 사유 (비워두면 각자 빈칸)
-          </Typography>
-          <TextField
-            autoFocus
-            fullWidth
-            margin="dense"
-            placeholder="예: 가족 행사, 시험 준비 등"
-            value={memoDialog?.memo ?? ""}
-            onChange={(e) =>
-              memoDialog &&
-              setMemoDialog({ ...memoDialog, memo: e.target.value })
-            }
-            onKeyDown={(e) => {
-              if (e.key === "Enter") applyMemoDialog()
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setMemoDialog(null)}>취소</Button>
-          <Button variant="contained" onClick={applyMemoDialog}>
-            적용
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Phase 3: Undo 스낵바 */}
-      <Snackbar
-        open={Boolean(undoAction)}
-        autoHideDuration={10000}
-        onClose={(_, reason) => {
-          if (reason === "clickaway") return
-          dismissUndo()
-        }}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        sx={{
-          // bulk bar 위로 / 없으면 최소 여백. 모두 safe-area inset 추가
-          mb:
-            checkedIds.size > 0
-              ? "calc(80px + env(safe-area-inset-bottom, 0px))"
-              : "calc(16px + env(safe-area-inset-bottom, 0px))",
-        }}
-        message={
-          undoAction
-            ? `${undoAction.userIds.length}명에게 '${statusLabel(
-                undoAction.newStatus,
-              )}' 적용됨`
-            : ""
-        }
-        action={
-          <Button color="inherit" size="small" onClick={handleUndo}>
-            실행 취소
-          </Button>
-        }
+      <MemoDialog
+        state={memoDialog}
+        selectedCount={checkedIds.size}
+        onChange={setMemoDialog}
+        onApply={applyMemoDialog}
       />
 
-      {/* Sticky bulk action bar */}
-      {checkedIds.size > 0 && (
-        <Paper
-          elevation={8}
-          sx={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            pt: 1.5,
-            px: 1.5,
-            // 하단 padding에 iPhone 홈 인디케이터 인셋 포함
-            pb: "calc(12px + env(safe-area-inset-bottom, 0px))",
-            zIndex: 100,
-            borderTop: "2px solid #1976d2",
-          }}
-        >
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={1}
-            alignItems={{ xs: "stretch", sm: "center" }}
-          >
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography fontWeight="bold">
-                ✓ {checkedIds.size}명 선택
-              </Typography>
-              {hiddenSelectedCount > 0 && (
-                <Typography color="warning.main" variant="caption">
-                  (화면 밖 {hiddenSelectedCount}명 포함)
-                </Typography>
-              )}
-            </Stack>
-            <Box sx={{ flex: 1 }} />
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={isNarrow ? undefined : <CheckCircleIcon />}
-                onClick={() => handleBulkSave(AttendStatus.ATTEND)}
-                disabled={saving}
-                size="small"
-                title="출석"
-                sx={{ minWidth: { xs: 44, sm: "auto" }, px: { xs: 1, sm: 2 } }}
-              >
-                {isNarrow ? <CheckCircleIcon fontSize="small" /> : "출석"}
-              </Button>
-              <Button
-                variant="contained"
-                color="error"
-                startIcon={isNarrow ? undefined : <CancelIcon />}
-                onClick={() => handleBulkSave(AttendStatus.ABSENT)}
-                disabled={saving}
-                size="small"
-                title="결석"
-                sx={{ minWidth: { xs: 44, sm: "auto" }, px: { xs: 1, sm: 2 } }}
-              >
-                {isNarrow ? <CancelIcon fontSize="small" /> : "결석"}
-              </Button>
-              <Button
-                variant="contained"
-                color="warning"
-                startIcon={isNarrow ? undefined : <HelpIcon />}
-                onClick={() => handleBulkSave(AttendStatus.ETC)}
-                disabled={saving}
-                size="small"
-                title="기타"
-                sx={{ minWidth: { xs: 44, sm: "auto" }, px: { xs: 1, sm: 2 } }}
-              >
-                {isNarrow ? <HelpIcon fontSize="small" /> : "기타"}
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={clearSelection}
-                disabled={saving}
-                size="small"
-                title="선택 해제"
-                sx={{ minWidth: { xs: 44, sm: "auto" }, px: { xs: 1, sm: 2 } }}
-              >
-                {isNarrow ? <CloseIcon fontSize="small" /> : "해제"}
-              </Button>
-            </Stack>
-          </Stack>
-        </Paper>
-      )}
-    </Box>
-  )
-}
+      <UndoSnackbar
+        action={undoAction}
+        bulkBarVisible={checkedIds.size > 0}
+        onUndo={handleUndo}
+        onDismiss={dismissUndo}
+      />
 
-/* --- 하위 컴포넌트 --- */
-
-function ColumnBox({
-  title,
-  flex,
-  children,
-}: {
-  title: string
-  flex: number
-  children: React.ReactNode
-}) {
-  return (
-    <Box
-      flex={flex}
-      sx={{
-        border: "1px solid #e0e0e0",
-        borderRadius: 1,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        minWidth: 0,
-      }}
-    >
-      <Box
-        sx={{
-          px: 1.5,
-          py: 1,
-          bgcolor: "#f5f5f5",
-          borderBottom: "1px solid #e0e0e0",
-        }}
-      >
-        <Typography variant="subtitle2" fontWeight="bold">
-          {title}
-        </Typography>
-      </Box>
-      <Box sx={{ flex: 1, overflow: "auto", maxHeight: 520 }}>{children}</Box>
-    </Box>
-  )
-}
-
-function RowButton({
-  focused,
-  onClick,
-  children,
-}: {
-  focused?: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <Stack
-      direction="row"
-      alignItems="center"
-      onClick={onClick}
-      sx={{
-        px: 1,
-        py: 0.5,
-        borderBottom: "1px solid #eee",
-        bgcolor: focused ? "#e3f2fd" : "transparent",
-        cursor: "pointer",
-        "&:hover": {
-          bgcolor: focused ? "#bbdefb" : "#f0f7fc",
-        },
-      }}
-    >
-      {children}
-    </Stack>
-  )
-}
-
-function EmptyState({ children }: { children: React.ReactNode }) {
-  return (
-    <Box p={3} textAlign="center" color="text.secondary">
-      <Typography variant="body2">{children}</Typography>
+      <BulkActionBar
+        selectedCount={checkedIds.size}
+        hiddenSelectedCount={hiddenSelectedCount}
+        saving={saving}
+        onSave={handleBulkSave}
+        onClear={clearSelection}
+      />
     </Box>
   )
 }
