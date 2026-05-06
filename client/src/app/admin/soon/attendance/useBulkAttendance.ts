@@ -175,6 +175,10 @@ export function useBulkAttendance({
       return Array.from(map.values())
     })
 
+    if (successIds.length === 0) {
+      error("복구 실패")
+      return
+    }
     let msg = `${successIds.length}명 복구됨`
     if (unrecoverable > 0) msg += ` (${unrecoverable}명은 복구 불가)`
     success(msg)

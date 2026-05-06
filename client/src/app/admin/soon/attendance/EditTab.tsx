@@ -61,12 +61,12 @@ export default function EditTab() {
     setAttendData,
   } = useAttendanceData(selectedScheduleId)
 
-  // 첫 schedule 자동 선택
+  // 첫 schedule 자동 선택 — === "" 가드로 무한 루프 없음.
   useEffect(() => {
     if (selectedScheduleId === "" && schedules.length > 0) {
       setSelectedScheduleId(schedules[0].id)
     }
-  }, [schedules])
+  }, [schedules, selectedScheduleId])
 
   const {
     checkedIds,
@@ -143,7 +143,9 @@ export default function EditTab() {
     base.forEach((u) => {
       const s = getUserAttendStatus(attendMap, u.id)
       if (s === "unrecorded") c.unrecorded++
-      else (c as any)[s]++
+      else if (s === "ATTEND") c.ATTEND++
+      else if (s === "ABSENT") c.ABSENT++
+      else if (s === "ETC") c.ETC++
     })
     return c
   }, [allUsers, attendMap, searchText])

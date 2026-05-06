@@ -22,6 +22,9 @@ export function useAttendanceData(selectedScheduleId: number | "") {
   const [attendData, setAttendData] = useState<AttendData[]>([])
   const [loading, setLoading] = useState(true)
 
+  // mount 한 번만 로드 — useNotification의 error는 매 렌더 새 ref라
+  // deps에 넣으면 무한 루프가 난다.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     ;(async () => {
       try {
