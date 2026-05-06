@@ -7,9 +7,16 @@
 
 # dependencies
 /node_modules
-.env
-ormconfig.js
 pnpm-lock.yaml
+
+# Local env files (NEVER commit secrets) — templates with .example are allowed
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# DB connection config (contains credentials)
+ormconfig.js
 
 # database backups
 /backups

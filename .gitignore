@@ -1,4 +1,25 @@
 sharing/*
+
+# OS
 .DS_Store
 **/.DS_Store
+
+# Lockfiles (we standardize on package-lock.json)
 **/pnpm-lock.yaml
+
+# Local env files (NEVER commit secrets) — templates with .example are allowed
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Legacy/dead ormconfig at repo root (real config lives at server/ormconfig.js)
+/ormconfig.js
+
+# Build artifacts (safety net — client/ and server/ also have their own ignores)
+node_modules/
+dist/
+.next/
+out/
+*.log
+*.tsbuildinfo
