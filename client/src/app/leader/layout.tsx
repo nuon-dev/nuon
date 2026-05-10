@@ -1,6 +1,6 @@
 "use client"
 
-import Header from "@/app/leader/components/Header"
+import Header from "@/components/Header"
 
 export default function LeaderLayout({
   children,
