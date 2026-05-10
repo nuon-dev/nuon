@@ -15,6 +15,8 @@ import { WorshipContest } from "../entity/event/worshipContest"
 import { Newcomer } from "../entity/newcomer/newcomer"
 import { NewcomerEducation } from "../entity/newcomer/newcomerEducation"
 import { NewcomerManager } from "../entity/newcomer/newcomerManager"
+import { Link } from "../entity/link"
+import { LinkClick } from "../entity/linkClick"
 
 const dataSource = new DataSource(require("../../ormconfig.js"))
 
@@ -36,5 +38,8 @@ export const newcomerDatabase = dataSource.getRepository(Newcomer)
 export const newcomerEducationDatabase =
   dataSource.getRepository(NewcomerEducation)
 export const newcomerManagerDatabase = dataSource.getRepository(NewcomerManager)
+
+export const linkDatabase = dataSource.getRepository(Link)
+export const linkClickDatabase = dataSource.getRepository(LinkClick)
 
 export default dataSource

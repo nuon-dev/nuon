@@ -88,7 +88,7 @@ router.delete("/delete-user/:id", async (req, res) => {
 })
 
 router.post("/get-soon-list", async (req, res) => {
-  const communityIds = req.body.ids
+  const communityIds = req.body.ids as string | undefined
 
   if (!communityIds) {
     res.status(400).send({ message: "No community IDs provided" })
@@ -285,14 +285,29 @@ router.post("/update-attendance-bulk", async (req, res) => {
       const { userId, isAttend, memo } = item ?? {}
 
       if (!userId || !isAttend) {
-        return { index, userId, status: "invalid", error: "Missing required fields" }
+        return {
+          index,
+          userId,
+          status: "invalid",
+          error: "Missing required fields",
+        }
       }
       if (!(Object.values(AttendStatus) as string[]).includes(isAttend)) {
-        return { index, userId, status: "invalid", error: "Invalid isAttend value" }
+        return {
+          index,
+          userId,
+          status: "invalid",
+          error: "Invalid isAttend value",
+        }
       }
       if (memo !== undefined && memo !== null) {
         if (typeof memo !== "string") {
-          return { index, userId, status: "invalid", error: "Invalid memo type" }
+          return {
+            index,
+            userId,
+            status: "invalid",
+            error: "Invalid memo type",
+          }
         }
         if (memo.length > 500) {
           return { index, userId, status: "invalid", error: "Memo too long" }

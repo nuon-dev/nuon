@@ -2,9 +2,10 @@
 
 import { Stack } from "@mui/material"
 import Header from "@/components/Header/index"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import useAuth from "@/hooks/useAuth"
+import Link from "@/app/link/page"
 
 export default function Index() {
   const { isLogin } = useAuth()
@@ -19,9 +20,11 @@ export default function Index() {
       push("/common/login")
     }
   }
+
   return (
-    <Stack>
+    <Stack sx={{ minHeight: "100vh", bgcolor: "#f5f5f5" }}>
       <Header />
+      <Link />
     </Stack>
   )
 }

@@ -20,8 +20,13 @@ app.use(
       "https://nuon-dev.iubns.net",
     ],
     credentials: true,
-  })
+  }),
 )
+
+app.get("/", async (req, res) => {
+  res.send("running server")
+})
+
 app.use("/", apiRouter)
 
 const target = process.env.NEXT_PUBLIC_API_TARGET
@@ -33,10 +38,10 @@ if (target === "local") {
 } else if (target === "dev") {
   port = 8001
   var privateKey = fs.readFileSync(
-    "/etc/letsencrypt/live/nuon-dev.iubns.net/privkey.pem"
+    "/etc/letsencrypt/live/nuon-dev.iubns.net/privkey.pem",
   )
   var certificate = fs.readFileSync(
-    "/etc/letsencrypt/live/nuon-dev.iubns.net/cert.pem"
+    "/etc/letsencrypt/live/nuon-dev.iubns.net/cert.pem",
   )
   var ca = fs.readFileSync("/etc/letsencrypt/live/nuon-dev.iubns.net/chain.pem")
   const credentials = { key: privateKey, cert: certificate, ca: ca }
@@ -44,10 +49,10 @@ if (target === "local") {
   server = https.createServer(credentials, app)
 } else if (target === "prod") {
   var privateKey = fs.readFileSync(
-    "/etc/letsencrypt/live/nuon.iubns.net/privkey.pem"
+    "/etc/letsencrypt/live/nuon.iubns.net/privkey.pem",
   )
   var certificate = fs.readFileSync(
-    "/etc/letsencrypt/live/nuon.iubns.net/cert.pem"
+    "/etc/letsencrypt/live/nuon.iubns.net/cert.pem",
   )
   var ca = fs.readFileSync("/etc/letsencrypt/live/nuon.iubns.net/chain.pem")
   const credentials = { key: privateKey, cert: certificate, ca: ca }
@@ -58,8 +63,4 @@ if (target === "local") {
 server.listen(port, async () => {
   await Promise.all([dataSource.initialize()])
   console.log("start server")
-})
-
-app.get("/", async (req, res) => {
-  res.send("running server")
 })
