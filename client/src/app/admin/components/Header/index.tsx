@@ -9,7 +9,7 @@ import CommunityIcon from "@mui/icons-material/Groups"
 import HeaderDrawer, { DrawerItemsType } from "@/components/Header/Drawer"
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined"
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome"
+import LinkIcon from "@mui/icons-material/Link"
 
 export default function AdminHeader() {
   const { push } = useRouter()
@@ -63,13 +63,13 @@ export default function AdminHeader() {
       path: "/admin/soon/attendance",
       type: "menu",
     },
-    /*
     {
-      title: "AI로 데이터 분석",
-      icon: <AutoAwesomeIcon fontSize="small" />,
-      path: "/admin/ai/chat",
+      title: "링크 관리",
+      icon: <LinkIcon fontSize="small" />,
+      path: "/admin/link",
       type: "menu",
     },
+    /*
     {
       type: "divider",
     },*/

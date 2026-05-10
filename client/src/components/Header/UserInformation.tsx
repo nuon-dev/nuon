@@ -16,32 +16,32 @@ export default function UserInformation() {
         sx={{
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
           color: "white",
-          p: 3,
+          p: 2.5,
           textAlign: "center",
         }}
       >
         <Stack spacing={1} alignItems="center">
           <Box
             sx={{
-              width: 48,
-              height: 48,
+              width: 42,
+              height: 42,
               borderRadius: "50%",
               bgcolor: "rgba(255,255,255,0.2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "1.2rem",
+              fontSize: "1.1rem",
               fontWeight: "bold",
-              mb: 1,
+              mb: 0.5,
             }}
           >
             {authUserData.name.charAt(0)}
           </Box>
           <Stack>
-            <Box sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>
+            <Box sx={{ fontSize: "1rem", fontWeight: "bold" }}>
               {authUserData.name}
             </Box>
-            <Box sx={{ fontSize: "0.9rem", opacity: 0.8 }}>
+            <Box sx={{ fontSize: "0.85rem", opacity: 0.8 }}>
               {authUserData.yearOfBirth}년생
             </Box>
           </Stack>
