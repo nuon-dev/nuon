@@ -12,8 +12,6 @@ import {
 import { WorshipSchedule } from "../entity/worshipSchedule"
 import { AttendData } from "../entity/attendData"
 import { WorshipContest } from "../entity/event/worshipContest"
-import { AIChat } from "../entity/ai/aiChat"
-import { AIChatRoom } from "../entity/ai/aiChatRoom"
 import { Newcomer } from "../entity/newcomer/newcomer"
 import { NewcomerEducation } from "../entity/newcomer/newcomerEducation"
 import { NewcomerManager } from "../entity/newcomer/newcomerManager"
@@ -32,9 +30,6 @@ export const retreatAttendDatabase = dataSource.getRepository(RetreatAttend)
 export const sharingTextDatabase = dataSource.getRepository(SharingText)
 export const sharingImageDatabase = dataSource.getRepository(SharingImage)
 export const sharingVideoDatabase = dataSource.getRepository(SharingVideo)
-
-export const aiChatDatabase = dataSource.getRepository(AIChat)
-export const aiChatRoomDatabase = dataSource.getRepository(AIChatRoom)
 
 export const worshipContestDatabase = dataSource.getRepository(WorshipContest)
 export const newcomerDatabase = dataSource.getRepository(Newcomer)
