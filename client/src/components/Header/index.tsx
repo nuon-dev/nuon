@@ -64,7 +64,7 @@ export default function Header() {
       type: "menu",
     },*/
 
-    if (authUserData?.role.VillageLeader || authUserData?.role.Admin) {
+    if (authUserData?.role.VillageLeader) {
       DrawerItems.push({
         title: "전체 출석 조회",
         icon: <EventNoteIcon fontSize="small" sx={{ color: "#667eea" }} />,
