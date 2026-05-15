@@ -17,6 +17,12 @@ import { NewcomerEducation } from "../entity/newcomer/newcomerEducation"
 import { NewcomerManager } from "../entity/newcomer/newcomerManager"
 import { Link } from "../entity/link"
 import { LinkClick } from "../entity/linkClick"
+import { Post } from "../entity/community/post"
+import { FreePost } from "../entity/community/freePost"
+import { QnaPost } from "../entity/community/qnaPost"
+import { Comment } from "../entity/community/comment"
+import { Reaction } from "../entity/community/reaction"
+import { Board } from "../entity/community/board"
 
 const dataSource = new DataSource(require("../../ormconfig.js"))
 
@@ -41,5 +47,12 @@ export const newcomerManagerDatabase = dataSource.getRepository(NewcomerManager)
 
 export const linkDatabase = dataSource.getRepository(Link)
 export const linkClickDatabase = dataSource.getRepository(LinkClick)
+
+export const freePostDatabase = dataSource.getRepository(FreePost)
+export const qnaPostDatabase = dataSource.getRepository(QnaPost)
+export const postDatabase = dataSource.getRepository(Post)
+export const commentDatabase = dataSource.getRepository(Comment)
+export const reactionDatabase = dataSource.getRepository(Reaction)
+export const boardDatabase = dataSource.getRepository(Board)
 
 export default dataSource
