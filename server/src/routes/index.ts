@@ -9,6 +9,7 @@ import inOutInfoRouter from "./retreat/inOutInfoRouter"
 import soonRouter from "./soon/soonRouter"
 import newcomerRouter from "./newcomer/newcomerRouter"
 import eventRouter from "./event"
+import linkRouter from "./link"
 
 const router: Router = express.Router()
 
@@ -23,5 +24,6 @@ router.use("/soon", soonRouter)
 router.use("/newcomer", newcomerRouter)
 
 router.use("/event", eventRouter)
+router.use("/link", linkRouter)
 
 export default router

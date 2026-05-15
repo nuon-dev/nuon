@@ -41,7 +41,7 @@ export default function AttendanceAdminPage() {
     if (!authUserData) return
     if (!authUserData.role.VillageLeader) {
       error("접근 권한이 없습니다.")
-      push("/leader")
+      push("/")
       return
     }
     fetchCommunities()

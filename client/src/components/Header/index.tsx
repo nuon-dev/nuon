@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation"
 import { Button, Stack } from "@mui/material"
 import MenuIcon from "@mui/icons-material/Menu"
 import PeopleIcon from "@mui/icons-material/People"
+import EventNoteIcon from "@mui/icons-material/EventNote"
 import useAuth from "@/hooks/useAuth"
+import HowToRegIcon from "@mui/icons-material/HowToReg"
 
 export default function Header() {
   const { push } = useRouter()
@@ -42,12 +44,43 @@ export default function Header() {
     DrawerItems.push({
       type: "divider",
     })
-    DrawerItems.push({
-      title: "순장 화면",
+    ;(DrawerItems.push({
+      title: "순원 관리",
       icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
-      path: "/leader",
+      path: "/leader/management",
       type: "menu",
-    })
+    }),
+      DrawerItems.push({
+        title: "출석 관리",
+        icon: <EventNoteIcon fontSize="small" sx={{ color: "#667eea" }} />,
+        path: "/leader/attendance",
+        type: "menu",
+      }))
+    /*Todo: 다음 수련회때 다시 키기
+    {
+      title: "순원 수련회 접수 조회",
+      icon: <HowToRegIcon fontSize="small" sx={{ color: "#667eea" }} />,
+      path: "/leader/retreat-attendance",
+      type: "menu",
+    },*/
+
+    if (authUserData?.role.VillageLeader) {
+      DrawerItems.push({
+        title: "전체 출석 조회",
+        icon: <EventNoteIcon fontSize="small" sx={{ color: "#667eea" }} />,
+        path: "/leader/all-attendance",
+        type: "menu",
+      })
+    }
+
+    if (authUserData?.role.NewcomerManager || authUserData?.role.Admin) {
+      DrawerItems.push({
+        title: "새가족 관리",
+        icon: <HowToRegIcon fontSize="small" sx={{ color: "#667eea" }} />,
+        path: "/leader/newcomer/management",
+        type: "menu",
+      })
+    }
   }
 
   return (
