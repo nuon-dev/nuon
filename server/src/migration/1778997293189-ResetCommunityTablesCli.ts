@@ -13,15 +13,15 @@ export class ResetCommunityTablesCli1778997293189 implements MigrationInterface 
     await queryRunner.query(`
             CREATE TABLE \`board\` (
                 \`id\` varchar(36) NOT NULL,
-                \`name\` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-                \`slug\` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-                \`description\` text COLLATE utf8mb4_general_ci NULL,
-                \`visibility\` enum ('public','members','private') NOT NULL DEFAULT 'public',
-                \`settings\` json NULL,
+                \`name\` varchar(255) COLLATE utf8mb4_general_ci NOT NULL COMMENT '게시판 이름',
+                \`slug\` varchar(255) COLLATE utf8mb4_general_ci NOT NULL COMMENT '게시판 고유 식별용 slug',
+                \`description\` text COLLATE utf8mb4_general_ci NULL COMMENT '게시판 설명',
+                \`visibility\` enum ('public','members','private') NOT NULL DEFAULT 'public' COMMENT '게시판 공개 범위',
+                \`settings\` json NULL COMMENT '게시판별 설정값',
                 \`createdById\` varchar(36) COLLATE utf8mb4_general_ci NULL,
                 \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 \`updatedAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                \`deletedAt\` timestamp NULL,
+                \`deletedAt\` timestamp NULL COMMENT '소프트 삭제 시각',
                 PRIMARY KEY (\`id\`),
                 UNIQUE INDEX \`IDX_board_slug\` (\`slug\`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
@@ -41,17 +41,17 @@ export class ResetCommunityTablesCli1778997293189 implements MigrationInterface 
     await queryRunner.query(`
             CREATE TABLE \`post\` (
                 \`id\` varchar(36) NOT NULL,
-                \`type\` varchar(50) NOT NULL DEFAULT 'free',
+                \`type\` varchar(50) NOT NULL DEFAULT 'free' COMMENT '게시글 타입',
                 \`authorId\` varchar(36) COLLATE utf8mb4_general_ci NULL,
                 \`boardId\` varchar(36) COLLATE utf8mb4_general_ci NOT NULL,
-                \`title\` varchar(255) COLLATE utf8mb4_general_ci NULL,
-                \`content\` text COLLATE utf8mb4_general_ci NULL,
-                \`isAnonymous\` tinyint NOT NULL DEFAULT 0,
+                \`title\` varchar(255) COLLATE utf8mb4_general_ci NULL COMMENT '게시글 제목',
+                \`content\` text COLLATE utf8mb4_general_ci NULL COMMENT '게시글 본문',
+                \`isAnonymous\` tinyint NOT NULL DEFAULT 0 COMMENT '익명 작성 여부',
                 -- QnA specific fields
-                \`answer\` text COLLATE utf8mb4_general_ci NULL,
+                \`answer\` text COLLATE utf8mb4_general_ci NULL COMMENT '관리자 답변',
                 \`answeredById\` varchar(36) COLLATE utf8mb4_general_ci NULL,
-                \`answeredAt\` timestamp NULL,
-                \`answerPublic\` tinyint NOT NULL DEFAULT 0,
+                \`answeredAt\` timestamp NULL COMMENT '답변 완료 시각',
+                \`answerPublic\` tinyint NOT NULL DEFAULT 0 COMMENT '답변 공개 여부',
                 \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 \`updatedAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 \`deletedAt\` timestamp NULL,
@@ -67,10 +67,10 @@ export class ResetCommunityTablesCli1778997293189 implements MigrationInterface 
                 \`postId\` varchar(36) COLLATE utf8mb4_general_ci NOT NULL,
                 \`parentId\` varchar(36) COLLATE utf8mb4_general_ci NULL,
                 \`authorId\` varchar(36) COLLATE utf8mb4_general_ci NULL,
-                \`content\` text COLLATE utf8mb4_general_ci NOT NULL,
-                \`isAnonymous\` tinyint NOT NULL DEFAULT 0,
+                \`content\` text COLLATE utf8mb4_general_ci NOT NULL COMMENT '댓글 내용',
+                \`isAnonymous\` tinyint NOT NULL DEFAULT 0 COMMENT '익명 작성 여부',
                 \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                \`deletedAt\` timestamp NULL,
+                \`deletedAt\` timestamp NULL COMMENT '소프트 삭제 시각',
                 PRIMARY KEY (\`id\`),
                 INDEX \`IDX_comment_post_createdAt\` (\`postId\`, \`createdAt\`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
@@ -82,7 +82,7 @@ export class ResetCommunityTablesCli1778997293189 implements MigrationInterface 
                 \`id\` varchar(36) NOT NULL,
                 \`postId\` varchar(36) COLLATE utf8mb4_general_ci NOT NULL,
                 \`userId\` varchar(36) COLLATE utf8mb4_general_ci NOT NULL,
-                \`type\` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+                  \`type\` varchar(255) COLLATE utf8mb4_general_ci NOT NULL COMMENT '반응 타입',
                 \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (\`id\`),
                 UNIQUE INDEX \`IDX_reaction_unique\` (\`postId\`, \`userId\`, \`type\`)

@@ -29,10 +29,10 @@ export class Comment {
   @ManyToOne(() => User, { nullable: true })
   author?: User | null
 
-  @Column({ type: "text" })
+  @Column({ type: "text", comment: "댓글 내용" })
   content!: string
 
-  @Column({ default: false })
+  @Column({ default: false, comment: "익명 작성 여부" })
   isAnonymous!: boolean
 
   @CreateDateColumn({
@@ -41,6 +41,10 @@ export class Comment {
   })
   createdAt!: Date
 
-  @DeleteDateColumn({ type: "timestamp", nullable: true })
+  @DeleteDateColumn({
+    type: "timestamp",
+    nullable: true,
+    comment: "소프트 삭제 시각",
+  })
   deletedAt?: Date | null
 }

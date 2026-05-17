@@ -27,7 +27,7 @@ export class Post {
   @PrimaryGeneratedColumn("uuid")
   id!: string
 
-  @Column({ type: "varchar", length: 50 })
+  @Column({ type: "varchar", length: 50, comment: "게시글 타입" })
   type!: PostType
 
   @ManyToOne(() => User, { nullable: true })
@@ -36,13 +36,13 @@ export class Post {
   @ManyToOne(() => Board, (board) => board.posts, { nullable: false })
   board!: Board
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, comment: "게시글 제목" })
   title?: string
 
-  @Column({ type: "text", nullable: true })
+  @Column({ type: "text", nullable: true, comment: "게시글 본문" })
   content?: string
 
-  @Column({ default: false })
+  @Column({ default: false, comment: "익명 작성 여부" })
   isAnonymous!: boolean
 
   @OneToMany(() => Comment, (comment) => comment.post, {
@@ -67,6 +67,10 @@ export class Post {
   })
   updatedAt!: Date
 
-  @DeleteDateColumn({ type: "timestamp", nullable: true })
+  @DeleteDateColumn({
+    type: "timestamp",
+    nullable: true,
+    comment: "소프트 삭제 시각",
+  })
   deletedAt?: Date | null
 }
