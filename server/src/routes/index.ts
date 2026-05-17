@@ -10,6 +10,7 @@ import soonRouter from "./soon/soonRouter"
 import newcomerRouter from "./newcomer/newcomerRouter"
 import eventRouter from "./event"
 import linkRouter from "./link"
+import communityRouter from "./communityRouter"
 
 const router: Router = express.Router()
 
@@ -25,5 +26,6 @@ router.use("/newcomer", newcomerRouter)
 
 router.use("/event", eventRouter)
 router.use("/link", linkRouter)
+router.use("/community", communityRouter)
 
 export default router

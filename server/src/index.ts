@@ -10,7 +10,7 @@ import cookieParser from "cookie-parser"
 const app = express()
 let port = 8000
 
-app.use(bodyParser.json())
+app.use(bodyParser.json({ limit: "100kb" }))
 app.use(cookieParser())
 app.use(
   cors({

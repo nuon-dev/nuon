@@ -4,11 +4,14 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToMany,
   JoinTable,
   ManyToOne,
+  OneToMany,
 } from "typeorm"
 import { User } from "../user"
+import { Post } from "./post"
 
 export enum BoardVisibility {
   PUBLIC = "public",
@@ -48,6 +51,9 @@ export class Board {
   @ManyToOne(() => User, { nullable: true })
   createdBy?: User | null
 
+  @OneToMany(() => Post, (post) => post.board)
+  posts?: Post[]
+
   @CreateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",
@@ -59,4 +65,7 @@ export class Board {
     default: () => "CURRENT_TIMESTAMP(6)",
   })
   updatedAt!: Date
+
+  @DeleteDateColumn({ type: "timestamp", nullable: true })
+  deletedAt?: Date | null
 }

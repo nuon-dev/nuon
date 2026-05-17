@@ -11,6 +11,9 @@ export class QnaPost extends Post {
   @ManyToOne(() => User, { nullable: true })
   answeredBy?: User | null
 
+  @Column({ type: "timestamp", nullable: true })
+  answeredAt?: Date | null
+
   // If true, answer is visible to everyone; otherwise only to the asker and admins
   @Column({ default: false })
   answerPublic!: boolean

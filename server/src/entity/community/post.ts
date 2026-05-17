@@ -8,9 +8,9 @@ import {
   ManyToOne,
   OneToMany,
   TableInheritance,
-  ChildEntity,
 } from "typeorm"
 import { User } from "../user"
+import { Board } from "./board"
 import { Comment } from "./comment"
 import { Reaction } from "./reaction"
 
@@ -32,6 +32,9 @@ export class Post {
 
   @ManyToOne(() => User, { nullable: true })
   author?: User | null
+
+  @ManyToOne(() => Board, (board) => board.posts, { nullable: false })
+  board!: Board
 
   @Column({ nullable: true })
   title?: string
