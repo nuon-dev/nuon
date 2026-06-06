@@ -96,7 +96,7 @@ router.post("/boards", async (req, res) => {
       return
     }
 
-    const { name, slug, description, visibility, settings } = req.body
+    const { name, slug, description, visibility } = req.body
     if (!name || !slug) {
       res.status(400).json({ error: "Missing required fields: name, slug" })
       return
@@ -107,7 +107,6 @@ router.post("/boards", async (req, res) => {
       slug,
       description,
       visibility,
-      settings,
       createdBy: user,
     })
 
@@ -191,7 +190,7 @@ router.get("/boards/:boardId/posts", async (req, res) => {
     }
 
     const [freePosts, qnaPosts] = await Promise.all([
-      communityModel.listFreePosts(boardId, opts),
+      communityModel.listFreePosts(boardId, { ...opts }),
       communityModel.listQnaPosts(boardId, opts),
     ])
     res.status(200).json([...freePosts, ...qnaPosts])

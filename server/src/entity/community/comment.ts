@@ -26,14 +26,11 @@ export class Comment {
   @OneToMany(() => Comment, (comment) => comment.parent)
   children?: Comment[]
 
-  @ManyToOne(() => User, { nullable: true })
-  author?: User | null
+  @ManyToOne(() => User)
+  author?: User
 
   @Column({ type: "text", comment: "댓글 내용" })
   content!: string
-
-  @Column({ default: false, comment: "익명 작성 여부" })
-  isAnonymous!: boolean
 
   @CreateDateColumn({
     type: "timestamp",

@@ -19,6 +19,11 @@ export enum BoardVisibility {
   PRIVATE = "private",
 }
 
+export enum BoardType {
+  FREE = "free",
+  QNA = "qna",
+}
+
 @Entity()
 export class Board {
   @PrimaryGeneratedColumn("uuid")
@@ -41,16 +46,16 @@ export class Board {
   })
   visibility!: BoardVisibility
 
-  // Flexible JSON settings for custom fields, templates, or admin flags
-  @Column({ type: "json", nullable: true, comment: "게시판별 설정값" })
-  settings?: Record<string, any>
-
-  @ManyToMany(() => User, { nullable: true })
-  @JoinTable({ name: "board_moderators" })
-  moderators?: User[]
-
   @ManyToOne(() => User, { nullable: true })
   createdBy?: User | null
+
+  @Column({
+    type: "enum",
+    enum: BoardType,
+    default: BoardType.FREE,
+    comment: "게시판 유형",
+  })
+  type!: BoardType
 
   @OneToMany(() => Post, (post) => post.board)
   posts?: Post[]

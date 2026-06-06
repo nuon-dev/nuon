@@ -1,9 +1,23 @@
-import { ChildEntity, Column, ManyToOne } from "typeorm"
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm"
 import { User } from "../user"
 import { Post, PostType } from "./post"
 
-@ChildEntity(PostType.QNA)
-export class QnaPost extends Post {
+@Entity()
+export class QnaPost {
+  @PrimaryGeneratedColumn("uuid")
+  id!: string
+
+  @OneToOne(() => Post, (post) => post.qna)
+  @JoinColumn({ name: "post_id" })
+  post?: Post | null
+
   // Admin's answer
   @Column({ type: "text", nullable: true, comment: "관리자 답변" })
   answer?: string | null

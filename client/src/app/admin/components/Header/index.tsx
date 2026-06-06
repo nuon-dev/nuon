@@ -10,6 +10,7 @@ import HeaderDrawer, { DrawerItemsType } from "@/components/Header/Drawer"
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined"
 import LinkIcon from "@mui/icons-material/Link"
+import ForumIcon from "@mui/icons-material/Forum"
 
 export default function AdminHeader() {
   const { push } = useRouter()
@@ -67,6 +68,12 @@ export default function AdminHeader() {
       title: "링크 관리",
       icon: <LinkIcon fontSize="small" />,
       path: "/admin/link",
+      type: "menu",
+    },
+    {
+      title: "질의응답",
+      icon: <ForumIcon fontSize="small" />,
+      path: "/admin/community/qna",
       type: "menu",
     },
     /*

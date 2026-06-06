@@ -7,12 +7,13 @@ import {
   DeleteDateColumn,
   ManyToOne,
   OneToMany,
-  TableInheritance,
+  OneToOne,
 } from "typeorm"
 import { User } from "../user"
 import { Board } from "./board"
 import { Comment } from "./comment"
 import { Reaction } from "./reaction"
+import { QnaPost } from "./qnaPost"
 
 export enum PostType {
   FREE = "free",
@@ -20,9 +21,6 @@ export enum PostType {
 }
 
 @Entity()
-@TableInheritance({
-  column: { type: "varchar", name: "type", default: PostType.FREE },
-})
 export class Post {
   @PrimaryGeneratedColumn("uuid")
   id!: string
@@ -42,9 +40,6 @@ export class Post {
   @Column({ type: "text", nullable: true, comment: "게시글 본문" })
   content?: string
 
-  @Column({ default: false, comment: "익명 작성 여부" })
-  isAnonymous!: boolean
-
   @OneToMany(() => Comment, (comment) => comment.post, {
     cascade: ["insert", "update"],
   })
@@ -54,6 +49,9 @@ export class Post {
     cascade: ["insert", "update"],
   })
   reactions?: Reaction[]
+
+  @OneToOne(() => QnaPost, (qna) => qna.post, { nullable: true })
+  qna?: QnaPost
 
   @CreateDateColumn({
     type: "timestamp",
