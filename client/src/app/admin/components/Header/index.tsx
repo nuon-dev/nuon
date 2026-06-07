@@ -71,15 +71,27 @@ export default function AdminHeader() {
       type: "menu",
     },
     {
-      title: "질의응답",
-      icon: <ForumIcon fontSize="small" />,
-      path: "/admin/community/qna",
-      type: "menu",
+      title: "게시판",
+      icon: <CommunityIcon fontSize="small" />,
+      type: "submenu",
+      children: [
+        {
+          title: "게시판 관리",
+          icon: <ForumIcon fontSize="small" />,
+          path: "/admin/community/boards",
+          type: "menu",
+        },
+        {
+          title: "QnA",
+          icon: <ForumIcon fontSize="small" />,
+          path: "/admin/community/qna",
+          type: "menu",
+        },
+      ],
     },
-    /*
     {
       type: "divider",
-    },*/
+    },
     /* Todo: 지울지, 유지할지 결정 필요
     {
       title: "워십 콘테스트",

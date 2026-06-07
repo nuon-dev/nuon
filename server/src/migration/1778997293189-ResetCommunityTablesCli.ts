@@ -2,6 +2,12 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class ResetCommunityTablesCli1778997293189 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP TABLE IF EXISTS \`reaction\``)
+    await queryRunner.query(`DROP TABLE IF EXISTS \`comment\``)
+    await queryRunner.query(`DROP TABLE IF EXISTS \`qna_post\``)
+    await queryRunner.query(`DROP TABLE IF EXISTS \`post\``)
+    await queryRunner.query(`DROP TABLE IF EXISTS \`board\``)
+
     // Create boards
     await queryRunner.query(`
             CREATE TABLE \`board\` (
@@ -25,7 +31,7 @@ export class ResetCommunityTablesCli1778997293189 implements MigrationInterface 
             CREATE TABLE \`post\` (
                 \`id\` varchar(36) NOT NULL,
                 \`type\` varchar(50) NOT NULL DEFAULT 'free' COMMENT '게시글 타입',
-                \`authorId\` varchar(36) COLLATE utf8mb4_general_ci NULL,
+                \`authorId\` varchar(36) COLLATE utf8mb4_general_ci NOT NULL,
                 \`boardId\` varchar(36) COLLATE utf8mb4_general_ci NOT NULL,
                 \`title\` varchar(255) COLLATE utf8mb4_general_ci NULL COMMENT '게시글 제목',
                 \`content\` text COLLATE utf8mb4_general_ci NULL COMMENT '게시글 본문',
@@ -85,20 +91,16 @@ export class ResetCommunityTablesCli1778997293189 implements MigrationInterface 
     )
 
     await queryRunner.query(
-      `ALTER TABLE \`post\` ADD CONSTRAINT \`FK_post_author\` FOREIGN KEY (\`authorId\`) REFERENCES \`user\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`,
+      `ALTER TABLE \`post\` ADD CONSTRAINT \`FK_post_author\` FOREIGN KEY (\`authorId\`) REFERENCES \`user\`(\`id\`) ON DELETE RESTRICT ON UPDATE NO ACTION`,
     )
     await queryRunner.query(
       `ALTER TABLE \`post\` ADD CONSTRAINT \`FK_post_board\` FOREIGN KEY (\`boardId\`) REFERENCES \`board\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`,
     )
     await queryRunner.query(
-      `ALTER TABLE \`post\` ADD CONSTRAINT \`FK_post_answeredBy\` FOREIGN KEY (\`answeredById\`) REFERENCES \`user\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`,
-    )
-
-    await queryRunner.query(
       `ALTER TABLE \`qna_post\` ADD CONSTRAINT \`FK_qna_post_postId\` FOREIGN KEY (\`postId\`) REFERENCES \`post\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION`,
     )
     await queryRunner.query(
-      `ALTER TABLE \`qna_post\` ADD CONSTRAINT \`FK_qna_post_answeredBy\` FOREIGN KEY (\`answeredById\`) REFERENCES \`user\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`,
+      `ALTER TABLE \`qna_post\` ADD CONSTRAINT \`FK_qna_post_answeredBy\` FOREIGN KEY (\`answeredById\`) REFERENCES \`user\`(\`id\`) ON DELETE RESTRICT ON UPDATE NO ACTION`,
     )
 
     await queryRunner.query(
@@ -108,7 +110,7 @@ export class ResetCommunityTablesCli1778997293189 implements MigrationInterface 
       `ALTER TABLE \`comment\` ADD CONSTRAINT \`FK_comment_parent\` FOREIGN KEY (\`parentId\`) REFERENCES \`comment\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`,
     )
     await queryRunner.query(
-      `ALTER TABLE \`comment\` ADD CONSTRAINT \`FK_comment_author\` FOREIGN KEY (\`authorId\`) REFERENCES \`user\`(\`id\`) ON DELETE SET NULL ON UPDATE NO ACTION`,
+      `ALTER TABLE \`comment\` ADD CONSTRAINT \`FK_comment_author\` FOREIGN KEY (\`authorId\`) REFERENCES \`user\`(\`id\`) ON DELETE RESTRICT ON UPDATE NO ACTION`,
     )
 
     await queryRunner.query(
