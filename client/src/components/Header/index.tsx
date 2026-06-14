@@ -83,18 +83,6 @@ export default function Header() {
     }
   }
 
-  if (boards.length > 0) {
-    DrawerItems.push({ type: "divider" })
-    boards.forEach((b) => {
-      DrawerItems.push({
-        title: b.name,
-        icon: <ForumIcon fontSize="small" sx={{ color: "#42a5f5" }} />,
-        path: `/community/${encodeURIComponent(b.slug)}`,
-        type: "menu",
-      })
-    })
-  }
-
   return (
     <Stack
       py="8px"
