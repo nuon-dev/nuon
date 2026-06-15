@@ -10,6 +10,7 @@ import HeaderDrawer, { DrawerItemsType } from "@/components/Header/Drawer"
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined"
 import LinkIcon from "@mui/icons-material/Link"
+import ForumIcon from "@mui/icons-material/Forum"
 
 export default function AdminHeader() {
   const { push } = useRouter()
@@ -69,10 +70,28 @@ export default function AdminHeader() {
       path: "/admin/link",
       type: "menu",
     },
-    /*
+    {
+      title: "게시판",
+      icon: <CommunityIcon fontSize="small" />,
+      type: "submenu",
+      children: [
+        {
+          title: "게시판 관리",
+          icon: <ForumIcon fontSize="small" />,
+          path: "/admin/community/boards",
+          type: "menu",
+        },
+        {
+          title: "QnA",
+          icon: <ForumIcon fontSize="small" />,
+          path: "/admin/community/qna",
+          type: "menu",
+        },
+      ],
+    },
     {
       type: "divider",
-    },*/
+    },
     /* Todo: 지울지, 유지할지 결정 필요
     {
       title: "워십 콘테스트",

@@ -7,12 +7,13 @@ import {
   DeleteDateColumn,
   ManyToOne,
   OneToMany,
-  TableInheritance,
-  ChildEntity,
+  OneToOne,
 } from "typeorm"
 import { User } from "../user"
+import { Board } from "./board"
 import { Comment } from "./comment"
 import { Reaction } from "./reaction"
+import { QnaPost } from "./qnaPost"
 
 export enum PostType {
   FREE = "free",
@@ -20,27 +21,24 @@ export enum PostType {
 }
 
 @Entity()
-@TableInheritance({
-  column: { type: "varchar", name: "type", default: PostType.FREE },
-})
 export class Post {
   @PrimaryGeneratedColumn("uuid")
   id!: string
 
-  @Column({ type: "varchar", length: 50 })
+  @Column({ type: "varchar", length: 50, comment: "게시글 타입" })
   type!: PostType
 
-  @ManyToOne(() => User, { nullable: true })
-  author?: User | null
+  @ManyToOne(() => User, { nullable: false })
+  author?: User
 
-  @Column({ nullable: true })
+  @ManyToOne(() => Board, (board) => board.posts, { nullable: false })
+  board!: Board
+
+  @Column({ nullable: true, comment: "게시글 제목" })
   title?: string
 
-  @Column({ type: "text", nullable: true })
+  @Column({ type: "text", nullable: true, comment: "게시글 본문" })
   content?: string
-
-  @Column({ default: false })
-  isAnonymous!: boolean
 
   @OneToMany(() => Comment, (comment) => comment.post, {
     cascade: ["insert", "update"],
@@ -51,6 +49,9 @@ export class Post {
     cascade: ["insert", "update"],
   })
   reactions?: Reaction[]
+
+  @OneToOne(() => QnaPost, (qna) => qna.post, { nullable: true })
+  qna?: QnaPost
 
   @CreateDateColumn({
     type: "timestamp",
@@ -64,6 +65,10 @@ export class Post {
   })
   updatedAt!: Date
 
-  @DeleteDateColumn({ type: "timestamp", nullable: true })
+  @DeleteDateColumn({
+    type: "timestamp",
+    nullable: true,
+    comment: "소프트 삭제 시각",
+  })
   deletedAt?: Date | null
 }

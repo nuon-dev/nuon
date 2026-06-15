@@ -15,30 +15,30 @@ export enum WorshipKind {
 @Entity()
 export class WorshipSchedule {
   @PrimaryGeneratedColumn()
-  id: number
+  id!: number
 
   @Column({ type: "int", nullable: false })
-  kind: WorshipKind
+  kind!: WorshipKind
 
   @Column()
-  date: string
+  date!: string
 
   @Column({ default: true })
-  canEdit: boolean
+  canEdit!: boolean
 
   @Column({ default: true })
-  isVisible: boolean
+  isVisible!: boolean
 
   @CreateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",
   })
-  createdAt: string
+  createdAt!: string
 
   @UpdateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",
     onUpdate: "CURRENT_TIMESTAMP(6)",
   })
-  lastModifiedAt: string
+  lastModifiedAt!: string
 }

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import useAuth from "@/hooks/useAuth"
 import Link from "@/app/link/page"
+import { AxiosError } from "axios"
 
 export default function Index() {
   const { isLogin } = useAuth()
@@ -13,11 +14,30 @@ export default function Index() {
 
   useEffect(() => {
     checkLogin()
+    isApp()
   }, [])
 
   async function checkLogin() {
     if (!isLogin) {
       push("/common/login")
+    }
+  }
+
+  function isApp() {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (typeof window !== "undefined" && (window as any).ReactNativeWebView) {
+        alert("앱에서 접속하셨습니다.")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(window as any).ReactNativeWebView.postMessage(
+          JSON.stringify({
+            platform: "web",
+          }),
+        )
+      }
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError
+      alert(`Error: ${axiosError.message}`)
     }
   }
 
