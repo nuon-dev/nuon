@@ -159,6 +159,7 @@ const communityModel = {
       skip: page * limit,
     })
   },
+  
   /////////////////////////// 여기 상위로 함수들은 확인 됨
   async listQnaPosts(
     boardId: string,
