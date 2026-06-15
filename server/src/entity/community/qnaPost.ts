@@ -14,9 +14,9 @@ export class QnaPost {
   @PrimaryGeneratedColumn("uuid")
   id!: string
 
-  @OneToOne(() => Post, (post) => post.qna)
-  @JoinColumn({ name: "post_id" })
-  post?: Post | null
+  @OneToOne(() => Post, (post) => post.qna, { nullable: false })
+  @JoinColumn({ name: "postId" })
+  post!: Post
 
   // Admin's answer
   @Column({ type: "text", nullable: true, comment: "관리자 답변" })
