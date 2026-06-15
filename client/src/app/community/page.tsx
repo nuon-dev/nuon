@@ -4,8 +4,17 @@ import { Stack } from "@mui/material"
 import { useSearchParams } from "next/navigation"
 import useCommunity from "./useCommunity"
 import CommunityBoardClient from "./components/CommunityBoardClient"
+import { Suspense } from "react"
 
 export default function CommunityHomePage() {
+  return (
+    <Suspense fallback={<div>게시판 정보를 불러오는 중...</div>}>
+      <CommunityHomePageContent />
+    </Suspense>
+  )
+}
+
+function CommunityHomePageContent() {
   const searchParams = useSearchParams()
 
   const slug = searchParams.get("slug")
