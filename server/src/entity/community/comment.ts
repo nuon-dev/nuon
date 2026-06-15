@@ -26,8 +26,8 @@ export class Comment {
   @OneToMany(() => Comment, (comment) => comment.parent)
   children?: Comment[]
 
-  @ManyToOne(() => User)
-  author?: User
+  @ManyToOne(() => User, { nullable: false })
+  author!: User
 
   @Column({ type: "text", comment: "댓글 내용" })
   content!: string

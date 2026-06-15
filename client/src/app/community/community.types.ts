@@ -11,6 +11,7 @@ export type CommunityBoard = {
   slug: string
   description?: string | null
   visibility: CommunityVisibility
+  type: "free" | "qna"
   createdAt?: string
   updatedAt?: string
   deletedAt?: string | null

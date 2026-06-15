@@ -28,8 +28,8 @@ export class Post {
   @Column({ type: "varchar", length: 50, comment: "게시글 타입" })
   type!: PostType
 
-  @ManyToOne(() => User, { nullable: true })
-  author?: User | null
+  @ManyToOne(() => User, { nullable: false })
+  author?: User
 
   @ManyToOne(() => Board, (board) => board.posts, { nullable: false })
   board!: Board

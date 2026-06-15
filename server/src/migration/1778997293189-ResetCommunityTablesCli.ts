@@ -154,12 +154,6 @@ export class ResetCommunityTablesCli1778997293189 implements MigrationInterface 
     )
 
     await queryRunner.query(
-      `ALTER TABLE \`board_moderators\` DROP FOREIGN KEY \`FK_board_mod_user\``,
-    )
-    await queryRunner.query(
-      `ALTER TABLE \`board_moderators\` DROP FOREIGN KEY \`FK_board_mod_board\``,
-    )
-    await queryRunner.query(
       `ALTER TABLE \`board\` DROP FOREIGN KEY \`FK_board_createdBy\``,
     )
 
@@ -167,7 +161,6 @@ export class ResetCommunityTablesCli1778997293189 implements MigrationInterface 
     await queryRunner.query(`DROP TABLE IF EXISTS \`comment\``)
     await queryRunner.query(`DROP TABLE IF EXISTS \`qna_post\``)
     await queryRunner.query(`DROP TABLE IF EXISTS \`post\``)
-    await queryRunner.query(`DROP TABLE IF EXISTS \`board_moderators\``)
     await queryRunner.query(`DROP TABLE IF EXISTS \`board\``)
   }
 }
