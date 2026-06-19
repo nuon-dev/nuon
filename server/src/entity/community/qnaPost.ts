@@ -7,14 +7,14 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm"
 import { User } from "../user"
-import { Post, PostType } from "./post"
+import { Post } from "./post"
 
 @Entity()
 export class QnaPost {
   @PrimaryGeneratedColumn("uuid")
   id!: string
 
-  @OneToOne(() => Post, (post) => post.qna, { nullable: false })
+  @OneToOne(() => Post, (post: Post) => post.qna, { nullable: false })
   @JoinColumn({ name: "postId" })
   post!: Post
 
