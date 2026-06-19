@@ -50,7 +50,7 @@ export class Post {
   })
   reactions?: Reaction[]
 
-  @OneToOne(() => QnaPost, (qna) => qna.post, { nullable: true })
+  @OneToOne(() => QnaPost, (qna: QnaPost) => qna.post, { nullable: true })
   qna?: QnaPost
 
   @CreateDateColumn({
