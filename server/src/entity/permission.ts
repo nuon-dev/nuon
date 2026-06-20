@@ -5,14 +5,14 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
 @Entity()
 export class Permission {
   @PrimaryGeneratedColumn()
-  id: number
+  id!: number
 
   @ManyToOne(() => User, (user) => user.permissions)
-  user: User
+  user!: User
 
   @Column()
-  permissionType: PermissionType
+  permissionType!: PermissionType
 
   @Column()
-  have: boolean
+  have!: boolean
 }

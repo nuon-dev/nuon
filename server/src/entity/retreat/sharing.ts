@@ -11,65 +11,65 @@ import { User } from "../user"
 @Entity()
 export class SharingText {
   @PrimaryGeneratedColumn()
-  id: number
+  id!: number
 
   @ManyToOne(() => User, (user) => user.id)
-  writer: User
+  writer!: User
 
   @Column({ type: "text" })
-  content: string
+  content!: string
 
   @Column({ default: true })
-  visible: boolean
+  visible!: boolean
 
   @CreateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",
   })
-  createAt: Date
+  createAt!: Date
 }
 
 @Entity()
 export class SharingImage {
   @PrimaryGeneratedColumn()
-  id: number
+  id!: number
 
   @ManyToOne(() => User, (user) => user.id)
-  writer: User
+  writer!: User
 
   @Column({ type: "text" })
-  url: string
+  url!: string
 
   @Column({ default: true })
-  visible: boolean
+  visible!: boolean
 
   @Column({ type: "text", nullable: true })
-  tags: string
+  tags!: string
 
   @CreateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",
   })
-  createAt: Date
+  createAt!: Date
 }
 
 @Entity()
 export class SharingVideo {
   @PrimaryGeneratedColumn()
-  id: number
+  id!: number
 
   @ManyToOne(() => User, (user) => user.id)
-  writer: User
+  writer!: User
 
   @Column({ type: "text" })
-  url: string
+  url!: string
 
   @Column({ default: true })
-  visible: boolean
+  visible!: boolean
 
   @CreateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",
   })
-  createAt: Date
+  createAt!: Date
 }
