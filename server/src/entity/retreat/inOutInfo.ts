@@ -11,32 +11,32 @@ import { RetreatAttend } from "./retreatAttend"
 @Entity()
 export class InOutInfo {
   @PrimaryGeneratedColumn()
-  id: number
+  id!: number
 
   @ManyToOne(() => RetreatAttend, (retreatAttend) => retreatAttend.inOutInfos)
-  retreatAttend: RetreatAttend
+  retreatAttend!: RetreatAttend
 
   @Column()
-  day: Days
+  day!: Days
 
   @Column()
-  time: string
+  time!: string
 
   @Column()
-  inOutType: InOutType
+  inOutType!: InOutType
 
   @Column()
-  position: string
+  position!: string
 
   @Column()
-  howToMove: HowToMove
+  howToMove!: HowToMove
 
   @Column({ default: false })
-  autoCreated: boolean
+  autoCreated!: boolean
 
   @ManyToOne(() => InOutInfo, (inOutInfo) => inOutInfo.userInTheCar)
-  rideCarInfo: InOutInfo | null
+  rideCarInfo!: InOutInfo | null
 
   @OneToMany(() => InOutInfo, (inOutInfo) => inOutInfo.rideCarInfo)
-  userInTheCar: InOutInfo[]
+  userInTheCar!: InOutInfo[]
 }
