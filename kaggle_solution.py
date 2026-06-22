@@ -37,9 +37,23 @@ import xgboost as xgb
 
 
 # ── 1. 데이터 불러오기 ────────────────────────────────────────
-train = pd.read_csv('/kaggle/input/2026-1-004/train.csv')
-test  = pd.read_csv('/kaggle/input/2026-1-004/test.csv')
-sub   = pd.read_csv('/kaggle/input/2026-1-004/sample_submission.csv')
+# 캐글 환경에서 실제 파일 경로를 자동으로 찾아줌
+# 위에서 출력된 파일 목록 보고 경로 확인 가능
+import glob
+
+# train.csv, test.csv, sample_submission.csv 파일을 어디 있든 자동으로 찾음
+train_path = glob.glob('/kaggle/input/**/train.csv', recursive=True)[0]
+test_path  = glob.glob('/kaggle/input/**/test.csv',  recursive=True)[0]
+sub_path   = glob.glob('/kaggle/input/**/sample_submission.csv', recursive=True)[0]
+
+print("찾은 파일 경로:")
+print(f"  train: {train_path}")
+print(f"  test:  {test_path}")
+print(f"  sub:   {sub_path}")
+
+train = pd.read_csv(train_path)
+test  = pd.read_csv(test_path)
+sub   = pd.read_csv(sub_path)
 
 TARGET = 'y'   # 우리가 맞춰야 할 정답값
 ID     = 'id'  # 그냥 식별자라 학습엔 안 씀
