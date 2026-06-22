@@ -23,182 +23,288 @@ import kagglehub
 # kagglehub.dataset_download('<owner>/<dataset-slug>')
 
 # =============================================================
-# 영유아 건강 발달 프로그램(IHDP) 치료 효과 예측
-# 목표: y값(치료 효과)을 최대한 정확하게 예측하기
+# IHDP 치료 효과 예측
+# 전략: Optuna로 하이퍼파라미터 탐색 + 다중 모델 스태킹
+# 이상치가 RMSE를 크게 올리므로 Huber loss 계열 모델 포함
 # =============================================================
 
 import warnings
-warnings.filterwarnings('ignore')  # 경고 메시지 너무 많이 뜨면 지저분해서 꺼둠
+warnings.filterwarnings('ignore')
+import glob
+
+import optuna
+optuna.logging.set_verbosity(optuna.logging.WARNING)  # optuna 진행 로그는 progress bar로만 확인
 
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_squared_error
-import lightgbm as lgb
+from sklearn.linear_model import HuberRegressor, Ridge
+from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor
+from sklearn.preprocessing import StandardScaler
 import xgboost as xgb
+from catboost import CatBoostRegressor
+
+SEED     = 42
+N_SPLITS = 5
+TARGET   = 'y'
+ID       = 'id'
 
 
-# ── 1. 데이터 불러오기 ────────────────────────────────────────
-# 캐글 환경에서 실제 파일 경로를 자동으로 찾아줌
-# 위에서 출력된 파일 목록 보고 경로 확인 가능
-import glob
-
-# train.csv, test.csv, sample_submission.csv 파일을 어디 있든 자동으로 찾음
-train_path = glob.glob('/kaggle/input/**/train.csv', recursive=True)[0]
-test_path  = glob.glob('/kaggle/input/**/test.csv',  recursive=True)[0]
+# ── 1. 데이터 로드 ────────────────────────────────────────────
+# 경로 하드코딩하면 환경 바뀔 때마다 수정해야 하니까 glob으로 동적 탐색
+train_path = glob.glob('/kaggle/input/**/train.csv',             recursive=True)[0]
+test_path  = glob.glob('/kaggle/input/**/test.csv',              recursive=True)[0]
 sub_path   = glob.glob('/kaggle/input/**/sample_submission.csv', recursive=True)[0]
-
-print("찾은 파일 경로:")
-print(f"  train: {train_path}")
-print(f"  test:  {test_path}")
-print(f"  sub:   {sub_path}")
 
 train = pd.read_csv(train_path)
 test  = pd.read_csv(test_path)
 sub   = pd.read_csv(sub_path)
+print(f"train: {train.shape}, test: {test.shape}")
 
-TARGET = 'y'   # 우리가 맞춰야 할 정답값
-ID     = 'id'  # 그냥 식별자라 학습엔 안 씀
+# y 분포 확인 - 이상치 범위 파악이 핵심
+# RMSE는 이상치에 민감하기 때문에 극단값이 몇 개만 있어도 점수가 크게 떨어짐
+print(f"\ny 기초 통계:")
+print(train[TARGET].describe())
+print(f"극단값 (상위 5개): {sorted(train[TARGET].values)[-5:]}")
+print(f"극단값 (하위 5개): {sorted(train[TARGET].values)[:5]}")
 
 
 # ── 2. 피처 엔지니어링 ────────────────────────────────────────
-# 원래 있는 컬럼만 쓰면 아깝고, 컬럼끼리 조합하면 성능이 오르는 경우가 많음
 def make_features(df):
     df = df.copy()
 
-    # dadage(아빠 나이)는 빈칸이 엄청 많음
-    # 빈칸인지 아닌지 자체도 정보가 될 수 있어서 플래그 컬럼을 따로 만들어줌
-    # 그리고 빈칸은 -1로 채워서 "모름"이라고 표시
+    # dadage는 결측률이 높아서 단순 imputation보다
+    # 결측 여부 자체를 별도 feature로 모델에 알려주는 게 더 효과적
     df['dadage_missing'] = df['dadage'].isna().astype(int)
     df['dadage']         = df['dadage'].fillna(-1)
 
-    # mom.edu(엄마 학력)랑 site(병원 위치)는 빈칸이 조금 있음
-    # 범주형이라 가장 많이 나온 값으로 채워줌 (최빈값)
+    # 명목형 변수 결측은 최빈값으로 대체 (분포 왜곡 최소화)
     for col in ['mom.edu', 'site']:
         df[col] = df[col].fillna(df[col].mode()[0])
 
-    # 그 외 숫자형 컬럼에 빈칸 남아있으면 중간값으로 채움
+    # 연속형 변수 결측은 중앙값으로 대체 (평균보다 이상치 영향 덜 받음)
     for col in df.select_dtypes(include=np.number).columns:
         if df[col].isna().sum() > 0:
             df[col] = df[col].fillna(df[col].median())
 
-    # 새로운 컬럼 만들기
-    # 몇 주 일찍 태어났는지 대비 출생 체중 → 미숙 정도를 더 잘 나타냄
-    df['bw_per_preterm'] = df['bw'] / (df['preterm'] + 1)
+    # 조산 주수 대비 출생 체중 → 미숙아 건강 상태를 더 정밀하게 표현
+    df['bw_per_preterm']  = df['bw'] / (df['preterm'] + 1)
+    # 출생 체중 / 머리 둘레 → 신체 발달 균형 지표
+    df['bw_head_ratio']   = df['bw'] / (df['b.head'] + 1)
+    # 부모 나이 합산 (dadage 결측이면 momage만 반영)
+    df['parent_age_sum']  = df['momage'] + df['dadage'].clip(lower=0)
+    # nnhealth × bw → 건강 점수와 체중의 복합 지표
+    df['health_bw']       = df['nnhealth'] * df['bw'] / 1000
+    # 산모 위험 행동 합산 - 담배/술/약물은 태아 발달에 직접 영향
+    df['risk_score']      = df['cig'] + df['booze'] + df['drugs']
+    # 사회적 지지 환경 점수 - 결혼 여부, 산전 관리, 취업 여부
+    df['support_score']   = df['b.marr'] + df['prenatal'] + df['work.dur']
 
-    # 출생 체중 대비 머리 둘레 비율 → 발달 균형 느낌
-    df['bw_head_ratio'] = df['bw'] / (df['b.head'] + 1)
+    # 10대 산모는 의학적으로 고위험군으로 분류됨
+    df['young_mom']       = (df['momage'] < 20).astype(int)
+    # 출생 체중 구간화 - 초극소(~1000g) / 극소(~1500g) / 저체중(~2500g) / 정상
+    df['bw_category']     = pd.cut(df['bw'],
+                                   bins=[0, 1000, 1500, 2500, 9999],
+                                   labels=[0, 1, 2, 3]).astype(int)
+    # 비선형 관계 캡처용 polynomial feature
+    df['bhead_sq']        = df['b.head'] ** 2
+    df['nnhealth_sq']     = df['nnhealth'] ** 2
+    # 건강 점수와 조산 주수의 interaction term
+    df['health_preterm']  = df['nnhealth'] * df['preterm']
+    # 위험 요소 있는데 지지 환경 없는 경우 → 가장 취약한 케이스
+    df['risk_no_support'] = df['risk_score'] * (df['support_score'] == 0).astype(int)
+    # 부모 나이 차이 (dadage 모르면 0으로 처리)
+    df['parent_age_diff'] = np.where(df['dadage'] > 0,
+                                     np.abs(df['dadage'] - df['momage']), 0)
+    # 첫째 × 조산 interaction - 첫 아이인데 조산이면 추가 리스크
+    df['first_preterm']   = (df['first'] == 1).astype(int) * df['preterm']
+    # 쌍둥이 × 저체중 interaction - 쌍둥이는 원래 체중이 낮은 경향
+    df['twin_low_bw']     = df['twin'] * (df['bw'] < 1500).astype(int)
 
-    # 부모 합산 나이 → 양육 환경이랑 관련 있을 것 같아서
-    # dadage가 -1이면 계산에서 빼야 하니까 0 이상인 것만 더함
-    df['parent_age_sum'] = df['momage'] + df['dadage'].clip(lower=0)
-
-    # 신생아 건강 점수 × 출생 체중 → 건강 상태 종합 느낌
-    df['health_bw'] = df['nnhealth'] * df['bw'] / 1000
-
-    # 엄마가 담배/술/약물을 얼마나 했는지 합산 → 위험 요소 점수
-    df['risk_score'] = df['cig'] + df['booze'] + df['drugs']
-
-    # 결혼 여부 + 산전 관리 + 취업 여부 합산 → 지원 환경 점수
-    df['support_score'] = df['b.marr'] + df['prenatal'] + df['work.dur']
+    # site별 평균 출생 체중 → 병원/지역별 환자 특성 차이를 반영한 그룹 통계 피처
+    site_bw_mean         = df.groupby('site')['bw'].transform('mean')
+    df['site_bw_mean']   = site_bw_mean
+    # 개인 체중 - 해당 site 평균 → 같은 병원 내에서 상대적 위치
+    df['bw_vs_site']     = df['bw'] - site_bw_mean
 
     return df
 
-# train이랑 test를 한번에 처리해야 컬럼이 안 어긋남
+
+# train/test를 concat해서 한번에 처리 - 따로 하면 site_bw_mean 같은 그룹 통계가 달라짐
 all_data = pd.concat([train, test], axis=0).reset_index(drop=True)
 all_data = make_features(all_data)
 
-# 다시 train이랑 test로 분리
 train_fe = all_data[all_data[ID].isin(train[ID])].copy()
 test_fe  = all_data[all_data[ID].isin(test[ID])].copy()
 
-# id랑 y는 학습에 넣으면 안 되니까 제외
 FEATURES = [c for c in train_fe.columns if c not in [ID, TARGET]]
 X        = train_fe[FEATURES].values
 y        = train_fe[TARGET].values
 X_test   = test_fe[FEATURES].values
 
-
-# ── 3. 모델 설정 ──────────────────────────────────────────────
-# LightGBM이랑 XGBoost 둘 다 써서 나중에 평균 낼 예정
-# learning_rate 낮추고 n_estimators 높게 → 천천히 꼼꼼하게 학습
-
-lgb_params = dict(
-    objective='regression', metric='rmse',
-    n_estimators=2000, learning_rate=0.02,  # 조금씩 2000번 학습
-    num_leaves=31, max_depth=6,             # 트리 너무 복잡하면 과적합 남
-    subsample=0.8, colsample_bytree=0.8,    # 데이터/컬럼 80%만 랜덤하게 써서 다양성 확보
-    reg_alpha=0.1, reg_lambda=1.0,          # 과적합 방지용 정규화
-    min_child_samples=10,
-    random_state=42, verbose=-1, n_jobs=-1,
-)
-
-xgb_params = dict(
-    objective='reg:squarederror', eval_metric='rmse',
-    n_estimators=2000, learning_rate=0.02,
-    max_depth=5, subsample=0.8, colsample_bytree=0.8,
-    reg_alpha=0.1, reg_lambda=1.0,
-    early_stopping_rounds=100,  # 100번 동안 성능 안 오르면 그냥 멈춤 (시간 절약)
-    random_state=42, n_jobs=-1,
-)
+print(f"\n사용 피처 수: {len(FEATURES)}개")
 
 
-# ── 4. K-Fold 교차검증으로 학습 ───────────────────────────────
-# 데이터를 5등분해서 4개로 학습, 1개로 검증 → 5번 반복
-# 이렇게 하면 데이터를 최대한 활용하면서 성능도 안정적으로 측정됨
+# ── 3. Optuna로 XGBoost 하이퍼파라미터 탐색 ──────────────────
+# 수동 grid search는 비효율적 - TPE 기반 베이지안 최적화로 자동 탐색
+# 1등이 7시간 동안 140번 제출한 걸 이걸로 대체하는 거임
 
-N_SPLITS = 5
-kf = KFold(n_splits=N_SPLITS, shuffle=True, random_state=42)
+print("\n▶ Optuna XGBoost 튜닝 시작 (50 trials, 약 3~5분)")
 
-# 나중에 예측값 저장할 공간 미리 만들어둠
-oof_lgb  = np.zeros(len(X))       # train 전체에 대한 검증 예측값
-oof_xgb  = np.zeros(len(X))
-pred_lgb = np.zeros(len(X_test))  # test에 대한 최종 예측값
-pred_xgb = np.zeros(len(X_test))
+kf = KFold(n_splits=N_SPLITS, shuffle=True, random_state=SEED)
 
-for fold, (tr_idx, val_idx) in enumerate(kf.split(X)):
-    X_tr, X_val = X[tr_idx], X[val_idx]
-    y_tr, y_val = y[tr_idx], y[val_idx]
-
-    # LightGBM 학습
-    m_lgb = lgb.LGBMRegressor(**lgb_params)
-    m_lgb.fit(X_tr, y_tr,
-              eval_set=[(X_val, y_val)],
-              callbacks=[lgb.early_stopping(100, verbose=False),
-                         lgb.log_evaluation(period=-1)])
-    oof_lgb[val_idx]  = m_lgb.predict(X_val)
-    pred_lgb         += m_lgb.predict(X_test) / N_SPLITS  # 5번 평균 낼 거라 나눔
-
-    # XGBoost 학습
-    m_xgb = xgb.XGBRegressor(**xgb_params)
-    m_xgb.fit(X_tr, y_tr,
-              eval_set=[(X_val, y_val)],
+def xgb_objective(trial):
+    params = {
+        'objective':        'reg:squarederror',
+        'n_estimators':     trial.suggest_int('n_estimators', 500, 3000),
+        'learning_rate':    trial.suggest_float('learning_rate', 0.005, 0.05, log=True),
+        'max_depth':        trial.suggest_int('max_depth', 3, 7),
+        'subsample':        trial.suggest_float('subsample', 0.6, 1.0),
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),
+        'reg_alpha':        trial.suggest_float('reg_alpha', 0.01, 5.0, log=True),
+        'reg_lambda':       trial.suggest_float('reg_lambda', 0.01, 5.0, log=True),
+        'min_child_weight': trial.suggest_int('min_child_weight', 1, 10),
+        'random_state': SEED, 'n_jobs': -1, 'verbosity': 0,
+    }
+    scores = []
+    for tr_idx, val_idx in kf.split(X):
+        m = xgb.XGBRegressor(**params, early_stopping_rounds=50)
+        m.fit(X[tr_idx], y[tr_idx],
+              eval_set=[(X[val_idx], y[val_idx])],
               verbose=False)
-    oof_xgb[val_idx]  = m_xgb.predict(X_val)
-    pred_xgb         += m_xgb.predict(X_test) / N_SPLITS
+        pred = m.predict(X[val_idx])
+        scores.append(np.sqrt(mean_squared_error(y[val_idx], pred)))
+    return np.mean(scores)
 
-    # 이번 폴드 성능 출력 (낮을수록 좋음)
-    rmse_lgb = mean_squared_error(y_val, oof_lgb[val_idx], squared=False)
-    rmse_xgb = mean_squared_error(y_val, oof_xgb[val_idx], squared=False)
-    print(f"Fold {fold+1}  LGB={rmse_lgb:.4f}  XGB={rmse_xgb:.4f}")
-
-# 전체 교차검증 최종 점수
-cv_lgb = mean_squared_error(y, oof_lgb, squared=False)
-cv_xgb = mean_squared_error(y, oof_xgb, squared=False)
-print(f"\n전체 CV RMSE  LGB={cv_lgb:.4f}  XGB={cv_xgb:.4f}")
+study_xgb = optuna.create_study(direction='minimize')
+study_xgb.optimize(xgb_objective, n_trials=50, show_progress_bar=True)
+best_xgb = study_xgb.best_params
+print(f"XGBoost 최적 CV RMSE: {study_xgb.best_value:.4f}")
+print(f"최적 파라미터: {best_xgb}")
 
 
-# ── 5. 앙상블 (두 모델 합치기) ───────────────────────────────
-# 성능 좋은 모델한테 가중치를 더 줌
-# RMSE 역수를 가중치로 쓰면 점수 낮은(=좋은) 모델이 더 많이 반영됨
+# ── 4. Optuna로 CatBoost 튜닝 ────────────────────────────────
+print("\n▶ Optuna CatBoost 튜닝 시작 (30 trials)")
 
-w_lgb = (1/cv_lgb) / (1/cv_lgb + 1/cv_xgb)
-w_xgb = 1 - w_lgb
-print(f"앙상블 가중치  LGB={w_lgb:.3f}  XGB={w_xgb:.3f}")
+def cat_objective(trial):
+    params = {
+        'iterations':    trial.suggest_int('iterations', 500, 3000),
+        'learning_rate': trial.suggest_float('learning_rate', 0.005, 0.05, log=True),
+        'depth':         trial.suggest_int('depth', 4, 8),
+        'l2_leaf_reg':   trial.suggest_float('l2_leaf_reg', 1.0, 10.0),
+        'subsample':     trial.suggest_float('subsample', 0.6, 1.0),
+        'random_seed': SEED, 'verbose': 0,
+    }
+    scores = []
+    for tr_idx, val_idx in kf.split(X):
+        m = CatBoostRegressor(**params, early_stopping_rounds=50)
+        m.fit(X[tr_idx], y[tr_idx],
+              eval_set=(X[val_idx], y[val_idx]),
+              verbose=False)
+        pred = m.predict(X[val_idx])
+        scores.append(np.sqrt(mean_squared_error(y[val_idx], pred)))
+    return np.mean(scores)
 
-final_pred = w_lgb * pred_lgb + w_xgb * pred_xgb
+study_cat = optuna.create_study(direction='minimize')
+study_cat.optimize(cat_objective, n_trials=30, show_progress_bar=True)
+best_cat = study_cat.best_params
+print(f"CatBoost 최적 CV RMSE: {study_cat.best_value:.4f}")
 
 
-# ── 6. 제출 파일 저장 ─────────────────────────────────────────
-sub[TARGET] = final_pred
+# ── 5. 튜닝된 파라미터로 OOF 학습 ────────────────────────────
+# OOF(Out-Of-Fold): 각 샘플이 validation에 있을 때의 예측값만 모아둔 것
+# 이걸 스태킹 2단계 입력으로 쓰면 leakage 없이 메타 학습 가능
+
+print("\n▶ 최적 파라미터로 전체 모델 학습")
+
+xgb_final = xgb.XGBRegressor(**best_xgb,
+                               objective='reg:squarederror',
+                               early_stopping_rounds=100,
+                               random_state=SEED, n_jobs=-1, verbosity=0)
+
+cat_final = CatBoostRegressor(**best_cat, random_seed=SEED, verbose=0)
+
+# Ridge는 스케일에 민감하므로 StandardScaler 적용
+scaler       = StandardScaler()
+X_scaled     = scaler.fit_transform(X)
+Xtest_scaled = scaler.transform(X_test)
+
+# HuberRegressor: squared loss 대신 Huber loss 사용
+# 이상치에 대해 L1처럼 동작해서 RMSE 기반 평가에서도 간접적으로 도움됨
+# epsilon이 낮을수록 이상치 영향을 더 강하게 억제
+models = {
+    'xgb':   (xgb_final,  X,        X_test),
+    'cat':   (cat_final,  X,        X_test),
+    'et':    (ExtraTreesRegressor(n_estimators=500, max_depth=8,
+                                  min_samples_leaf=3, max_features=0.7,
+                                  random_state=SEED, n_jobs=-1),
+              X, X_test),
+    'gbm':   (GradientBoostingRegressor(n_estimators=500, learning_rate=0.02,
+                                        max_depth=4, subsample=0.8,
+                                        random_state=SEED),
+              X, X_test),
+    'huber': (HuberRegressor(epsilon=1.5, max_iter=500),
+              X_scaled, Xtest_scaled),
+}
+
+oof_preds  = {name: np.zeros(len(X))      for name in models}
+test_preds = {name: np.zeros(len(X_test)) for name in models}
+
+for name, (model, X_use, Xtest_use) in models.items():
+    fold_scores = []
+    for fold, (tr_idx, val_idx) in enumerate(kf.split(X)):
+        X_tr  = X_use[tr_idx]
+        X_val = X_use[val_idx]
+        y_tr, y_val = y[tr_idx], y[val_idx]
+
+        if name == 'xgb':
+            model.fit(X_tr, y_tr, eval_set=[(X_val, y_val)], verbose=False)
+        elif name == 'cat':
+            model.fit(X_tr, y_tr, eval_set=(X_val, y_val),
+                      early_stopping_rounds=100, verbose=False)
+        else:
+            model.fit(X_tr, y_tr)
+
+        oof_preds[name][val_idx]  = model.predict(X_val)
+        test_preds[name]         += model.predict(Xtest_use) / N_SPLITS
+
+        rmse = np.sqrt(mean_squared_error(y_val, oof_preds[name][val_idx]))
+        fold_scores.append(rmse)
+
+    print(f"  {name} 평균 RMSE: {np.mean(fold_scores):.4f}")
+
+
+# ── 6. 스태킹 앙상블 ─────────────────────────────────────────
+# 각 모델의 OOF 예측값을 새로운 feature matrix로 구성
+# Ridge meta-learner가 각 모델에 최적 가중치를 부여
+# 단순 weighted average보다 성능이 높은 이유:
+# 모델 간 예측 오차의 상관관계를 학습해서 complementary한 부분을 활용
+
+print("\n▶ 스태킹 메타 모델 학습")
+
+S_train = np.column_stack([oof_preds[name]  for name in models])
+S_test  = np.column_stack([test_preds[name] for name in models])
+
+# 메타 모델도 CV로 학습해야 train set에 대한 과적합 방지
+meta_oof   = np.zeros(len(X))
+meta_preds = np.zeros(len(X_test))
+
+for tr_idx, val_idx in kf.split(S_train):
+    meta = Ridge(alpha=1.0)
+    meta.fit(S_train[tr_idx], y[tr_idx])
+    meta_oof[val_idx]  = meta.predict(S_train[val_idx])
+    meta_preds        += meta.predict(S_test) / N_SPLITS
+
+final_rmse = np.sqrt(mean_squared_error(y, meta_oof))
+print(f"스태킹 최종 OOF RMSE: {final_rmse:.4f}")
+
+# meta.coef_가 각 모델의 기여도 (음수면 해당 모델이 오히려 방해)
+print("\n각 모델 기여도 (Ridge 계수):")
+for name, coef in zip(models.keys(), meta.coef_):
+    print(f"  {name}: {coef:.4f}")
+
+
+# ── 7. 제출 파일 저장 ─────────────────────────────────────────
+sub[TARGET] = meta_preds
 sub.to_csv('submission.csv', index=False)
 print("\nsubmission.csv 저장 완료!")
-print(sub.head())
+print(sub.head(10))
