@@ -14,7 +14,7 @@ export class WorshipContest {
   id!: number
 
   @JoinColumn({ name: "voteUserId" })
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User)
   voteUser!: User
 
   @Column()

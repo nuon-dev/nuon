@@ -13,7 +13,7 @@ export class SharingText {
   @PrimaryGeneratedColumn()
   id!: number
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User)
   writer!: User
 
   @Column({ type: "text" })
@@ -34,7 +34,7 @@ export class SharingImage {
   @PrimaryGeneratedColumn()
   id!: number
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User)
   writer!: User
 
   @Column({ type: "text" })
@@ -58,7 +58,7 @@ export class SharingVideo {
   @PrimaryGeneratedColumn()
   id!: number
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User)
   writer!: User
 
   @Column({ type: "text" })
