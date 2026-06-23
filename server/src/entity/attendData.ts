@@ -8,10 +8,10 @@ export class AttendData {
   @PrimaryGeneratedColumn("uuid")
   id!: string
 
-  @ManyToOne(() => WorshipSchedule, (worshipSchedule) => worshipSchedule.id)
+  @ManyToOne(() => WorshipSchedule)
   worshipSchedule!: WorshipSchedule
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User)
   user!: User
 
   @Column()
