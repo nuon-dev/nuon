@@ -13,46 +13,46 @@ import { User } from "./user"
 @Entity()
 export class Community {
   @PrimaryGeneratedColumn()
-  id: number
+  id!: number
 
   @ManyToOne(() => Community, (community) => community.children, {
     nullable: true,
   })
-  parent: Community | null
+  parent!: Community | null
 
   @OneToMany(() => Community, (community) => community.parent)
-  children: Community[]
+  children!: Community[]
 
   @Column()
-  name: string
+  name!: string
 
   @OneToMany(() => User, (user) => user.community)
-  users: User[]
+  users!: User[]
 
   @CreateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",
   })
-  createdAt: string
+  createdAt!: string
 
   @UpdateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",
     onUpdate: "CURRENT_TIMESTAMP(6)",
   })
-  lastModifiedAt: string
+  lastModifiedAt!: string
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: "leaderId" })
-  leader: User | null
+  leader!: User | null
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: "deputyLeaderId" })
-  deputyLeader: User | null
+  deputyLeader!: User | null
 
   @Column({ default: 0 })
-  x: number
+  x!: number
 
   @Column({ default: 0 })
-  y: number
+  y!: number
 }

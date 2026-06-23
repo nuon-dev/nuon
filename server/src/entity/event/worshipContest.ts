@@ -11,24 +11,24 @@ import { User } from "../user"
 @Entity()
 export class WorshipContest {
   @PrimaryGeneratedColumn()
-  id: number
+  id!: number
 
   @JoinColumn({ name: "voteUserId" })
-  @ManyToOne(() => User, (user) => user.id)
-  voteUser: User
+  @ManyToOne(() => User)
+  voteUser!: User
 
   @Column()
-  firstCommunity: string
+  firstCommunity!: string
 
   @Column()
-  secondCommunity: string
+  secondCommunity!: string
 
   @Column()
-  thirdCommunity: string
+  thirdCommunity!: string
 
   @Column()
-  term: number
+  term!: number
 
   @CreateDateColumn()
-  createdAt: Date
+  createdAt!: Date
 }

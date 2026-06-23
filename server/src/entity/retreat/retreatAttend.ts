@@ -14,57 +14,57 @@ import { CurrentStatus, Deposit, HowToMove } from "../types"
 @Entity()
 export class RetreatAttend {
   @PrimaryGeneratedColumn("uuid")
-  id: string
+  id!: string
 
   @OneToOne(() => User, (user) => user.retreatAttend)
   @JoinColumn()
-  user: User
+  user!: User
 
   @Column({ default: 0 })
-  groupNumber: number
+  groupNumber!: number
 
   @Column({ nullable: true })
-  roomNumber: number
+  roomNumber!: number
 
   @Column({ type: "text", nullable: true })
-  memo: string
+  memo!: string
 
   @Column({ default: Deposit.none })
-  isDeposited: Deposit
+  isDeposited!: Deposit
 
   @Column({ nullable: true })
-  howToGo: HowToMove
+  howToGo!: HowToMove
 
   @Column({ nullable: true })
-  howToBack: HowToMove
+  howToBack!: HowToMove
 
   @Column({ default: false })
-  isCanceled: boolean
+  isCanceled!: boolean
 
   @Column({ nullable: true })
-  etc: string
+  etc!: string
 
   @Column({ default: CurrentStatus.null })
-  currentStatus: CurrentStatus
+  currentStatus!: CurrentStatus
 
   @Column({ default: 0 })
-  attendanceNumber: number
+  attendanceNumber!: number
 
   @Column({ type: "text", nullable: true })
-  postcardContent: string
+  postcardContent!: string
 
   @OneToMany(() => InOutInfo, (inOutInfo) => inOutInfo.retreatAttend)
-  inOutInfos: InOutInfo[]
+  inOutInfos!: InOutInfo[]
 
   @Column({ default: true })
-  isWorker: boolean
+  isWorker!: boolean
 
   @Column({ default: false })
-  isHalf: boolean
+  isHalf!: boolean
 
   @CreateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",
   })
-  createAt: Date
+  createAt!: Date
 }

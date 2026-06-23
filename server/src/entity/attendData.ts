@@ -6,17 +6,17 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
 @Entity()
 export class AttendData {
   @PrimaryGeneratedColumn("uuid")
-  id: string
+  id!: string
 
-  @ManyToOne(() => WorshipSchedule, (worshipSchedule) => worshipSchedule.id)
-  worshipSchedule: WorshipSchedule
+  @ManyToOne(() => WorshipSchedule)
+  worshipSchedule!: WorshipSchedule
 
-  @ManyToOne(() => User, (user) => user.id)
-  user: User
+  @ManyToOne(() => User)
+  user!: User
 
   @Column()
-  isAttend: AttendStatus
+  isAttend!: AttendStatus
 
   @Column({ default: "" })
-  memo: string
+  memo!: string
 }

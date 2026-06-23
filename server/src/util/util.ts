@@ -24,9 +24,14 @@ export async function hasPermission(
     return false
   }
 
-  const payload = jwt.verify(token, env.JWT_SECRET) as jwtPayload
+  let payload: jwtPayload
+  try {
+    payload = jwt.verify(token, env.JWT_SECRET) as jwtPayload
+  } catch (e) {
+    return false
+  }
 
-  if (payload.role.Admin) {
+  if (payload?.role?.Admin) {
     return true
   }
 

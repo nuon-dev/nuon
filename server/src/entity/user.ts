@@ -15,22 +15,22 @@ import { RetreatAttend } from "./retreat/retreatAttend"
 @Entity()
 export class User {
   @PrimaryGeneratedColumn("uuid")
-  id: string
+  id!: string
 
   @Column({ nullable: true })
-  kakaoId: string
+  kakaoId!: string
 
   @Column({ nullable: true })
-  name: string
+  name!: string
 
   @Column({ nullable: true })
-  yearOfBirth: number
+  yearOfBirth!: number
 
   @Column({ nullable: true })
-  gender: "man" | "woman" | ""
+  gender!: "man" | "woman" | ""
 
   @Column({ nullable: true })
-  phone: string
+  phone!: string
 
   @Column({
     nullable: true,
@@ -38,37 +38,37 @@ export class User {
   etc?: string
 
   @Column({ nullable: true, select: false })
-  token: string
+  token!: string
 
   @Column({ nullable: true, select: false })
-  expire: Date
+  expire!: Date
 
   @Column({ nullable: true, default: 0 })
-  isSuperUser: boolean
+  isSuperUser!: boolean
 
   @CreateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",
   })
-  createAt: Date
+  createAt!: Date
 
   @DeleteDateColumn({
     type: "timestamp",
     nullable: true,
   })
-  deletedAt: Date | null
+  deletedAt!: Date | null
 
   @OneToMany(() => Permission, (permission) => permission.user)
-  permissions: Permission[]
+  permissions!: Permission[]
 
   @Column({ default: 0 })
-  profile: number
+  profile!: number
 
   @ManyToOne(() => Community, (community) => community.users)
-  community: Community | null
+  community!: Community | null
 
   @OneToOne(() => RetreatAttend, (retreatAttend) => retreatAttend.user, {
     nullable: true,
   })
-  retreatAttend: RetreatAttend | null
+  retreatAttend!: RetreatAttend | null
 }

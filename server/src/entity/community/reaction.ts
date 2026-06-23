@@ -21,7 +21,7 @@ export class Reaction {
   @ManyToOne(() => User, { nullable: false })
   user!: User
 
-  @Column()
+  @Column({ comment: "반응 타입" })
   type!: string
 
   @CreateDateColumn({

@@ -10,7 +10,7 @@ import cookieParser from "cookie-parser"
 const app = express()
 let port = 8000
 
-app.use(bodyParser.json())
+app.use(bodyParser.json({ limit: "100kb" }))
 app.use(cookieParser())
 app.use(
   cors({
@@ -58,6 +58,8 @@ if (target === "local") {
   const credentials = { key: privateKey, cert: certificate, ca: ca }
 
   server = https.createServer(credentials, app)
+} else {
+  throw new Error("Invalid API target")
 }
 
 server.listen(port, async () => {

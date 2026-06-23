@@ -1,8 +1,7 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useState } from "react"
 import { useEffect } from "react"
-import { useSetAtom } from "jotai"
 import useAuth from "@/hooks/useAuth"
 import { Button, Stack } from "@mui/material"
 import { useNotification } from "@/hooks/useNotification"
@@ -23,6 +22,7 @@ function Login() {
   const { getKakaoTokenFromAuthCode, login, isLogin } = useAuth()
   const { executeKakaoLogin } = useKakaoHook()
   const { error } = useNotification()
+  const [modeCounter, setModeCounter] = useState(0)
 
   useEffect(() => {
     const code = searchParams.get("code")
@@ -40,11 +40,23 @@ function Login() {
     }
   }, [searchParams.get("code"), isLogin])
 
+  useEffect(() => {
+    if (modeCounter < 5) {
+      return
+    }
+    const url = globalThis.location.href
+    if (url.includes("nuon-dev")) {
+      globalThis.location.href = "https://nuon.iubns.net"
+    } else {
+      globalThis.location.href = "https://nuon-dev.iubns.net"
+    }
+  }, [modeCounter])
+
   async function handleLogin() {
     try {
       const returnUrl = searchParams.get("returnUrl") || "/"
       await executeKakaoLogin(returnUrl)
-    } catch (error) {
+    } catch (e) {
       error("카카오 로그인 실패")
     }
   }
@@ -68,6 +80,9 @@ function Login() {
               fontWeight: 800,
               color: "#222",
               letterSpacing: -1,
+            }}
+            onClick={() => {
+              setModeCounter(modeCounter + 1)
             }}
           >
             수원 제일 교회 청년부
