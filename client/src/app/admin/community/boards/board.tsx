@@ -16,22 +16,20 @@ import SaveIcon from "@mui/icons-material/Save"
 import { deleteBoard } from "@/app/community/community.api"
 import { useState } from "react"
 import axios from "@/config/axios"
+import { useNotification } from "@/hooks/useNotification"
 
 export default function Board({
   board,
   load,
-  success,
-  error,
 }: {
   board: any
   load: () => Promise<void>
-  success: (msg: string) => void
-  error: (msg: string) => void
 }) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(board.name)
   const [slug, setSlug] = useState(board.slug)
   const [boardType, setBoardType] = useState(board.type)
+  const { success, error } = useNotification()
 
   async function handleEdit(id: string) {
     setEditing(true)
@@ -61,6 +59,7 @@ export default function Board({
       await axios.put(`/community/boards/${id}`, {
         name,
         slug,
+        type: boardType,
       })
       setEditing(false)
       await load()

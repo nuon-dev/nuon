@@ -485,11 +485,7 @@ export default function CommunityBoardClient({
                     <Stack direction="row" spacing={1} flexWrap="wrap">
                       <Chip
                         size="small"
-                        label={
-                          post.isAnonymous
-                            ? "익명"
-                            : post.author?.name || "작성자"
-                        }
+                        label={post.author?.name}
                         variant="outlined"
                       />
                       <Chip
@@ -549,10 +545,8 @@ export default function CommunityBoardClient({
                     </Typography>
                   )}
                   <Typography variant="caption" color="text.secondary">
-                    {selectedPost.isAnonymous
-                      ? "익명"
-                      : selectedPost.author?.name || "작성자"}{" "}
-                    · {formatDate(selectedPost.createdAt)}
+                    {selectedPost.author?.name} ·{" "}
+                    {formatDate(selectedPost.createdAt)}
                   </Typography>
                 </Stack>
                 <Stack direction="row" spacing={1} alignItems="center">
@@ -664,9 +658,7 @@ export default function CommunityBoardClient({
                               >
                                 <Stack>
                                   <Typography fontWeight={700} variant="body2">
-                                    {comment.isAnonymous
-                                      ? "익명"
-                                      : comment.author?.name || "작성자"}
+                                    {comment.author?.name}
                                   </Typography>
                                   <Typography
                                     variant="caption"

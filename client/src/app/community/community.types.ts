@@ -29,21 +29,19 @@ export type CommunityReaction = {
 export type CommunityComment = {
   id: string
   content: string
-  isAnonymous: boolean
   createdAt?: string
   deletedAt?: string | null
   author?: CommunityUser | null
   children?: CommunityComment[]
 }
 
-export type CommunityPostType = "free" | "qna"
+export type CommunityBoardType = "free" | "qna"
 
 export type CommunityPost = {
   id: string
-  type: CommunityPostType
+  type: CommunityBoardType
   title?: string | null
   content?: string | null
-  isAnonymous: boolean
   createdAt?: string
   updatedAt?: string
   deletedAt?: string | null

@@ -15,7 +15,6 @@ import {
   Stack,
   TextField,
   Typography,
-  IconButton,
 } from "@mui/material"
 import useAuth from "@/hooks/useAuth"
 import { useNotification } from "@/hooks/useNotification"
@@ -45,7 +44,6 @@ export default function AdminCommunityBoardsPage() {
       const list = await fetchBoards()
       setBoards(list)
     } catch (err) {
-      console.error(err)
       error("게시판 목록을 불러오지 못했습니다.")
     } finally {
       setLoading(false)
@@ -148,13 +146,7 @@ export default function AdminCommunityBoardsPage() {
 
         <Stack spacing={1}>
           {boards.map((b) => (
-            <Board
-              key={b.id}
-              board={b}
-              load={load}
-              success={success}
-              error={error}
-            />
+            <Board key={b.id} board={b} load={load} />
           ))}
         </Stack>
       </Stack>

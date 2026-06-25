@@ -2,63 +2,15 @@ import express from "express"
 import communityModel from "../model/community"
 import { getUserFromToken, hasPermissionFromReq } from "../util/util"
 import { PermissionType } from "../entity/types"
-import { BoardVisibility } from "../entity/community/board"
-import { PostType } from "../entity/community/post"
+import { BoardType } from "../entity/community/board"
 
 const router = express.Router()
 
-async function getViewerAccess(req: express.Request) {
-  const user = await getUserFromToken(req)
-  const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
-  const canManageCommunity = await hasPermissionFromReq(
-    req,
-    PermissionType.communityManage,
-  )
-  return { user, isAdmin, canManageCommunity }
-}
-
-function canAccessBoardVisibility(
-  board: {
-    visibility: BoardVisibility
-    moderators?: Array<{ id: string }>
-    createdBy?: { id: string } | null
-  },
-  user: { id: string } | null,
-  isAdmin: boolean,
-) {
-  if (isAdmin) {
-    return true
-  }
-  if (board.visibility === BoardVisibility.PUBLIC) {
-    return true
-  }
-  if (board.visibility === BoardVisibility.MEMBERS) {
-    return !!user
-  }
-  if (!user) {
-    return false
-  }
-
-  const isModerator = board.moderators?.some(
-    (moderator) => moderator.id === user.id,
-  )
-  const isCreator = board.createdBy?.id === user.id
-  return !!isModerator || isCreator
-}
-
 router.get("/boards", async (req, res) => {
   try {
-    const { user, isAdmin } = await getViewerAccess(req)
     const boards = await communityModel.listBoards()
 
-    const filteredBoards = boards.filter((board) => {
-      if (isAdmin) {
-        return true
-      }
-      return canAccessBoardVisibility(board, user, false)
-    })
-
-    res.status(200).json(filteredBoards)
+    res.status(200).json(boards)
   } catch (error) {
     console.error("Error fetching boards:", error)
     res.status(500).json({ error: "Failed to fetch boards" })
@@ -68,16 +20,10 @@ router.get("/boards", async (req, res) => {
 router.get("/boards/:boardId", async (req, res) => {
   try {
     const { boardId } = req.params
-    const { user, isAdmin } = await getViewerAccess(req)
     const board = await communityModel.getBoardById(boardId)
 
     if (!board) {
       res.status(404).json({ error: "Board not found" })
-      return
-    }
-
-    if (!canAccessBoardVisibility(board, user, isAdmin)) {
-      res.status(403).json({ error: "Forbidden" })
       return
     }
 
@@ -90,23 +36,25 @@ router.get("/boards/:boardId", async (req, res) => {
 
 router.post("/boards", async (req, res) => {
   try {
-    const { user, canManageCommunity } = await getViewerAccess(req)
-    if (!user || !canManageCommunity) {
+    const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+    if (!isAdmin) {
       res.status(403).json({ error: "Forbidden" })
       return
     }
 
-    const { name, slug, description, visibility } = req.body
+    const { name, slug, description, visibility, boardType } = req.body
     if (!name || !slug) {
       res.status(400).json({ error: "Missing required fields: name, slug" })
       return
     }
 
+    const user = await getUserFromToken(req)
     const board = await communityModel.createBoard({
       name,
       slug,
       description,
       visibility,
+      boardType,
       createdBy: user,
     })
 
@@ -120,8 +68,9 @@ router.post("/boards", async (req, res) => {
 router.put("/boards/:boardId", async (req, res) => {
   try {
     const { boardId } = req.params
-    const { user, canManageCommunity } = await getViewerAccess(req)
-    if (!user || !canManageCommunity) {
+    const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+    const user = await getUserFromToken(req)
+    if (!user || !isAdmin) {
       res.status(403).json({ error: "Forbidden" })
       return
     }
@@ -142,8 +91,8 @@ router.put("/boards/:boardId", async (req, res) => {
 router.delete("/boards/:boardId", async (req, res) => {
   try {
     const { boardId } = req.params
-    const { user, canManageCommunity } = await getViewerAccess(req)
-    if (!user || !canManageCommunity) {
+    const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+    if (!isAdmin) {
       res.status(403).json({ error: "Forbidden" })
       return
     }
@@ -160,16 +109,11 @@ router.get("/boards/:boardId/posts", async (req, res) => {
   try {
     const { boardId } = req.params
     const { type } = req.query
-    const { user, isAdmin } = await getViewerAccess(req)
+    const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
     const board = await communityModel.getBoardById(boardId)
 
     if (!board) {
       res.status(404).json({ error: "Board not found" })
-      return
-    }
-
-    if (!canAccessBoardVisibility(board, user, isAdmin)) {
-      res.status(403).json({ error: "Forbidden" })
       return
     }
 
@@ -177,33 +121,36 @@ router.get("/boards/:boardId/posts", async (req, res) => {
     const page = Number(req.query.page) || 1
     const opts = { limit, page }
 
-    if (type === PostType.QNA) {
-      const posts = await communityModel.listQnaPosts(boardId, opts)
+    if (type === BoardType.QNA) {
+      const user = await getUserFromToken(req)
+      const posts = await communityModel.listQnaPosts(boardId, user, opts)
+      if (!isAdmin) {
+        // 익명 처리
+        posts.forEach((each) => {
+          each.post.author.name = "익명"
+          each.post.author.yearOfBirth = 0
+        })
+      }
       res.status(200).json(posts)
       return
     }
 
-    if (type === PostType.FREE) {
+    if (type === BoardType.FREE) {
       const posts = await communityModel.listFreePosts(boardId, opts)
       res.status(200).json(posts)
       return
     }
 
-    const [freePosts, qnaPosts] = await Promise.all([
-      communityModel.listFreePosts(boardId, { ...opts }),
-      communityModel.listQnaPosts(boardId, opts),
-    ])
-    res.status(200).json([...freePosts, ...qnaPosts])
+    res.status(400).json({ error: "Invalid post type" })
   } catch (error) {
     console.error("Error fetching board posts:", error)
     res.status(500).json({ error: "Failed to fetch board posts" })
   }
 })
 
-router.post("/boards/:boardId/free-posts", async (req, res) => {
+router.post("/boards/:boardId", async (req, res) => {
   try {
     const { boardId } = req.params
-    const { user, isAdmin } = await getViewerAccess(req)
     const board = await communityModel.getBoardById(boardId)
 
     if (!board) {
@@ -211,23 +158,18 @@ router.post("/boards/:boardId/free-posts", async (req, res) => {
       return
     }
 
-    if (!canAccessBoardVisibility(board, user, isAdmin)) {
-      res.status(403).json({ error: "Forbidden" })
-      return
-    }
-
+    const user = await getUserFromToken(req)
     if (!user) {
       res.status(401).json({ error: "Login required" })
       return
     }
 
-    const { title, content, isAnonymous } = req.body
+    const { title, content } = req.body
     const post = await communityModel.createFreePost({
       boardId,
       author: user,
       title,
       content,
-      isAnonymous,
     })
 
     res.status(201).json(post)
@@ -237,47 +179,9 @@ router.post("/boards/:boardId/free-posts", async (req, res) => {
   }
 })
 
-router.post("/boards/:boardId/qna-posts", async (req, res) => {
-  try {
-    const { boardId } = req.params
-    const { user, isAdmin } = await getViewerAccess(req)
-    const board = await communityModel.getBoardById(boardId)
-
-    if (!board) {
-      res.status(404).json({ error: "Board not found" })
-      return
-    }
-
-    if (!canAccessBoardVisibility(board, user, isAdmin)) {
-      res.status(403).json({ error: "Forbidden" })
-      return
-    }
-
-    if (!user) {
-      res.status(401).json({ error: "Login required" })
-      return
-    }
-
-    const { title, isAnonymous } = req.body
-
-    const post = await communityModel.createQnaPost({
-      boardId,
-      author: user,
-      title,
-      isAnonymous,
-    })
-
-    res.status(201).json(post)
-  } catch (error) {
-    console.error("Error creating qna post:", error)
-    res.status(500).json({ error: "Failed to create qna post" })
-  }
-})
-
 router.get("/posts/:postId", async (req, res) => {
   try {
     const { postId } = req.params
-    const { user, isAdmin } = await getViewerAccess(req)
     const post = await communityModel.getPostById(postId)
 
     if (!post) {
@@ -291,37 +195,35 @@ router.get("/posts/:postId", async (req, res) => {
       return
     }
 
-    if (!canAccessBoardVisibility(board, user, isAdmin)) {
-      res.status(403).json({ error: "Forbidden" })
+    if (board.type === BoardType.FREE) {
+      res.status(200).json(post)
       return
     }
 
-    // Do not include comments in post payload by default (use comments endpoint)
-    if (post.type === PostType.QNA) {
-      const qnaPost = post as any
-      const canSeeAnswer =
-        isAdmin ||
-        (user && qnaPost.author?.id === user.id) ||
-        qnaPost.answerPublic
-
-      if (!canSeeAnswer) {
-        qnaPost.answer = null
-        qnaPost.answeredBy = null
-      }
+    const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+    if (isAdmin) {
+      res.status(200).json(post)
+      return
     }
 
-    res.status(200).json(post)
+    if (board.type === BoardType.QNA) {
+      post.author.name = "익명"
+      post.author.yearOfBirth = 0
+
+      res.status(200).json(post)
+      return
+    }
+
+    res.status(400).json({ error: "Invalid board type" })
   } catch (error) {
     console.error("Error fetching post:", error)
     res.status(500).json({ error: "Failed to fetch post" })
   }
 })
 
-// GET paginated top-level comments for a post
 router.get("/posts/:postId/comments", async (req, res) => {
   try {
     const { postId } = req.params
-    const { user, isAdmin } = await getViewerAccess(req)
     const post = await communityModel.getPostById(postId)
 
     if (!post) {
@@ -329,20 +231,16 @@ router.get("/posts/:postId/comments", async (req, res) => {
       return
     }
 
-    const board = await communityModel.getBoardById(post.board.id)
-    if (!board) {
-      res.status(404).json({ error: "Board not found" })
-      return
-    }
-
-    if (!canAccessBoardVisibility(board, user, isAdmin)) {
-      res.status(403).json({ error: "Forbidden" })
-      return
-    }
-
     const limit = Number(req.query.limit) || 20
     const page = Number(req.query.page) || 1
     const comments = await communityModel.listComments(postId, { limit, page })
+    const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+    if (post.board.type === BoardType.QNA && !isAdmin) {
+      comments.forEach((comment) => {
+        comment.author.name = "익명"
+        comment.author.yearOfBirth = 0
+      })
+    }
     res.status(200).json(comments)
   } catch (error) {
     console.error("Error fetching comments:", error)
@@ -353,7 +251,6 @@ router.get("/posts/:postId/comments", async (req, res) => {
 router.put("/posts/:postId", async (req, res) => {
   try {
     const { postId } = req.params
-    const { user, isAdmin } = await getViewerAccess(req)
     const post = await communityModel.getPostById(postId)
 
     if (!post) {
@@ -361,22 +258,23 @@ router.put("/posts/:postId", async (req, res) => {
       return
     }
 
+    const user = await getUserFromToken(req)
     if (!user) {
       res.status(401).json({ error: "Login required" })
       return
     }
 
     const isOwner = post.author?.id === user.id
+    const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
     if (!isOwner && !isAdmin) {
       res.status(403).json({ error: "Forbidden" })
       return
     }
 
-    const { title, content, isAnonymous } = req.body
+    const { title, content } = req.body
     const updateData: {
       title?: string
       content?: string
-      isAnonymous?: boolean
     } = {}
 
     if (title !== undefined) {
@@ -384,9 +282,6 @@ router.put("/posts/:postId", async (req, res) => {
     }
     if (content !== undefined) {
       updateData.content = content
-    }
-    if (isAnonymous !== undefined) {
-      updateData.isAnonymous = Boolean(isAnonymous)
     }
 
     const updated = await communityModel.updatePost(postId, updateData)
@@ -400,20 +295,20 @@ router.put("/posts/:postId", async (req, res) => {
 router.delete("/posts/:postId", async (req, res) => {
   try {
     const { postId } = req.params
-    const { user, isAdmin } = await getViewerAccess(req)
     const post = await communityModel.getPostById(postId)
-
     if (!post) {
       res.status(404).json({ error: "Post not found" })
       return
     }
 
+    const user = await getUserFromToken(req)
     if (!user) {
       res.status(401).json({ error: "Login required" })
       return
     }
 
     const isOwner = post.author?.id === user.id
+    const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
     if (!isOwner && !isAdmin) {
       res.status(403).json({ error: "Forbidden" })
       return
@@ -430,7 +325,6 @@ router.delete("/posts/:postId", async (req, res) => {
 router.post("/posts/:postId/comments", async (req, res) => {
   try {
     const { postId } = req.params
-    const { user, isAdmin } = await getViewerAccess(req)
     const post = await communityModel.getPostById(postId)
 
     if (!post) {
@@ -438,23 +332,13 @@ router.post("/posts/:postId/comments", async (req, res) => {
       return
     }
 
-    const board = await communityModel.getBoardById(post.board.id)
-    if (!board) {
-      res.status(404).json({ error: "Board not found" })
-      return
-    }
-
-    if (!canAccessBoardVisibility(board, user, isAdmin)) {
-      res.status(403).json({ error: "Forbidden" })
-      return
-    }
-
+    const user = await getUserFromToken(req)
     if (!user) {
       res.status(401).json({ error: "Login required" })
       return
     }
 
-    const { content, parentId, isAnonymous } = req.body
+    const { content, parentId } = req.body
     if (!content) {
       res.status(400).json({ error: "Missing required field: content" })
       return
@@ -465,7 +349,6 @@ router.post("/posts/:postId/comments", async (req, res) => {
       author: user,
       parentId,
       content,
-      isAnonymous,
     })
 
     res.status(201).json(comment)
@@ -478,8 +361,8 @@ router.post("/posts/:postId/comments", async (req, res) => {
 router.delete("/comments/:commentId", async (req, res) => {
   try {
     const { commentId } = req.params
-    const { user, isAdmin } = await getViewerAccess(req)
 
+    const user = await getUserFromToken(req)
     if (!user) {
       res.status(401).json({ error: "Login required" })
       return
@@ -492,6 +375,7 @@ router.delete("/comments/:commentId", async (req, res) => {
     }
 
     const isOwner = comment.author?.id === user.id
+    const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
     if (!isOwner && !isAdmin) {
       res.status(403).json({ error: "Forbidden" })
       return
@@ -508,7 +392,7 @@ router.delete("/comments/:commentId", async (req, res) => {
 router.post("/posts/:postId/reactions", async (req, res) => {
   try {
     const { postId } = req.params
-    const { user, isAdmin } = await getViewerAccess(req)
+
     const post = await communityModel.getPostById(postId)
 
     if (!post) {
@@ -516,17 +400,7 @@ router.post("/posts/:postId/reactions", async (req, res) => {
       return
     }
 
-    const board = await communityModel.getBoardById(post.board.id)
-    if (!board) {
-      res.status(404).json({ error: "Board not found" })
-      return
-    }
-
-    if (!canAccessBoardVisibility(board, user, isAdmin)) {
-      res.status(403).json({ error: "Forbidden" })
-      return
-    }
-
+    const user = await getUserFromToken(req)
     if (!user) {
       res.status(401).json({ error: "Login required" })
       return
@@ -549,8 +423,8 @@ router.post("/posts/:postId/reactions", async (req, res) => {
 router.delete("/posts/:postId/reactions", async (req, res) => {
   try {
     const { postId } = req.params
-    const { user } = await getViewerAccess(req)
 
+    const user = await getUserFromToken(req)
     if (!user) {
       res.status(401).json({ error: "Login required" })
       return
@@ -568,14 +442,15 @@ router.delete("/posts/:postId/reactions", async (req, res) => {
 router.post("/qna-posts/:postId/answer", async (req, res) => {
   try {
     const { postId } = req.params
-    const { user, canManageCommunity } = await getViewerAccess(req)
-    if (!user || !canManageCommunity) {
+    const user = await getUserFromToken(req)
+    const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+    if (!user || !isAdmin) {
       res.status(403).json({ error: "Forbidden" })
       return
     }
 
     const post = await communityModel.getPostById(postId)
-    if (!post || post.type !== PostType.QNA) {
+    if (!post || post.board.type !== BoardType.QNA) {
       res.status(404).json({ error: "QnA post not found" })
       return
     }

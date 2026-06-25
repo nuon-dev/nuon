@@ -8,6 +8,7 @@ import {
   ManyToOne,
   OneToMany,
   OneToOne,
+  VirtualColumn,
 } from "typeorm"
 import { User } from "../user"
 import { Board } from "./board"
@@ -15,21 +16,13 @@ import { Comment } from "./comment"
 import { Reaction } from "./reaction"
 import { QnaPost } from "./qnaPost"
 
-export enum PostType {
-  FREE = "free",
-  QNA = "qna",
-}
-
 @Entity()
 export class Post {
   @PrimaryGeneratedColumn("uuid")
   id!: string
 
-  @Column({ type: "varchar", length: 50, comment: "게시글 타입" })
-  type!: PostType
-
   @ManyToOne(() => User, { nullable: false })
-  author?: User
+  author!: User
 
   @ManyToOne(() => Board, (board) => board.posts, { nullable: false })
   board!: Board
@@ -43,7 +36,13 @@ export class Post {
   @OneToMany(() => Comment, (comment) => comment.post, {
     cascade: ["insert", "update"],
   })
-  comments?: Comment[]
+  comments!: Comment[]
+
+  @VirtualColumn({
+    query: (alias) =>
+      `SELECT COUNT(*) FROM comment WHERE comment.postId = ${alias}.id`,
+  })
+  commentCount!: number
 
   @OneToMany(() => Reaction, (reaction) => reaction.post, {
     cascade: ["insert", "update"],

@@ -15,16 +15,18 @@ export const enum CurrentStatus {
 }
 
 export enum PermissionType {
-  superUser,
   admin,
+  permissionManage,
+  communityManage, // 마을, 다락방 권한
+
+  // 수련회 관련 권한
+  retreatAdmin = 100,
   userList,
   carpooling,
-  permissionManage,
   showRoomAssignment,
   roomManage,
   showGroupAssignment,
   groupManage,
-  communityManage,
   dashBoard,
   deposit,
   editUserData,
