@@ -14,7 +14,7 @@ import useBoard from "./useBoard"
 
 export default function Header() {
   const { push } = useRouter()
-  const { authUserData } = useAuth()
+  const { authUserData, isLogin } = useAuth()
   const [isOpen, setOpen] = useState(false)
   const { boards } = useBoard()
 
@@ -26,26 +26,35 @@ export default function Header() {
     push("/")
   }
 
-  const DrawerItems: Array<DrawerItemsType> = [
-    {
+  const DrawerItems: Array<DrawerItemsType> = []
+
+  if (isLogin) {
+    DrawerItems.push({
       title: "나의 정보 수정",
       icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
       path: "/common/myPage",
       type: "menu",
-    },
-    {
+    })
+    DrawerItems.push({
       type: "divider",
-    },
-    ...(boards.map((b) => ({
-      title: b.name,
-      icon: <ForumIcon fontSize="small" sx={{ color: "#42a5f5" }} />,
-      path: `/community/?slug=${encodeURIComponent(b.slug)}`,
+    })
+    for (const board of boards) {
+      DrawerItems.push({
+        title: board.name,
+        icon: <ForumIcon fontSize="small" sx={{ color: "#42a5f5" }} />,
+        path: `/community/?slug=${encodeURIComponent(board.slug)}`,
+      } as DrawerItemsType)
+    }
+  }
+
+  if (authUserData?.role.Leader) {
+    DrawerItems.push({
+      type: "divider",
+    })
+    DrawerItems.push({
       type: "menu",
-    })) as Array<DrawerItemsType>),
-    {
-      type: "divider",
-    },
-  ]
+    })
+  }
 
   if (authUserData?.role.Leader) {
     DrawerItems.push({
