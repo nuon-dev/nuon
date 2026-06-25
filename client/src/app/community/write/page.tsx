@@ -1,24 +1,36 @@
 "use client"
 
-import { Button, Stack, TextField } from "@mui/material"
-import useCommunity from "../useCommunity"
 import {
   useRouter,
   useSearchParams,
 } from "next/dist/client/components/navigation"
-import { useState } from "react"
+import useCommunity from "../useCommunity"
+import { Suspense, useState } from "react"
+import { Button, Stack, TextField } from "@mui/material"
 
 export default function CommunityWrite() {
+  return (
+    <Suspense fallback={<div>게시판 정보를 불러오는 중...</div>}>
+      <CommunityWriteContent />
+    </Suspense>
+  )
+}
+
+function CommunityWriteContent() {
   const searchParams = useSearchParams()
   const slug = searchParams.get("slug")
-  const { push } = useRouter()
-  const { board, createPost } = useCommunity(slug || "")
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
+  const { push } = useRouter()
+  const { board, createPost } = useCommunity(slug || "")
 
   function handleSubmit() {
     createPost(title, content)
     push(`/community?slug=${slug}`)
+  }
+
+  if (!board) {
+    return <>게시판 정보를 불러오는 중...</>
   }
 
   return (
