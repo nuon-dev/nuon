@@ -108,7 +108,6 @@ router.delete("/boards/:boardId", async (req, res) => {
 router.get("/boards/:boardId/posts", async (req, res) => {
   try {
     const { boardId } = req.params
-    const { type } = req.query
     const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
     const board = await communityModel.getBoardById(boardId)
 
@@ -121,7 +120,7 @@ router.get("/boards/:boardId/posts", async (req, res) => {
     const page = Number(req.query.page) || 1
     const opts = { limit, page }
 
-    if (type === BoardType.QNA) {
+    if (board.type === BoardType.QNA) {
       const user = await getUserFromToken(req)
       const posts = await communityModel.listQnaPosts(boardId, user, opts)
       if (!isAdmin) {
@@ -135,7 +134,7 @@ router.get("/boards/:boardId/posts", async (req, res) => {
       return
     }
 
-    if (type === BoardType.FREE) {
+    if (board.type === BoardType.FREE) {
       const posts = await communityModel.listFreePosts(boardId, opts)
       res.status(200).json(posts)
       return
