@@ -13,10 +13,10 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete"
 import EditIcon from "@mui/icons-material/Edit"
 import SaveIcon from "@mui/icons-material/Save"
-import { deleteBoard } from "@/app/community/community.api"
 import { useState } from "react"
 import axios from "@/config/axios"
 import { useNotification } from "@/hooks/useNotification"
+import useBoard from "./useBoard"
 
 export default function Board({
   board,
@@ -30,6 +30,7 @@ export default function Board({
   const [slug, setSlug] = useState(board.slug)
   const [boardType, setBoardType] = useState(board.type)
   const { success, error } = useNotification()
+  const { deleteBoard } = useBoard()
 
   async function handleEdit(id: string) {
     setEditing(true)

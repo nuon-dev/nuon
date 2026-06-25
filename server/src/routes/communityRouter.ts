@@ -17,10 +17,10 @@ router.get("/boards", async (req, res) => {
   }
 })
 
-router.get("/boards/:boardId", async (req, res) => {
+router.get("/boards/:boardSlug", async (req, res) => {
   try {
-    const { boardId } = req.params
-    const board = await communityModel.getBoardById(boardId)
+    const { boardSlug } = req.params
+    const board = await communityModel.getBoardBySlug(boardSlug)
 
     if (!board) {
       res.status(404).json({ error: "Board not found" })

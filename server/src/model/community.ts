@@ -55,6 +55,12 @@ const communityModel = {
     })
   },
 
+  async getBoardBySlug(slug: string): Promise<Board | null> {
+    return boardDatabase.findOne({
+      where: { slug },
+    })
+  },
+
   async getBoardById(id: string): Promise<Board | null> {
     return boardDatabase.findOne({
       where: { id },

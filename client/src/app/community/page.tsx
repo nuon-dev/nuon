@@ -3,7 +3,6 @@
 import { Stack } from "@mui/material"
 import { useSearchParams } from "next/navigation"
 import useCommunity from "./useCommunity"
-import CommunityBoardClient from "./components/CommunityBoardClient"
 import { Suspense } from "react"
 
 export default function CommunityHomePage() {
@@ -28,12 +27,7 @@ function CommunityHomePageContent() {
     return <>게시판 정보를 불러오는 중...</>
   }
 
-  return (
-    <div>
-      {slug && <div>현재 선택된 커뮤니티: {slug}</div>}
-      <CommunityBoardClient boardSlug={slug} />
-    </div>
-  )
+  return <div>{slug && <div>현재 선택된 커뮤니티: {slug}</div>}</div>
 }
 
 function ErrorSlug() {

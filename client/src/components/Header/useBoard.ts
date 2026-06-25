@@ -1,9 +1,9 @@
 import { atom, useAtom } from "jotai"
 import axios from "@/config/axios"
 import { useEffect } from "react"
-import { CommunityBoard } from "@/app/community/community.types"
+import { Board } from "@server/entity/community/board"
 
-const boardAtom = atom<CommunityBoard[]>([])
+const boardAtom = atom<Board[]>([])
 
 export default function useBoard() {
   const [boards, setBoards] = useAtom(boardAtom)
