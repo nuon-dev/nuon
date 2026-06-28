@@ -11,6 +11,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined"
 import LinkIcon from "@mui/icons-material/Link"
 import ForumIcon from "@mui/icons-material/Forum"
+import ImageIcon from "@mui/icons-material/Image"
 
 export default function AdminHeader() {
   const { push } = useRouter()
@@ -68,6 +69,12 @@ export default function AdminHeader() {
       title: "링크 관리",
       icon: <LinkIcon fontSize="small" />,
       path: "/admin/link",
+      type: "menu",
+    },
+    {
+      title: "주보 관리",
+      icon: <ImageIcon fontSize="small" />,
+      path: "/admin/bulletin",
       type: "menu",
     },
     {
