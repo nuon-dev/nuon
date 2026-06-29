@@ -61,11 +61,8 @@ router.get("/get-all-user-name", async (req, res) => {
 
 router.post("/get-user-permission-info", async (req, res) => {
   const data = req.body
-  const hasPermission = await hasPermissionFromReq(
-    req,
-    PermissionType.permissionManage,
-  )
-  if (!hasPermission) {
+  const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+  if (!isAdmin) {
     res.sendStatus(401)
     return
   }
@@ -133,11 +130,8 @@ router.get("/get-all-user", async (req, res) => {
 router.post("/set-user-permission", async (req, res) => {
   const data = req.body
 
-  const hasPermission = await hasPermissionFromReq(
-    req,
-    PermissionType.permissionManage,
-  )
-  if (!hasPermission) {
+  const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+  if (!isAdmin) {
     res.sendStatus(401)
     return
   }

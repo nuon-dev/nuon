@@ -16,7 +16,6 @@ export const enum CurrentStatus {
 
 export enum PermissionType {
   admin = "admin",
-  permissionManage = "permissionManage",
   communityManage = "communityManage", // 마을, 다락방 권한
 
   // 수련회 관련 권한
@@ -41,8 +40,6 @@ export function permissionTypeToString(
   switch (permissionType) {
     case PermissionType.admin:
       return "관리자"
-    case PermissionType.permissionManage:
-      return "권한 관리"
     case PermissionType.communityManage:
       return "마을/다락방 관리"
     case PermissionType.retreatAdmin:
