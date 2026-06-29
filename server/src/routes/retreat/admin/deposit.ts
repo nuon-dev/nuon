@@ -6,7 +6,7 @@ const router = express.Router()
 
 router.post("/deposit-processing", async (req, res) => {
   const token = req.header("token")
-  if (false === (await hasPermission(token, PermissionType.deposit))) {
+  if (false === (await hasPermission(token, PermissionType.retreatDeposit))) {
     res.sendStatus(401)
     return
   }

@@ -19,7 +19,10 @@ import { Not } from "typeorm"
 const router = express.Router()
 
 router.get("/get-all-user-name", async (req, res) => {
-  const hasPermission = await hasPermissionFromReq(req, PermissionType.userList)
+  const hasPermission = await hasPermissionFromReq(
+    req,
+    PermissionType.retreatUserList,
+  )
   if (!hasPermission) {
     res.sendStatus(401)
     return
@@ -83,7 +86,10 @@ router.post("/get-user-permission-info", async (req, res) => {
 })
 
 router.get("/get-all-user", async (req, res) => {
-  const hasPermission = await hasPermissionFromReq(req, PermissionType.userList)
+  const hasPermission = await hasPermissionFromReq(
+    req,
+    PermissionType.retreatUserList,
+  )
 
   if (!hasPermission) {
     res.sendStatus(401)
