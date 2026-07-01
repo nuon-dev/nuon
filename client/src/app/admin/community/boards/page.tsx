@@ -15,24 +15,25 @@ import {
   Stack,
   TextField,
   Typography,
-  IconButton,
 } from "@mui/material"
 import useAuth from "@/hooks/useAuth"
 import { useNotification } from "@/hooks/useNotification"
-import { fetchBoards, createBoard } from "@/app/community/community.api"
-import { CommunityBoard } from "@/app/community/community.types"
-import Board from "./board"
+import { Board } from "@server/entity/community/board"
+import useBoard from "./useBoard"
+import BoardComponent from "./board"
 
 export default function AdminCommunityBoardsPage() {
   const { isAdminIfNotExit } = useAuth()
   const { success, error } = useNotification()
   const [loading, setLoading] = useState(true)
-  const [boards, setBoards] = useState<CommunityBoard[]>([])
+  const [boards, setBoards] = useState<Board[]>([])
 
   const [name, setName] = useState("")
   const [slug, setSlug] = useState("")
   const [boardType, setBoardType] = useState("free")
   const [creating, setCreating] = useState(false)
+
+  const { fetchBoards, createBoard } = useBoard()
 
   useEffect(() => {
     if (!isAdminIfNotExit("/admin/community/boards")) return
@@ -45,7 +46,6 @@ export default function AdminCommunityBoardsPage() {
       const list = await fetchBoards()
       setBoards(list)
     } catch (err) {
-      console.error(err)
       error("게시판 목록을 불러오지 못했습니다.")
     } finally {
       setLoading(false)
@@ -148,13 +148,7 @@ export default function AdminCommunityBoardsPage() {
 
         <Stack spacing={1}>
           {boards.map((b) => (
-            <Board
-              key={b.id}
-              board={b}
-              load={load}
-              success={success}
-              error={error}
-            />
+            <BoardComponent key={b.id} board={b} load={load} />
           ))}
         </Stack>
       </Stack>

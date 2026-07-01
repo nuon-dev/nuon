@@ -65,7 +65,9 @@ router.post("/get-user-info", async (req, res) => {
 
 router.post("/set-room", async (req, res) => {
   const token = req.header("token")
-  if (false === (await hasPermission(token, PermissionType.roomManage))) {
+  if (
+    false === (await hasPermission(token, PermissionType.retreatRoomManage))
+  ) {
     res.sendStatus(401)
     return
   }

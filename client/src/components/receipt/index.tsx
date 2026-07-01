@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 
-import { jwtDecode } from "jwt-decode"
 import { post } from "@/config/api"
 import UserInformationForm from "@/components/form/UserInformationForm"
 import ReceiptResult from "@/components/form/ReceiptResult"

@@ -38,11 +38,13 @@ export default function Header() {
     DrawerItems.push({
       type: "divider",
     })
+    console.log("boards", boards)
     for (const board of boards) {
       DrawerItems.push({
         title: board.name,
         icon: <ForumIcon fontSize="small" sx={{ color: "#42a5f5" }} />,
         path: `/community/?slug=${encodeURIComponent(board.slug)}`,
+        type: "menu",
       } as DrawerItemsType)
     }
   }

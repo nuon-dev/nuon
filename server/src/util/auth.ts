@@ -1,8 +1,13 @@
 import jwt from "jsonwebtoken"
 import { User } from "../entity/user"
 import { REFRESH_TOKEN_EXPIRE_DAYS } from "../model/user"
-import { communityDatabase, newcomerManagerDatabase } from "../model/dataSource"
+import {
+  communityDatabase,
+  newcomerManagerDatabase,
+  permissionDatabase,
+} from "../model/dataSource"
 import { Role } from "./type"
+import { PermissionType } from "../entity/types"
 
 export function generateRefreshToken(user: User) {
   const payload = {
@@ -60,8 +65,20 @@ async function getRole(user: User): Promise<Role> {
     where: { user: { id: user.id } },
   })
 
+  const isAdmin = await permissionDatabase.findOne({
+    where: {
+      user: {
+        id: user.id,
+      },
+      permissionType: PermissionType.admin,
+    },
+    relations: {
+      user: true,
+    },
+  })
+
   return {
-    Admin: user.isSuperUser,
+    Admin: isAdmin ? true : false,
     Leader: isLeader,
     VillageLeader: villageLeader,
     NewcomerManager: newcomerManager ? true : false,
