@@ -36,6 +36,7 @@ export default function BulletinPage() {
   return (
     <Box sx={{ minHeight: "100svh", bgcolor: "white" }}>
       <IconButton
+        aria-label="뒤로가기"
         onClick={goBack}
         sx={{
           position: "fixed",
