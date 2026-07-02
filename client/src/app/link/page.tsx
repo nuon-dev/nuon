@@ -2,10 +2,10 @@
 
 import { Stack, Box, CircularProgress, Typography } from "@mui/material"
 import { useEffect, useState } from "react"
-import axios from "axios"
 import { Link } from "@server/entity/link"
 import LinkCard from "@/app/components/LinkCard"
 import LinkDetailModal from "@/app/components/LinkDetailModal"
+import axios from "@/config/axios"
 
 export default function Index() {
   const [links, setLinks] = useState<Link[]>([])
@@ -32,9 +32,19 @@ export default function Index() {
     }
   }
 
+  function openLink(link: Link) {
+    if (!link.url) {
+      return
+    }
+    if (link.url.startsWith("/")) {
+      window.location.href = link.url
+      return
+    }
+    window.open(link.url, "_blank", "noopener,noreferrer")
+
   async function handleCardClick(link: Link) {
     if (link.type === "link" && link.url) {
-      window.open(link.url, "_blank")
+      openLink(link)
     } else {
       setSelectedLink(link)
       setOpenModal(true)
@@ -52,7 +62,7 @@ export default function Index() {
 
   async function handleOpenLink(link: Link) {
     if (link.type === "link" && link.url) {
-      window.open(link.url, "_blank")
+      openLink(link)
     }
   }
 
