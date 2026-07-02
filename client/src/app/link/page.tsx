@@ -40,8 +40,7 @@ export default function Index() {
       window.location.href = link.url
       return
     }
-    window.open(link.url, "_blank")
-  }
+    window.open(link.url, "_blank", "noopener,noreferrer")
 
   async function handleCardClick(link: Link) {
     if (link.type === "link" && link.url) {
