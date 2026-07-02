@@ -10,10 +10,14 @@ import { getUserFromToken, hasPermissionFromReq } from "../util/util"
 
 const router: Router = express.Router()
 
-export const bulletinImagePath = "../bulletin/image/"
+export const bulletinImagePath = path.resolve(__dirname, "../../../bulletin/image")
 const maxBulletinImageSize = 10 * 1024 * 1024
 
-fs.mkdirSync(bulletinImagePath, { recursive: true })
+try {
+  fs.mkdirSync(bulletinImagePath, { recursive: true })
+} catch (err) {
+  console.error("Failed to create bulletin image directory:", err)
+}
 
 const uploadBulletinImage = multer({
   storage: multer.diskStorage({
