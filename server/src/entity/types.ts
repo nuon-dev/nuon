@@ -15,24 +15,62 @@ export const enum CurrentStatus {
 }
 
 export enum PermissionType {
-  admin,
-  permissionManage,
-  communityManage, // 마을, 다락방 권한
+  admin = "admin",
+  communityManage = "communityManage", // 마을, 다락방 권한
 
   // 수련회 관련 권한
-  retreatAdmin = 100,
-  userList,
-  carpooling,
-  showRoomAssignment,
-  roomManage,
-  showGroupAssignment,
-  groupManage,
-  dashBoard,
-  deposit,
-  editUserData,
-  editTeamScore,
-  deleteUser,
-  mediaManage,
+  retreatAdmin = "retreatAdmin",
+  retreatUserList = "retreatUserList",
+  carpooling = "carpooling",
+  showRoomAssignment = "showRoomAssignment",
+  retreatRoomManage = "retreatRoomManage",
+  showGroupAssignment = "showGroupAssignment",
+  retreatGroupManage = "retreatGroupManage",
+  retreatDashBoard = "retreatDashBoard",
+  retreatDeposit = "retreatDeposit",
+  retreatEditUserData = "retreatEditUserData",
+  retreatEditTeamScore = "retreatEditTeamScore",
+  retreatDeleteUser = "retreatDeleteUser",
+  retreatMediaManage = "retreatMediaManage",
+}
+
+export function permissionTypeToString(
+  permissionType: PermissionType | string,
+) {
+  switch (permissionType) {
+    case PermissionType.admin:
+      return "관리자"
+    case PermissionType.communityManage:
+      return "마을/다락방 관리"
+    case PermissionType.retreatAdmin:
+      return "수련회 관리자"
+    case PermissionType.retreatUserList:
+      return "수련회 참가자 명단"
+    case PermissionType.carpooling:
+      return "수련회 카풀링"
+    case PermissionType.showRoomAssignment:
+      return "수련회 방배정 조회"
+    case PermissionType.retreatRoomManage:
+      return "수련회 방배정 관리"
+    case PermissionType.showGroupAssignment:
+      return "수련회 조 배정표 보기"
+    case PermissionType.retreatGroupManage:
+      return "수련회 조 관리"
+    case PermissionType.retreatDashBoard:
+      return "수련회 대시보드"
+    case PermissionType.retreatDeposit:
+      return "수련회 입금 확인"
+    case PermissionType.retreatEditUserData:
+      return "수련회 참가자 정보 수정"
+    case PermissionType.retreatEditTeamScore:
+      return "수련회 팀 점수 수정"
+    case PermissionType.retreatDeleteUser:
+      return "수련회 참가자 삭제"
+    case PermissionType.retreatMediaManage:
+      return "수련회 미디어 관리"
+    default:
+      return "기타"
+  }
 }
 
 export enum Days {

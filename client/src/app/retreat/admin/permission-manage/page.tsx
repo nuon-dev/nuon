@@ -14,7 +14,6 @@ import {
   Stack,
 } from "@mui/material"
 import { useRouter } from "next/navigation"
-import { useSetAtom } from "jotai"
 import { PermissionType } from "@server/entity/types"
 import Header from "@/components/retreat/admin/Header"
 import { useNotification } from "@/hooks/useNotification"
@@ -52,18 +51,16 @@ function PermissionManage() {
   }
 
   const permissionKrString = {
-    [PermissionType.admin]: "준비팀",
     [PermissionType.carpooling]: "카풀",
-    [PermissionType.permissionManage]: "권한 관리",
-    [PermissionType.userList]: "사용자 목록",
+    [PermissionType.retreatUserList]: "사용자 목록",
     [PermissionType.showRoomAssignment]: "방배정 조회",
     [PermissionType.showGroupAssignment]: "조편성 조회",
-    [PermissionType.roomManage]: "방배정",
-    [PermissionType.groupManage]: "조편성",
-    [PermissionType.deposit]: "입금 처리",
-    [PermissionType.editUserData]: "정보 수정",
-    [PermissionType.deleteUser]: "접수 삭제",
-    [PermissionType.mediaManage]: "미디어 관리",
+    [PermissionType.retreatRoomManage]: "방배정",
+    [PermissionType.retreatGroupManage]: "조편성",
+    [PermissionType.retreatDeposit]: "입금 처리",
+    [PermissionType.retreatEditUserData]: "정보 수정",
+    [PermissionType.retreatDeleteUser]: "접수 삭제",
+    [PermissionType.retreatMediaManage]: "미디어 관리",
   }
 
   function loadUserPermission() {

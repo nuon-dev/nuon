@@ -78,6 +78,12 @@ export default function AdminHeader() {
       type: "menu",
     },
     {
+      title: "권한 관리",
+      icon: <PeopleOutlineOutlinedIcon fontSize="small" />,
+      path: "/admin/permission",
+      type: "menu",
+    },
+    {
       title: "게시판",
       icon: <CommunityIcon fontSize="small" />,
       type: "submenu",

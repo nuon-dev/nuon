@@ -3,10 +3,7 @@
 import { Stack } from "@mui/material"
 import useCommunity from "../useCommunity"
 import { Post } from "@server/entity/community/post"
-
-interface CommunityListProps {
-  slug: string
-}
+import { useRouter } from "next/navigation"
 
 export default function CommunityList() {
   const { board, posts } = useCommunity("")
@@ -39,6 +36,12 @@ interface CommunityPostSectionProps {
 }
 
 export function CommunityPostSection({ post }: CommunityPostSectionProps) {
+  const { push } = useRouter()
+
+  function handleClick() {
+    push(`/community/view/?id=${post.id}`)
+  }
+
   return (
     <Stack
       display="box"
@@ -46,6 +49,7 @@ export function CommunityPostSection({ post }: CommunityPostSectionProps) {
       textAlign="left"
       padding="16px"
       borderTop="1px solid #e0e0e0"
+      onClick={handleClick}
     >
       <b
         style={{
