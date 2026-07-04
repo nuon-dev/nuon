@@ -2,15 +2,42 @@
 
 import { Stack, Box, CircularProgress, Typography } from "@mui/material"
 import { useEffect, useState } from "react"
-import axios from "axios"
-import { Link } from "@server/entity/link"
 import LinkCard from "@/app/components/LinkCard"
 import LinkDetailModal from "@/app/components/LinkDetailModal"
+import axios from "@/config/axios"
+import type { Link, LinkListItem } from "@/types/link"
+
+const sundayBulletinLink: LinkListItem = {
+  id: "sunday-bulletin",
+  title: "주일 주보",
+  type: "link",
+  url: "/bulletin/",
+}
+
+function addSundayBulletinLink(links: LinkListItem[]) {
+  const hasSundayBulletin = links.some(
+    (link) => link.title === "주일 주보" || link.url === "/bulletin/",
+  )
+  if (hasSundayBulletin) {
+    return links
+  }
+
+  const monthlySheetMusicIndex = links.findIndex(
+    (link) => link.title === "월기 악보",
+  )
+  const insertAt = monthlySheetMusicIndex < 0 ? 0 : monthlySheetMusicIndex
+
+  return [
+    ...links.slice(0, insertAt),
+    sundayBulletinLink,
+    ...links.slice(insertAt),
+  ]
+}
 
 export default function Index() {
-  const [links, setLinks] = useState<Link[]>([])
+  const [links, setLinks] = useState<LinkListItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedLink, setSelectedLink] = useState<Link | null>(null)
+  const [selectedLink, setSelectedLink] = useState<LinkListItem | null>(null)
   const [openModal, setOpenModal] = useState(false)
 
   useEffect(() => {
@@ -20,11 +47,11 @@ export default function Index() {
   async function fetchLinks() {
     try {
       setLoading(true)
-      const response = await axios.get("/link")
+      const response = await axios.get<Link[]>("/link")
       const sortedLinks = response.data.sort(
         (a: Link, b: Link) => a.displayOrder - b.displayOrder,
       )
-      setLinks(sortedLinks)
+      setLinks(addSundayBulletinLink(sortedLinks))
     } catch (error) {
       console.error("Error fetching links:", error)
     } finally {
@@ -32,15 +59,29 @@ export default function Index() {
     }
   }
 
-  async function handleCardClick(link: Link) {
+  function openLink(link: LinkListItem) {
+    if (!link.url) {
+      return
+    }
+    if (link.url.startsWith("/")) {
+      window.location.href = link.url
+      return
+    }
+    window.open(link.url, "_blank", "noopener,noreferrer")
+  }
+
+  async function handleCardClick(link: LinkListItem) {
     if (link.type === "link" && link.url) {
-      window.open(link.url, "_blank")
+      openLink(link)
     } else {
       setSelectedLink(link)
       setOpenModal(true)
     }
 
     // 링크 클릭 기록
+    if (link.id === sundayBulletinLink.id) {
+      return
+    }
     try {
       await axios.post(`/link/${link.id}/click`, {
         userAgent: navigator.userAgent,
@@ -50,9 +91,9 @@ export default function Index() {
     }
   }
 
-  async function handleOpenLink(link: Link) {
+  async function handleOpenLink(link: LinkListItem) {
     if (link.type === "link" && link.url) {
-      window.open(link.url, "_blank")
+      openLink(link)
     }
   }
 

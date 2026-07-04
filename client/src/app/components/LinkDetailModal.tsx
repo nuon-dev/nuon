@@ -11,13 +11,13 @@ import {
   Close as CloseIcon,
   OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material"
-import { Link } from "@server/entity/link"
+import type { LinkListItem } from "@/types/link"
 
 interface LinkDetailModalProps {
   open: boolean
-  link: Link | null
+  link: LinkListItem | null
   onClose: () => void
-  onOpenLink: (link: Link) => void
+  onOpenLink: (link: LinkListItem) => void
 }
 
 export default function LinkDetailModal({

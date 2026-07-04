@@ -28,6 +28,13 @@ export default function Header() {
 
   const DrawerItems: Array<DrawerItemsType> = []
 
+  DrawerItems.push({
+    title: "주일 주보",
+    icon: <EventNoteIcon fontSize="small" sx={{ color: "#667eea" }} />,
+    path: "/bulletin/",
+    type: "menu",
+  })
+
   if (isLogin) {
     DrawerItems.push({
       title: "나의 정보 수정",
