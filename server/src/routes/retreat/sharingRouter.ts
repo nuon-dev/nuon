@@ -97,7 +97,10 @@ router.post("/delete", async (req, res) => {
     return
   }
 
-  const isManager = await hasPermissionFromReq(req, PermissionType.mediaManage)
+  const isManager = await hasPermissionFromReq(
+    req,
+    PermissionType.retreatMediaManage,
+  )
 
   if (!isManager && foundSharingText.writer.id !== user.id) {
     res.status(400).send({ result: "fail" })
@@ -190,7 +193,10 @@ router.post("/image-delete", async (req, res) => {
     return
   }
 
-  const isManager = await hasPermissionFromReq(req, PermissionType.mediaManage)
+  const isManager = await hasPermissionFromReq(
+    req,
+    PermissionType.retreatMediaManage,
+  )
 
   if (!isManager && foundSharingImage.writer.id !== user.id) {
     res.status(400).send({ result: "fail" })
@@ -215,14 +221,14 @@ router.get("/is-manager", async (req, res) => {
       user: {
         id: user.id,
       },
-      permissionType: PermissionType.mediaManage,
+      permissionType: PermissionType.admin,
     },
     relations: {
       user: true,
     },
   })
 
-  res.send({ result: user.isSuperUser || isManager.length > 0 })
+  res.send({ result: isManager.length > 0 })
 })
 
 export default router

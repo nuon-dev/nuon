@@ -1,5 +1,5 @@
-import { User } from "./user"
 import { PermissionType } from "./types"
+import { User } from "./user"
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity()
@@ -10,7 +10,10 @@ export class Permission {
   @ManyToOne(() => User, (user) => user.permissions)
   user!: User
 
-  @Column()
+  @Column({
+    type: "varchar",
+    length: 255,
+  })
   permissionType!: PermissionType
 
   @Column()

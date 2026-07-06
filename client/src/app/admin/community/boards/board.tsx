@@ -13,25 +13,25 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete"
 import EditIcon from "@mui/icons-material/Edit"
 import SaveIcon from "@mui/icons-material/Save"
-import { deleteBoard } from "@/app/community/community.api"
 import { useState } from "react"
 import axios from "@/config/axios"
+import { useNotification } from "@/hooks/useNotification"
+import useBoard from "./useBoard"
+import { BoardType } from "@server/entity/community/types"
 
 export default function Board({
   board,
   load,
-  success,
-  error,
 }: {
   board: any
   load: () => Promise<void>
-  success: (msg: string) => void
-  error: (msg: string) => void
 }) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(board.name)
   const [slug, setSlug] = useState(board.slug)
   const [boardType, setBoardType] = useState(board.type)
+  const { success, error } = useNotification()
+  const { deleteBoard } = useBoard()
 
   async function handleEdit(id: string) {
     setEditing(true)
@@ -61,6 +61,7 @@ export default function Board({
       await axios.put(`/community/boards/${id}`, {
         name,
         slug,
+        type: boardType,
       })
       setEditing(false)
       await load()
@@ -112,12 +113,12 @@ export default function Board({
                 value={boardType}
                 onChange={(e) => setBoardType(e.target.value)}
               >
-                <MenuItem value="free">자유 게시판</MenuItem>
-                <MenuItem value="qna">Q&A 게시판</MenuItem>
+                <MenuItem value={BoardType.FREE}>자유 게시판</MenuItem>
+                <MenuItem value={BoardType.QNA}>Q&A 게시판</MenuItem>
               </Select>
             ) : (
               <Typography variant="caption" color="text.secondary">
-                {boardType === "free" ? "자유 게시판" : "Q&A 게시판"}
+                {boardType === BoardType.FREE ? "자유 게시판" : "Q&A 게시판"}
               </Typography>
             )}
           </Stack>

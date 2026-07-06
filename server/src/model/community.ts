@@ -6,18 +6,20 @@ import {
   qnaPostDatabase,
   reactionDatabase,
 } from "./dataSource"
-import { Board, BoardVisibility } from "../entity/community/board"
+import { Board } from "../entity/community/board"
 import { Comment } from "../entity/community/comment"
-import { Post, PostType } from "../entity/community/post"
+import { Post } from "../entity/community/post"
 import { QnaPost } from "../entity/community/qnaPost"
 import { Reaction } from "../entity/community/reaction"
 import { User } from "../entity/user"
+import { BoardType, BoardVisibility } from "../entity/community/types"
 
 export type BoardInput = {
   name: string
   slug: string
   description?: string
   visibility?: BoardVisibility
+  boardType?: BoardType
   createdBy?: User | null
   moderators?: User[]
 }
@@ -27,14 +29,6 @@ export type FreePostInput = {
   author: User
   title?: string
   content?: string
-  isAnonymous?: boolean
-}
-
-export type QnaPostInput = {
-  boardId: string
-  author: User
-  title?: string
-  isAnonymous?: boolean
 }
 
 export type CommentInput = {
@@ -42,7 +36,6 @@ export type CommentInput = {
   author: User
   parentId?: string | null
   content: string
-  isAnonymous?: boolean
 }
 
 export type ReactionInput = {
@@ -54,8 +47,10 @@ export type ReactionInput = {
 const communityModel = {
   async listBoards(): Promise<Board[]> {
     return boardDatabase.find({
-      relations: {
-        createdBy: true,
+      select: {
+        name: true,
+        slug: true,
+        description: true,
       },
       order: {
         createdAt: "ASC",
@@ -63,11 +58,18 @@ const communityModel = {
     })
   },
 
+  async getBoardBySlug(slug: string): Promise<Board | null> {
+    return await boardDatabase.findOne({
+      where: { slug },
+    })
+  },
+
   async getBoardById(id: string): Promise<Board | null> {
-    return boardDatabase.findOne({
+    return await boardDatabase.findOne({
       where: { id },
       relations: {
         createdBy: true,
+        posts: true,
       },
     })
   },
@@ -79,6 +81,7 @@ const communityModel = {
       description: input.description,
       visibility: input.visibility ?? BoardVisibility.PUBLIC,
       createdBy: input.createdBy ?? null,
+      type: input.boardType ?? BoardType.FREE,
     })
     return boardDatabase.save(board)
   },
@@ -123,95 +126,105 @@ const communityModel = {
       },
       select: {
         id: true,
-        type: true,
         title: true,
         content: true,
         createdAt: true,
         updatedAt: true,
         board: {
-          id: true,
           name: true,
           slug: true,
         },
         author: {
-          id: true,
           name: true,
         },
         comments: {
           id: true,
-          content: true,
-          createdAt: true,
-          author: {
-            id: true,
-            name: true,
-          },
         },
         reactions: {
           id: true,
           type: true,
-          user: {
-            id: true,
-            name: true,
-          },
         },
       },
       take: limit,
       skip: page * limit,
     })
   },
-  
-  /////////////////////////// 여기 상위로 함수들은 확인 됨
+
   async listQnaPosts(
     boardId: string,
+    user: User | null,
     opts?: { limit?: number; page?: number },
-  ): Promise<QnaPost[]> {
+  ): Promise<Post[]> {
     const limit = opts?.limit ?? 20
     const page = Math.max((opts?.page ?? 1) - 1, 0)
-    return qnaPostDatabase.find({
-      where: {
-        post: {
-          board: { id: boardId },
-          deletedAt: IsNull(),
-        },
-      },
+
+    const baseWhere = {
+      board: { id: boardId },
+      deletedAt: IsNull(),
+    }
+
+    // user 존재 여부에 따른 OR 조건 분기
+    const whereCondition = user
+      ? [
+          {
+            ...baseWhere,
+            author: { id: user.id },
+          },
+          {
+            ...baseWhere,
+            qna: { answerPublic: true },
+          },
+        ]
+      : {
+          ...baseWhere,
+          qna: { answerPublic: true },
+        }
+
+    return postDatabase.find({
+      where: whereCondition,
       relations: {
-        post: {
-          board: true,
-          author: true,
-          comments: {
-            author: true,
-          },
-          reactions: {
-            user: true,
-          },
+        qna: {
+          answeredBy: true,
         },
-        answeredBy: true,
+        board: true,
+        author: true,
+        comments: true,
+        reactions: {
+          user: true,
+        },
       },
       order: {
-        post: {
-          createdAt: "DESC",
-        },
+        createdAt: "DESC",
       },
       select: {
         id: true,
-        answer: true,
-        answerPublic: true,
-        answeredAt: true,
-        post: {
-          id: true,
-          title: true,
-          content: true,
-          createdAt: true,
-          updatedAt: true,
-          board: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-        answeredBy: {
-          id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+        board: {
           name: true,
+          slug: true,
+        },
+        author: {
+          name: true,
+          yearOfBirth: true,
+        },
+        comments: {
+          id: true,
+        },
+        reactions: {
+          id: true,
+          type: true,
+        },
+        qna: {
+          id: true,
+          answer: true,
+          answerPublic: true,
+          answeredAt: true,
+          answeredBy: {
+            name: true,
+          },
         },
       },
       take: limit,
@@ -223,14 +236,47 @@ const communityModel = {
     const post = await postDatabase.findOne({
       where: { id },
       relations: {
-        board: {
-          createdBy: true,
-        },
+        board: true,
         author: true,
-        // avoid eager-loading all comments here for performance; use listComments
-        // comments: { author: true, children: true },
         reactions: {
           user: true,
+        },
+        qna: {
+          answeredBy: true,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+        board: {
+          name: true,
+          slug: true,
+          type: true,
+        },
+        author: {
+          name: true,
+          yearOfBirth: true,
+        },
+        comments: {
+          id: true,
+          content: true,
+          createdAt: true,
+        },
+        reactions: {
+          id: true,
+          type: true,
+        },
+        qna: {
+          id: true,
+          answer: true,
+          answerPublic: true,
+          answeredAt: true,
+          answeredBy: {
+            name: true,
+          },
         },
       },
     })
@@ -248,20 +294,8 @@ const communityModel = {
       author: input.author,
       title: input.title,
       content: input.content,
-      type: PostType.FREE,
     })
     return postDatabase.save(post)
-  },
-
-  async createQnaPost(input: QnaPostInput): Promise<QnaPost> {
-    const post = qnaPostDatabase.create({
-      post: {
-        board: { id: input.boardId },
-        author: input.author,
-        title: input.title,
-      },
-    })
-    return qnaPostDatabase.save(post)
   },
 
   async updatePost(
@@ -285,6 +319,7 @@ const communityModel = {
     })
     return commentDatabase.save(comment)
   },
+  /////////////////////////// 여기 상위로 함수들은 확인 됨
 
   async listComments(
     postId: string,
@@ -339,20 +374,50 @@ const communityModel = {
       answeredBy?: User | null
     },
   ): Promise<QnaPost | null> {
-    const qnaPost = await qnaPostDatabase.findOne({
-      where: { post: { id } },
+    const post = await postDatabase.findOne({
+      where: { id },
       relations: {
-        answeredBy: true,
-        post: {
-          board: true,
-          author: true,
-          comments: {
-            author: true,
-          },
-          reactions: {
-            user: true,
-          },
+        qna: {
+          answeredBy: true,
         },
+        board: true,
+        author: true,
+        comments: {
+          author: true,
+        },
+        reactions: {
+          user: true,
+        },
+      },
+    })
+
+    if (!post) {
+      return null
+    }
+
+    const answer = qnaPostDatabase.create({
+      post: post,
+      answer: data.answer ?? null,
+      answerPublic: data.answerPublic ?? false,
+      answeredBy: data.answeredBy ?? null,
+      answeredAt: data.answer ? new Date() : null,
+    })
+    return await qnaPostDatabase.save(answer)
+  },
+
+  async updateQnaPost(
+    id: string,
+    data: {
+      answer?: string | null
+      answerPublic?: boolean
+      answeredBy?: User | null
+    },
+  ): Promise<QnaPost | null> {
+    const qnaPost = await qnaPostDatabase.findOne({
+      where: { id: id },
+      relations: {
+        post: true,
+        answeredBy: true,
       },
     })
 
@@ -368,13 +433,10 @@ const communityModel = {
       qnaPost.answerPublic = data.answerPublic
     }
     if (data.answeredBy !== undefined) {
-      qnaPost.answeredBy = data.answeredBy
-      if (data.answeredBy && !qnaPost.answeredAt) {
-        qnaPost.answeredAt = new Date()
-      }
+      qnaPost.answeredBy = data.answeredBy ?? null
     }
 
-    return qnaPostDatabase.save(qnaPost)
+    return await qnaPostDatabase.save(qnaPost)
   },
 
   async createReaction(input: ReactionInput): Promise<Reaction> {

@@ -11,7 +11,9 @@ const router = express.Router()
 
 router.get("/get-user-data", async (req, res) => {
   const token = req.header("token")
-  if (false === (await hasPermission(token, PermissionType.editUserData))) {
+  if (
+    false === (await hasPermission(token, PermissionType.retreatEditUserData))
+  ) {
     res.sendStatus(401)
     return
   }
@@ -40,7 +42,9 @@ router.get("/get-user-data", async (req, res) => {
 
 router.post("/edit-retreat-attend", async (req, res) => {
   const token = req.header("token")
-  if (false === (await hasPermission(token, PermissionType.editUserData))) {
+  if (
+    false === (await hasPermission(token, PermissionType.retreatEditUserData))
+  ) {
     res.sendStatus(401)
     return
   }
@@ -54,7 +58,7 @@ router.post("/edit-retreat-attend", async (req, res) => {
       howToGo: retreatAttend.howToGo,
       howToBack: retreatAttend.howToBack,
       memo: retreatAttend.memo,
-    }
+    },
   )
 
   if (!foundRetreatAttend) {
@@ -68,7 +72,7 @@ router.post("/edit-retreat-attend", async (req, res) => {
 router.post("/edit-in-out-info", async (req, res) => {
   const hasPermission = await hasPermissionFromReq(
     req,
-    PermissionType.editUserData
+    PermissionType.retreatEditUserData,
   )
   if (!hasPermission) {
     res.sendStatus(401)
@@ -85,7 +89,7 @@ router.post("/edit-in-out-info", async (req, res) => {
         {
           id: inOutInfo.id,
         },
-        inOutInfo
+        inOutInfo,
       )
     } else {
       const createdInOutInfo = inOutInfoDatabase.create(inOutInfo)
@@ -107,7 +111,9 @@ router.post("/edit-in-out-info", async (req, res) => {
 
 router.post("/delete-user", async (req, res) => {
   const token = req.header("token")
-  if (false === (await hasPermission(token, PermissionType.deleteUser))) {
+  if (
+    false === (await hasPermission(token, PermissionType.retreatDeleteUser))
+  ) {
     res.sendStatus(401)
     return
   }
@@ -132,7 +138,7 @@ router.post("/delete-user", async (req, res) => {
 router.post("/delete-in-out-info", async (req, res) => {
   const hasPermission = await hasPermissionFromReq(
     req,
-    PermissionType.editUserData
+    PermissionType.retreatEditUserData,
   )
   if (!hasPermission) {
     res.sendStatus(401)
@@ -164,7 +170,7 @@ router.post("/delete-in-out-info", async (req, res) => {
     async (userInTheCar) => {
       userInTheCar.rideCarInfo = null
       await inOutInfoDatabase.save(userInTheCar)
-    }
+    },
   )
 
   await Promise.all(updateUserInTheCar)

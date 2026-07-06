@@ -27,7 +27,7 @@ export default function Index() {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (typeof window !== "undefined" && (window as any).ReactNativeWebView) {
-        alert("앱에서 접속하셨습니다.")
+        push("/temp-app")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(window as any).ReactNativeWebView.postMessage(
           JSON.stringify({

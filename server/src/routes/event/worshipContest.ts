@@ -4,8 +4,9 @@ import {
   userDatabase,
   worshipContestDatabase,
 } from "../../model/dataSource"
-import { getUserFromToken } from "../../util/util"
+import { getUserFromToken, hasPermissionFromReq } from "../../util/util"
 import { IsNull, In, Not } from "typeorm"
+import { PermissionType } from "../../entity/types"
 
 const router = Router()
 
@@ -24,7 +25,8 @@ router.post("/admin/set-status", async (req, res) => {
     return
   }
 
-  if (!user.isSuperUser) {
+  const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+  if (!isAdmin) {
     res.status(403).json({ message: "권한이 없습니다." })
     return
   }
@@ -92,7 +94,8 @@ router.get("/results", async (req, res) => {
     return
   }
 
-  if (!user.isSuperUser) {
+  const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+  if (!isAdmin) {
     res.status(403).json({ message: "권한이 없습니다." })
     return
   }

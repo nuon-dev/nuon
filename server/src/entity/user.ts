@@ -43,9 +43,6 @@ export class User {
   @Column({ nullable: true, select: false })
   expire!: Date
 
-  @Column({ nullable: true, default: 0 })
-  isSuperUser!: boolean
-
   @CreateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",

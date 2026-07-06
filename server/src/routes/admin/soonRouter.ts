@@ -28,7 +28,7 @@ function toSafeUserResponse(user: any) {
 
 router.get("/get-all-user", async (req, res) => {
   const token = req.header("token")
-  if (false === (await hasPermission(token, PermissionType.userList))) {
+  if (false === (await hasPermission(token, PermissionType.retreatUserList))) {
     res.sendStatus(401)
     return
   }
@@ -44,7 +44,9 @@ router.get("/get-all-user", async (req, res) => {
 
 router.post("/insert-user", async (req, res) => {
   const token = req.header("token")
-  if (false === (await hasPermission(token, PermissionType.editUserData))) {
+  if (
+    false === (await hasPermission(token, PermissionType.retreatEditUserData))
+  ) {
     res.sendStatus(401)
     return
   }
@@ -63,7 +65,9 @@ router.post("/insert-user", async (req, res) => {
 
 router.put("/update-user", async (req, res) => {
   const token = req.header("token")
-  if (false === (await hasPermission(token, PermissionType.editUserData))) {
+  if (
+    false === (await hasPermission(token, PermissionType.retreatEditUserData))
+  ) {
     res.sendStatus(401)
     return
   }
@@ -76,7 +80,9 @@ router.put("/update-user", async (req, res) => {
 
 router.delete("/delete-user/:id", async (req, res) => {
   const token = req.header("token")
-  if (false === (await hasPermission(token, PermissionType.editUserData))) {
+  if (
+    false === (await hasPermission(token, PermissionType.retreatEditUserData))
+  ) {
     res.sendStatus(401)
     return
   }
