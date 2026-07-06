@@ -1,9 +1,10 @@
 "use client"
 
-import { Stack } from "@mui/material"
+import { Box, Stack } from "@mui/material"
 import useCommunity from "../useCommunity"
 import { Post } from "@server/entity/community/post"
 import { useRouter } from "next/navigation"
+import dayjs from "dayjs"
 
 export default function CommunityList() {
   const { board, posts } = useCommunity("")
@@ -76,6 +77,35 @@ export function CommunityPostSection({ post }: CommunityPostSectionProps) {
       >
         {post.content}
       </Stack>
+      <Stack
+        mt={1}
+        gap={1}
+        color="text.secondary"
+        direction="row"
+        sx={{
+          minWidth: 0,
+          fontSize: "12px",
+          wordBreak: "break-word",
+        }}
+      >
+        <Box>{formatDate(post.createdAt)}</Box>
+        <Box>|</Box>
+        <Box>{post.author.name} </Box>
+      </Stack>
     </Stack>
   )
+}
+
+function formatDate(dateString: Date): string {
+  const date = dayjs(dateString)
+  if (dayjs().diff(date, "hour") === 0) {
+    return `${dayjs().diff(date, "minute")}분 전`
+  }
+  if (dayjs().diff(date, "day") === 0) {
+    return `${dayjs().diff(date, "hour")}시간 전`
+  }
+  if (dayjs().diff(date, "year") === 0) {
+    return `${date.format("MM/DD")}`
+  }
+  return date.format("YYYY-MM-DD")
 }

@@ -2,7 +2,7 @@ import express from "express"
 import communityModel from "../model/community"
 import { getUserFromToken, hasPermissionFromReq } from "../util/util"
 import { PermissionType } from "../entity/types"
-import { BoardType } from "../entity/community/board"
+import { BoardType } from "../entity/community/types"
 
 const router = express.Router()
 
@@ -128,6 +128,10 @@ router.get("/boards/:boardId/posts", async (req, res) => {
         posts.forEach((post) => {
           post.author.name = "익명"
           post.author.yearOfBirth = 0
+          post.comments.forEach((comment) => {
+            comment.author.name = "익명"
+            comment.author.yearOfBirth = 0
+          })
         })
       }
       res.status(200).json(posts)
@@ -188,13 +192,12 @@ router.get("/posts/:postId", async (req, res) => {
       return
     }
 
-    const board = await communityModel.getBoardById(post.board.id)
-    if (!board) {
+    if (!post.board) {
       res.status(404).json({ error: "Board not found" })
       return
     }
 
-    if (board.type === BoardType.FREE) {
+    if (post.board.type === BoardType.FREE) {
       res.status(200).json(post)
       return
     }
@@ -205,7 +208,7 @@ router.get("/posts/:postId", async (req, res) => {
       return
     }
 
-    if (board.type === BoardType.QNA) {
+    if (post.board.type === BoardType.QNA) {
       post.author.name = "익명"
       post.author.yearOfBirth = 0
 
@@ -449,6 +452,7 @@ router.post("/qna-posts/:postId/answer", async (req, res) => {
     }
 
     const post = await communityModel.getPostById(postId)
+
     if (!post || post.board.type !== BoardType.QNA) {
       res.status(404).json({ error: "QnA post not found" })
       return
@@ -470,6 +474,35 @@ router.post("/qna-posts/:postId/answer", async (req, res) => {
   } catch (error) {
     console.error("Error answering qna post:", error)
     res.status(500).json({ error: "Failed to answer qna post" })
+  }
+})
+
+router.put("/qna-posts/:qnaPostId", async (req, res) => {
+  try {
+    const { qnaPostId } = req.params
+    const user = await getUserFromToken(req)
+    const isAdmin = await hasPermissionFromReq(req, PermissionType.admin)
+    if (!user || !isAdmin) {
+      res.status(403).json({ error: "Forbidden" })
+      return
+    }
+
+    const { answer, answerPublic } = req.body
+    const updated = await communityModel.updateQnaPost(qnaPostId, {
+      answer,
+      answerPublic,
+      answeredBy: user,
+    })
+
+    if (!updated) {
+      res.status(404).json({ error: "QnA post not found" })
+      return
+    }
+
+    res.status(200).json(updated)
+  } catch (error) {
+    console.error("Error updating qna post:", error)
+    res.status(500).json({ error: "Failed to update qna post" })
   }
 })
 

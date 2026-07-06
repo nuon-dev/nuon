@@ -1,5 +1,6 @@
 import axios from "@/config/axios"
 import { Board } from "@server/entity/community/board"
+import { BoardType } from "@server/entity/community/types"
 
 export default function useBoard() {
   async function fetchBoards(): Promise<Board[]> {
@@ -16,7 +17,7 @@ export default function useBoard() {
     name: string
     slug: string
     description?: string
-    boardType?: "free" | "qna"
+    boardType?: BoardType
   }) {
     const { data } = await axios.post(`/community/boards`, input)
     return data

@@ -17,6 +17,7 @@ import { useState } from "react"
 import axios from "@/config/axios"
 import { useNotification } from "@/hooks/useNotification"
 import useBoard from "./useBoard"
+import { BoardType } from "@server/entity/community/types"
 
 export default function Board({
   board,
@@ -112,12 +113,12 @@ export default function Board({
                 value={boardType}
                 onChange={(e) => setBoardType(e.target.value)}
               >
-                <MenuItem value="free">자유 게시판</MenuItem>
-                <MenuItem value="qna">Q&A 게시판</MenuItem>
+                <MenuItem value={BoardType.FREE}>자유 게시판</MenuItem>
+                <MenuItem value={BoardType.QNA}>Q&A 게시판</MenuItem>
               </Select>
             ) : (
               <Typography variant="caption" color="text.secondary">
-                {boardType === "free" ? "자유 게시판" : "Q&A 게시판"}
+                {boardType === BoardType.FREE ? "자유 게시판" : "Q&A 게시판"}
               </Typography>
             )}
           </Stack>
