@@ -192,13 +192,12 @@ router.get("/posts/:postId", async (req, res) => {
       return
     }
 
-    const board = await communityModel.getBoardById(post.board.id)
-    if (!board) {
+    if (!post.board) {
       res.status(404).json({ error: "Board not found" })
       return
     }
 
-    if (board.type === BoardType.FREE) {
+    if (post.board.type === BoardType.FREE) {
       res.status(200).json(post)
       return
     }
@@ -209,7 +208,7 @@ router.get("/posts/:postId", async (req, res) => {
       return
     }
 
-    if (board.type === BoardType.QNA) {
+    if (post.board.type === BoardType.QNA) {
       post.author.name = "익명"
       post.author.yearOfBirth = 0
 

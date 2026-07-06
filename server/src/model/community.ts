@@ -47,8 +47,10 @@ export type ReactionInput = {
 const communityModel = {
   async listBoards(): Promise<Board[]> {
     return boardDatabase.find({
-      relations: {
-        createdBy: true,
+      select: {
+        name: true,
+        slug: true,
+        description: true,
       },
       order: {
         createdAt: "ASC",
@@ -57,13 +59,13 @@ const communityModel = {
   },
 
   async getBoardBySlug(slug: string): Promise<Board | null> {
-    return boardDatabase.findOne({
+    return await boardDatabase.findOne({
       where: { slug },
     })
   },
 
   async getBoardById(id: string): Promise<Board | null> {
-    return boardDatabase.findOne({
+    return await boardDatabase.findOne({
       where: { id },
       relations: {
         createdBy: true,
