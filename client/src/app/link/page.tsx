@@ -7,34 +7,7 @@ import LinkDetailModal from "@/app/components/LinkDetailModal"
 import axios from "@/config/axios"
 import type { Link, LinkListItem } from "@/types/link"
 
-const sundayBulletinLink: LinkListItem = {
-  id: "sunday-bulletin",
-  title: "주일 주보",
-  type: "link",
-  url: "/bulletin/",
-}
-
-function addSundayBulletinLink(links: LinkListItem[]) {
-  const hasSundayBulletin = links.some(
-    (link) => link.title === "주일 주보" || link.url === "/bulletin/",
-  )
-  if (hasSundayBulletin) {
-    return links
-  }
-
-  const monthlySheetMusicIndex = links.findIndex(
-    (link) => link.title === "월기 악보",
-  )
-  const insertAt = monthlySheetMusicIndex < 0 ? 0 : monthlySheetMusicIndex
-
-  return [
-    ...links.slice(0, insertAt),
-    sundayBulletinLink,
-    ...links.slice(insertAt),
-  ]
-}
-
-export default function Index() {
+export default function LinkPage() {
   const [links, setLinks] = useState<LinkListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedLink, setSelectedLink] = useState<LinkListItem | null>(null)
@@ -51,7 +24,7 @@ export default function Index() {
       const sortedLinks = response.data.sort(
         (a: Link, b: Link) => a.displayOrder - b.displayOrder,
       )
-      setLinks(addSundayBulletinLink(sortedLinks))
+      setLinks(sortedLinks)
     } catch (error) {
       console.error("Error fetching links:", error)
     } finally {
@@ -78,10 +51,6 @@ export default function Index() {
       setOpenModal(true)
     }
 
-    // 링크 클릭 기록
-    if (link.id === sundayBulletinLink.id) {
-      return
-    }
     try {
       await axios.post(`/link/${link.id}/click`, {
         userAgent: navigator.userAgent,

@@ -125,7 +125,10 @@ export default function AdminBulletinPage() {
     }
   }
 
-  async function deleteImageFromSlot(weekDate: string, slot: BulletinImageSlot) {
+  async function deleteImageFromSlot(
+    weekDate: string,
+    slot: BulletinImageSlot,
+  ) {
     if (!confirm("정말 삭제하시겠습니까?")) {
       return
     }
@@ -163,7 +166,9 @@ export default function AdminBulletinPage() {
                     select
                     label="주보 날짜"
                     value={selectedWeekDate}
-                    onChange={(event) => setSelectedWeekDate(event.target.value)}
+                    onChange={(event) =>
+                      setSelectedWeekDate(event.target.value)
+                    }
                     sx={{ maxWidth: 320 }}
                   >
                     {weekDateOptions.map((weekDate) => (
@@ -222,7 +227,9 @@ export default function AdminBulletinPage() {
                               bgcolor: "#f5f5f5",
                             }}
                           >
-                            <Typography color="text.secondary">미등록</Typography>
+                            <Typography color="text.secondary">
+                              미등록
+                            </Typography>
                           </Box>
                         )}
 
