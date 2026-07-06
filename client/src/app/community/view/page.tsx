@@ -12,17 +12,17 @@ import {
   Typography,
 } from "@mui/material"
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded"
-import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded"
+import MoreVerticalRoundedIcon from "@mui/icons-material/MoreVertRounded"
 import {
   useRouter,
   useSearchParams,
 } from "next/dist/client/components/navigation"
 import { Suspense, useEffect, useState } from "react"
-import useCommunity from "../useCommunity"
 import { Post } from "@server/entity/community/post"
 import { Comment } from "@server/entity/community/comment"
 import axios from "@/config/axios"
 import dayjs from "dayjs"
+import { useNotification } from "@/hooks/useNotification"
 
 export default function ViewPage() {
   return (
@@ -36,12 +36,14 @@ function PostView() {
   const { push } = useRouter()
   const searchParams = useSearchParams()
   const postId = searchParams.get("id")
+  const { success, error } = useNotification()
 
   const [commentContent, setCommentContent] = useState("")
   const [post, setPost] = useState<null | Post>(null)
   const [comments, setComments] = useState<Comment[]>([])
-  const [moreMenuAnchorEl, setMoreMenuAnchorEl] =
-    useState<null | HTMLElement>(null)
+  const [moreMenuAnchorEl, setMoreMenuAnchorEl] = useState<null | HTMLElement>(
+    null,
+  )
 
   useEffect(() => {
     fetchPost()
@@ -78,6 +80,26 @@ function PostView() {
 
   function openMoreMenu(event: React.MouseEvent<HTMLElement>) {
     setMoreMenuAnchorEl(event.currentTarget)
+  }
+
+  async function handleDeletePost() {
+    if (!post) return
+    const confirmDelete = window.confirm("정말로 게시글을 삭제하시겠습니까?")
+    if (!confirmDelete) return
+
+    try {
+      await axios.delete(`/community/posts/${post.id}`)
+      success("게시글이 삭제되었습니다.")
+      push(`/community?slug=${post.board.slug}`)
+    } catch (err) {
+      console.error(err)
+      error("게시글 삭제에 실패했습니다.\n" + err.message)
+    }
+  }
+
+  function handleEditPost() {
+    if (!post) return
+    push(`/community/edit?slug=${post.board.slug}&id=${post.id}`)
   }
 
   function closeMoreMenu() {
@@ -148,7 +170,7 @@ function PostView() {
               aria-label="더보기"
               sx={{ color: "text.secondary" }}
             >
-              <MoreHorizRoundedIcon fontSize="small" />
+              <MoreVerticalRoundedIcon fontSize="small" />
             </IconButton>
           </Stack>
 
@@ -159,8 +181,8 @@ function PostView() {
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
-            <MenuItem onClick={closeMoreMenu}>수정</MenuItem>
-            <MenuItem onClick={closeMoreMenu}>삭제</MenuItem>
+            <MenuItem onClick={handleEditPost}>수정</MenuItem>
+            <MenuItem onClick={handleDeletePost}>삭제</MenuItem>
             <MenuItem onClick={handleSharePost}>공유</MenuItem>
           </Menu>
         </Paper>
@@ -218,37 +240,11 @@ function PostView() {
 
           <Stack divider={<Divider flexItem />} minWidth={0}>
             {comments.map((comment) => (
-              <Stack key={comment.id} gap={0.75} py={1.25} px={0.5}>
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  gap={2}
-                  minWidth={0}
-                >
-                  <Typography
-                    variant="body2"
-                    fontWeight={700}
-                    sx={{ minWidth: 0, wordBreak: "break-word" }}
-                  >
-                    {comment.author.name} ({comment.author.yearOfBirth})
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    더보기
-                  </Typography>
-                </Stack>
-
-                <Typography
-                  variant="body2"
-                  sx={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
-                >
-                  {comment.content}
-                </Typography>
-
-                <Typography variant="caption" color="text.secondary">
-                  {dayjs(comment.createdAt).format("YY.MM.DD HH:mm")}
-                </Typography>
-              </Stack>
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                fetchPost={fetchPost}
+              />
             ))}
           </Stack>
         </Paper>
@@ -295,6 +291,83 @@ function PostView() {
           </Button>
         </Stack>
       </Stack>
+    </Stack>
+  )
+}
+
+function CommentItem({
+  comment,
+  fetchPost,
+}: {
+  comment: Comment
+  fetchPost: () => void
+}) {
+  const [moreMenuAnchorEl, setMoreMenuAnchorEl] = useState<null | HTMLElement>(
+    null,
+  )
+
+  function openMoreMenu(event: React.MouseEvent<HTMLElement>) {
+    setMoreMenuAnchorEl(event.currentTarget)
+  }
+
+  function closeMoreMenu() {
+    setMoreMenuAnchorEl(null)
+  }
+
+  async function handleDeletePost() {
+    await axios.delete(`/community/comments/${comment.id}`)
+    fetchPost()
+    closeMoreMenu()
+  }
+
+  return (
+    <Stack gap={0.75} py={1.25} px={0.5}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        gap={2}
+        minWidth={0}
+      >
+        <Typography
+          variant="body2"
+          fontWeight={700}
+          sx={{ minWidth: 0, wordBreak: "break-word" }}
+        >
+          {comment.author.name} ({comment.author.yearOfBirth})
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          <IconButton
+            onClick={openMoreMenu}
+            size="small"
+            aria-label="더보기"
+            sx={{ color: "text.secondary" }}
+          >
+            <MoreVerticalRoundedIcon fontSize="small" />
+          </IconButton>
+        </Typography>
+      </Stack>
+
+      <Menu
+        anchorEl={moreMenuAnchorEl}
+        open={Boolean(moreMenuAnchorEl)}
+        onClose={closeMoreMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem onClick={handleDeletePost}>삭제</MenuItem>
+      </Menu>
+
+      <Typography
+        variant="body2"
+        sx={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+      >
+        {comment.content}
+      </Typography>
+
+      <Typography variant="caption" color="text.secondary">
+        {dayjs(comment.createdAt).format("YY.MM.DD HH:mm")}
+      </Typography>
     </Stack>
   )
 }
