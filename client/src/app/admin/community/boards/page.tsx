@@ -21,6 +21,7 @@ import { useNotification } from "@/hooks/useNotification"
 import { Board } from "@server/entity/community/board"
 import useBoard from "./useBoard"
 import BoardComponent from "./board"
+import { BoardType } from "@server/entity/community/types"
 
 export default function AdminCommunityBoardsPage() {
   const { isAdminIfNotExit } = useAuth()
@@ -30,7 +31,7 @@ export default function AdminCommunityBoardsPage() {
 
   const [name, setName] = useState("")
   const [slug, setSlug] = useState("")
-  const [boardType, setBoardType] = useState("free")
+  const [boardType, setBoardType] = useState(BoardType.FREE)
   const [creating, setCreating] = useState(false)
 
   const { fetchBoards, createBoard } = useBoard()
@@ -63,11 +64,11 @@ export default function AdminCommunityBoardsPage() {
         name: name.trim(),
         slug: slug.trim(),
         description: "",
-        boardType: boardType as "free" | "qna",
+        boardType: boardType as BoardType,
       })
       setName("")
       setSlug("")
-      setBoardType("free")
+      setBoardType(BoardType.FREE)
       await load()
       success("게시판이 생성되었습니다.")
     } catch (err: any) {
@@ -128,11 +129,11 @@ export default function AdminCommunityBoardsPage() {
                   value={boardType}
                   label="유형"
                   onChange={(e: SelectChangeEvent) =>
-                    setBoardType(e.target.value)
+                    setBoardType(e.target.value as BoardType)
                   }
                 >
-                  <MenuItem value="free">자유 게시판</MenuItem>
-                  <MenuItem value="qna">Q&A 게시판</MenuItem>
+                  <MenuItem value={BoardType.FREE}>자유 게시판</MenuItem>
+                  <MenuItem value={BoardType.QNA}>Q&A 게시판</MenuItem>
                 </Select>
               </FormControl>
               <Button

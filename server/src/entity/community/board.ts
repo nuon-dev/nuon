@@ -10,17 +10,7 @@ import {
 } from "typeorm"
 import { User } from "../user"
 import { Post } from "./post"
-
-export enum BoardVisibility {
-  PUBLIC = "public",
-  MEMBERS = "members",
-  PRIVATE = "private",
-}
-
-export enum BoardType {
-  FREE = "free",
-  QNA = "qna",
-}
+import { BoardType, BoardVisibility } from "./types"
 
 @Entity()
 export class Board {

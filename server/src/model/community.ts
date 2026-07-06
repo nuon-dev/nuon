@@ -6,12 +6,13 @@ import {
   qnaPostDatabase,
   reactionDatabase,
 } from "./dataSource"
-import { Board, BoardType, BoardVisibility } from "../entity/community/board"
+import { Board } from "../entity/community/board"
 import { Comment } from "../entity/community/comment"
 import { Post } from "../entity/community/post"
 import { QnaPost } from "../entity/community/qnaPost"
 import { Reaction } from "../entity/community/reaction"
 import { User } from "../entity/user"
+import { BoardType, BoardVisibility } from "../entity/community/types"
 
 export type BoardInput = {
   name: string
@@ -128,30 +129,18 @@ const communityModel = {
         createdAt: true,
         updatedAt: true,
         board: {
-          id: true,
           name: true,
           slug: true,
         },
         author: {
-          id: true,
           name: true,
         },
         comments: {
           id: true,
-          content: true,
-          createdAt: true,
-          author: {
-            id: true,
-            name: true,
-          },
         },
         reactions: {
           id: true,
           type: true,
-          user: {
-            id: true,
-            name: true,
-          },
         },
       },
       take: limit,
@@ -197,6 +186,7 @@ const communityModel = {
         },
         board: true,
         author: true,
+        comments: true,
         reactions: {
           user: true,
         },
@@ -211,23 +201,26 @@ const communityModel = {
         createdAt: true,
         updatedAt: true,
         board: {
-          id: true,
           name: true,
           slug: true,
         },
         author: {
-          id: true,
           name: true,
           yearOfBirth: true,
+        },
+        comments: {
+          id: true,
+        },
+        reactions: {
+          id: true,
+          type: true,
         },
         qna: {
           id: true,
           answer: true,
           answerPublic: true,
           answeredAt: true,
-          post: {},
           answeredBy: {
-            id: true,
             name: true,
           },
         },
@@ -246,7 +239,43 @@ const communityModel = {
         reactions: {
           user: true,
         },
-        qna: true,
+        qna: {
+          answeredBy: true,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+        board: {
+          name: true,
+          slug: true,
+          type: true,
+        },
+        author: {
+          name: true,
+          yearOfBirth: true,
+        },
+        comments: {
+          id: true,
+          content: true,
+          createdAt: true,
+        },
+        reactions: {
+          id: true,
+          type: true,
+        },
+        qna: {
+          id: true,
+          answer: true,
+          answerPublic: true,
+          answeredAt: true,
+          answeredBy: {
+            name: true,
+          },
+        },
       },
     })
 
@@ -343,20 +372,50 @@ const communityModel = {
       answeredBy?: User | null
     },
   ): Promise<QnaPost | null> {
-    const qnaPost = await qnaPostDatabase.findOne({
-      where: { post: { id } },
+    const post = await postDatabase.findOne({
+      where: { id },
       relations: {
-        answeredBy: true,
-        post: {
-          board: true,
-          author: true,
-          comments: {
-            author: true,
-          },
-          reactions: {
-            user: true,
-          },
+        qna: {
+          answeredBy: true,
         },
+        board: true,
+        author: true,
+        comments: {
+          author: true,
+        },
+        reactions: {
+          user: true,
+        },
+      },
+    })
+
+    if (!post) {
+      return null
+    }
+
+    const answer = qnaPostDatabase.create({
+      post: post,
+      answer: data.answer ?? null,
+      answerPublic: data.answerPublic ?? false,
+      answeredBy: data.answeredBy ?? null,
+      answeredAt: data.answer ? new Date() : null,
+    })
+    return await qnaPostDatabase.save(answer)
+  },
+
+  async updateQnaPost(
+    id: string,
+    data: {
+      answer?: string | null
+      answerPublic?: boolean
+      answeredBy?: User | null
+    },
+  ): Promise<QnaPost | null> {
+    const qnaPost = await qnaPostDatabase.findOne({
+      where: { id: id },
+      relations: {
+        post: true,
+        answeredBy: true,
       },
     })
 
@@ -372,13 +431,10 @@ const communityModel = {
       qnaPost.answerPublic = data.answerPublic
     }
     if (data.answeredBy !== undefined) {
-      qnaPost.answeredBy = data.answeredBy
-      if (data.answeredBy && !qnaPost.answeredAt) {
-        qnaPost.answeredAt = new Date()
-      }
+      qnaPost.answeredBy = data.answeredBy ?? null
     }
 
-    return qnaPostDatabase.save(qnaPost)
+    return await qnaPostDatabase.save(qnaPost)
   },
 
   async createReaction(input: ReactionInput): Promise<Reaction> {
