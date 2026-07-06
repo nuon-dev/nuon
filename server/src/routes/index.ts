@@ -11,10 +11,12 @@ import newcomerRouter from "./newcomer/newcomerRouter"
 import eventRouter from "./event"
 import linkRouter from "./link"
 import communityRouter from "./communityRouter"
+import bulletinRouter, { bulletinImagePath } from "./bulletin"
 
 const router: Router = express.Router()
 
 router.use("/sharing/image", express.static(sharingVideoPath))
+router.use("/bulletin/image", express.static(bulletinImagePath))
 
 router.use("/auth", authRouter)
 router.use("/admin", adminRouter)
@@ -26,6 +28,7 @@ router.use("/newcomer", newcomerRouter)
 
 router.use("/event", eventRouter)
 router.use("/link", linkRouter)
+router.use("/bulletin", bulletinRouter)
 router.use("/community", communityRouter)
 
 export default router
