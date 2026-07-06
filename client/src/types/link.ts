@@ -11,3 +11,5 @@ export interface Link {
   createdAt?: string
   updatedAt?: string
 }
+
+export type LinkListItem = Pick<Link, "id" | "title" | "type" | "url" | "body">

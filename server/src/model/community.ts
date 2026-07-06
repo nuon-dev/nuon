@@ -163,7 +163,7 @@ const communityModel = {
     boardId: string,
     user: User | null,
     opts?: { limit?: number; page?: number },
-  ): Promise<QnaPost[]> {
+  ): Promise<Post[]> {
     const limit = opts?.limit ?? 20
     const page = Math.max((opts?.page ?? 1) - 1, 0)
 
@@ -176,60 +176,60 @@ const communityModel = {
     const whereCondition = user
       ? [
           {
-            post: { ...baseWhere, author: { id: user.id } },
+            ...baseWhere,
+            author: { id: user.id },
           },
           {
-            post: baseWhere,
-            answerPublic: true,
+            ...baseWhere,
+            qna: { answerPublic: true },
           },
         ]
       : {
-          post: baseWhere,
-          answerPublic: true,
+          ...baseWhere,
+          qna: { answerPublic: true },
         }
 
-    return qnaPostDatabase.find({
+    return postDatabase.find({
       where: whereCondition,
       relations: {
-        post: {
-          board: true,
-          author: true,
-          reactions: {
-            user: true,
-          },
+        qna: {
+          answeredBy: true,
         },
-        answeredBy: true,
+        board: true,
+        author: true,
+        reactions: {
+          user: true,
+        },
       },
       order: {
-        post: {
-          createdAt: "DESC",
-        },
+        createdAt: "DESC",
       },
       select: {
         id: true,
-        answer: true,
-        answerPublic: true,
-        answeredAt: true,
-        post: {
-          id: true,
-          title: true,
-          content: true,
-          createdAt: true,
-          updatedAt: true,
-          board: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-          author: {
-            id: true,
-            name: true,
-            yearOfBirth: true,
-          },
-        },
-        answeredBy: {
+        title: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+        board: {
           id: true,
           name: true,
+          slug: true,
+        },
+        author: {
+          id: true,
+          name: true,
+          yearOfBirth: true,
+        },
+        qna: {
+          id: true,
+          answer: true,
+          answerPublic: true,
+          answeredAt: true,
+          post: {},
+          answeredBy: {
+            id: true,
+            name: true,
+          },
         },
       },
       take: limit,

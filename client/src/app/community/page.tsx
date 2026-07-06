@@ -1,6 +1,6 @@
 "use client"
 
-import { Stack } from "@mui/material"
+import { Fab, Stack, Typography } from "@mui/material"
 import { useRouter, useSearchParams } from "next/navigation"
 import useCommunity from "./useCommunity"
 import { Suspense } from "react"
@@ -29,7 +29,26 @@ function CommunityHomePageContent() {
     return <>게시판 정보를 불러오는 중...</>
   }
 
-  return <div>{board && <List />}</div>
+  return (
+    <Stack
+      minHeight="100dvh"
+      bgcolor="grey.50"
+      width="100%"
+      sx={{ overflowX: "hidden" }}
+    >
+      <Stack
+        width="100%"
+        maxWidth={760}
+        mx="auto"
+        px={2}
+        py={2.5}
+        minWidth={0}
+        sx={{ boxSizing: "border-box" }}
+      >
+        {board && <List />}
+      </Stack>
+    </Stack>
+  )
 }
 
 function WriteButton() {
@@ -41,42 +60,41 @@ function WriteButton() {
   }
 
   return (
-    <Stack
+    <Fab
       onClick={handleClick}
-      position="fixed"
-      bottom="16px"
-      right="16px"
-      borderRadius="50%"
-      width="56px"
-      height="56px"
-      alignItems="center"
-      justifyContent="center"
+      variant="extended"
+      color="primary"
+      aria-label="게시글 작성"
       sx={{
-        background: "#1976d2",
-        color: "#fff",
+        position: "fixed",
+        bottom: 16,
+        right: 16,
+        zIndex: 1200,
+        minHeight: 48,
+        px: 2,
+        borderRadius: 6,
         cursor: "pointer",
-        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-        "&:hover": {
-          background: "#1565c0",
-        },
+        boxShadow: 3,
       }}
     >
       작성
-    </Stack>
+    </Fab>
   )
 }
 
 function ErrorSlug() {
   return (
     <Stack
-      sx={{
-        minHeight: "100vh",
-        background: "#f8fbff",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
+      minHeight="100dvh"
+      bgcolor="grey.50"
+      alignItems="center"
+      justifyContent="center"
+      px={2}
+      textAlign="center"
     >
-      존재하지 않는 게시판입니다.
+      <Typography variant="body1" color="text.secondary">
+        존재하지 않는 게시판입니다.
+      </Typography>
     </Stack>
   )
 }

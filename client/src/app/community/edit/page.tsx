@@ -13,8 +13,10 @@ import {
   useRouter,
   useSearchParams,
 } from "next/dist/client/components/navigation"
-import useCommunity from "../useCommunity"
-import { Suspense, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
+import axios from "@/config/axios"
+import board from "@/app/admin/community/boards/board"
+import { Post } from "@server/entity/community/post"
 
 export default function CommunityWrite() {
   return (
@@ -26,19 +28,42 @@ export default function CommunityWrite() {
 
 function CommunityWriteContent() {
   const searchParams = useSearchParams()
-  const slug = searchParams.get("slug")
+  const postId = searchParams.get("id")
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const { push } = useRouter()
-  const { board, createPost } = useCommunity(slug || "")
+  const [post, setPost] = useState<null | Post>(null)
 
-  function handleGoBack() {
-    push(`/community?slug=${slug}`)
+  useEffect(() => {
+    fetchPost()
+  }, [postId])
+
+  async function fetchPost() {
+    if (postId) {
+      const { data } = await axios.get(`/community/posts/${postId}`)
+      setTitle(data.title)
+      setContent(data.content)
+      setPost(data)
+    }
   }
 
-  function handleSubmit() {
-    createPost(title, content)
-    push(`/community?slug=${slug}`)
+  async function handleSubmit() {
+    if (!postId) return
+    if (!post) return
+    try {
+      await axios.put(`/community/posts/${postId}`, {
+        title,
+        content,
+      })
+      push(`/community?slug=${post.board.slug}`)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  async function goToBoard() {
+    if (!post) return
+    push(`/community?slug=${post.board.slug}`)
   }
 
   if (!board) {
@@ -68,7 +93,7 @@ function CommunityWriteContent() {
           <Stack direction="row" width="100%" alignItems="center" gap={1}>
             <IconButton
               size="small"
-              onClick={handleGoBack}
+              onClick={goToBoard}
               aria-label="뒤로가기"
               sx={{ color: "text.secondary" }}
             >

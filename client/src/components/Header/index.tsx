@@ -49,6 +49,16 @@ export default function Header() {
     }
   }
 
+  DrawerItems.push({
+    type: "divider",
+  })
+  DrawerItems.push({
+    title: "주일 주보",
+    icon: <EventNoteIcon fontSize="small" sx={{ color: "#667eea" }} />,
+    path: "/common/bulletin/",
+    type: "menu",
+  })
+
   if (authUserData?.role.Leader) {
     DrawerItems.push({
       type: "divider",
@@ -93,6 +103,10 @@ export default function Header() {
       })
     }
   }
+
+  DrawerItems.push({
+    type: "divider",
+  })
 
   return (
     <Stack

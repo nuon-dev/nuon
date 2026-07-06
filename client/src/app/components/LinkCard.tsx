@@ -1,10 +1,10 @@
 import { Box, Card, Typography } from "@mui/material"
 import { OpenInNew as OpenInNewIcon } from "@mui/icons-material"
-import { Link } from "@server/entity/link"
+import type { LinkListItem } from "@/types/link"
 
 interface LinkCardProps {
-  link: Link
-  onClick: (link: Link) => void
+  link: LinkListItem
+  onClick: (link: LinkListItem) => void
 }
 
 export default function LinkCard({ link, onClick }: LinkCardProps) {

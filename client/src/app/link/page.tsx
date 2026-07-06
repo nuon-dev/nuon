@@ -2,15 +2,15 @@
 
 import { Stack, Box, CircularProgress, Typography } from "@mui/material"
 import { useEffect, useState } from "react"
-import axios from "axios"
-import { Link } from "@server/entity/link"
 import LinkCard from "@/app/components/LinkCard"
 import LinkDetailModal from "@/app/components/LinkDetailModal"
+import axios from "@/config/axios"
+import type { Link, LinkListItem } from "@/types/link"
 
-export default function Index() {
-  const [links, setLinks] = useState<Link[]>([])
+export default function LinkPage() {
+  const [links, setLinks] = useState<LinkListItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedLink, setSelectedLink] = useState<Link | null>(null)
+  const [selectedLink, setSelectedLink] = useState<LinkListItem | null>(null)
   const [openModal, setOpenModal] = useState(false)
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function Index() {
   async function fetchLinks() {
     try {
       setLoading(true)
-      const response = await axios.get("/link")
+      const response = await axios.get<Link[]>("/link")
       const sortedLinks = response.data.sort(
         (a: Link, b: Link) => a.displayOrder - b.displayOrder,
       )
@@ -32,15 +32,25 @@ export default function Index() {
     }
   }
 
-  async function handleCardClick(link: Link) {
+  function openLink(link: LinkListItem) {
+    if (!link.url) {
+      return
+    }
+    if (link.url.startsWith("/")) {
+      window.location.href = link.url
+      return
+    }
+    window.open(link.url, "_blank", "noopener,noreferrer")
+  }
+
+  async function handleCardClick(link: LinkListItem) {
     if (link.type === "link" && link.url) {
-      window.open(link.url, "_blank")
+      openLink(link)
     } else {
       setSelectedLink(link)
       setOpenModal(true)
     }
 
-    // 링크 클릭 기록
     try {
       await axios.post(`/link/${link.id}/click`, {
         userAgent: navigator.userAgent,
@@ -50,9 +60,9 @@ export default function Index() {
     }
   }
 
-  async function handleOpenLink(link: Link) {
+  async function handleOpenLink(link: LinkListItem) {
     if (link.type === "link" && link.url) {
-      window.open(link.url, "_blank")
+      openLink(link)
     }
   }
 
