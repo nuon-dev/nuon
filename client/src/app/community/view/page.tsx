@@ -204,7 +204,9 @@ function PostView() {
                 color="text.secondary"
                 sx={{ minWidth: 0, wordBreak: "break-word" }}
               >
-                {post.author.name} ({post.author.yearOfBirth})
+                {post.author.name}{" "}
+                {post.author.yearOfBirth !== 0 &&
+                  `(${post.author.yearOfBirth})`}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {dayjs(post.createdAt).format("YYYY-MM-DD HH:mm")}
@@ -334,7 +336,9 @@ function CommentItem({
           fontWeight={700}
           sx={{ minWidth: 0, wordBreak: "break-word" }}
         >
-          {comment.author.name} ({comment.author.yearOfBirth})
+          {comment.author.name}{" "}
+          {comment.author.yearOfBirth !== 0 &&
+            `(${comment.author.yearOfBirth})`}
         </Typography>
         <Typography variant="caption" color="text.secondary">
           <IconButton

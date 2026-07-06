@@ -125,9 +125,9 @@ router.get("/boards/:boardId/posts", async (req, res) => {
       const posts = await communityModel.listQnaPosts(boardId, user, opts)
       if (!isAdmin) {
         // 익명 처리
-        posts.forEach((each) => {
-          each.post.author.name = "익명"
-          each.post.author.yearOfBirth = 0
+        posts.forEach((post) => {
+          post.author.name = "익명"
+          post.author.yearOfBirth = 0
         })
       }
       res.status(200).json(posts)
