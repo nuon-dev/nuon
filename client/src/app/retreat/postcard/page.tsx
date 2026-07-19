@@ -80,8 +80,8 @@ export default function Postcard() {
         while (imageRef.current.clientHeight === 0) {
           await new Promise((resolve) => setTimeout(resolve, 100))
         }
-        setBackWidth(imageRef.current.clientWidth)
-        setBackHeight(imageRef.current.clientHeight)
+        setBackWidth(imageRef.current.clientHeight)
+        setBackHeight(imageRef.current.clientWidth)
       }
     })()
   }, [imageRef.current])
@@ -171,9 +171,7 @@ export default function Postcard() {
           width: backHeight,
           height: backWidth,
           transitionDuration: isMoving ? "0s" : "0.5s",
-          transform: `rotateX(${rotateX}deg) rotateY(${
-            rotateY + 180
-          }deg) rotate(90deg)`,
+          transform: `rotateX(${rotateX}deg) rotateY(${rotateY + 180}deg) `,
         }}
       >
         <CardContent />

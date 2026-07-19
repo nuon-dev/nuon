@@ -5,7 +5,6 @@ import { Community } from "@server/entity/community"
 import { User } from "@server/entity/user"
 import { get } from "@/config/api"
 import { useEffect, useState } from "react"
-import Header from "@/components/Header"
 import { useRouter } from "next/navigation"
 import axios from "@/config/axios"
 import { useNotification } from "@/hooks/useNotification"
@@ -71,7 +70,7 @@ export default function PostcardPage() {
 
   function previewPostcard() {
     saveToLocalStorage()
-    push("/soon/postcard/preview")
+    push("/retreat/postcard/preview")
   }
 
   async function saveToServer() {
@@ -83,12 +82,39 @@ export default function PostcardPage() {
     success("저장되었습니다.")
   }
 
+  async function getCardContentFromServer() {
+    if (!selectedUser) return
+    try {
+      const response = await axios.get(
+        `/retreat/get-postcard-content/${selectedUser.id}`,
+      )
+      setTextFieldValue(response.data.content || "")
+    } catch (error) {
+      setTextFieldValue("") // 서버에서 가져오지 못하면 텍스트 필드 초기화
+    }
+  }
+
+  useEffect(() => {
+    getCardContentFromServer()
+  }, [selectedUser])
+
   return (
     <Stack>
-      <Header />
       <Stack p="12px" gap="12px">
-        <Stack>{groupName} 다락방</Stack>
-        작성할 순원
+        <Stack
+          px="12px"
+          py="10px"
+          borderRadius="12px"
+          bgcolor="#f5f7ff"
+          color="#1f2a44"
+          fontSize="14px"
+          fontWeight={500}
+          lineHeight={1.6}
+        >
+          수련회를 어떠한 마음으로 참여하면 좋을지 격려의 편지를 적어주세요!.
+          접수 완료후 편지가 나타납니다!
+        </Stack>
+        <Stack>{groupName} (다락방 / 마을)</Stack>
         <Select
           value={selectedUser?.id || ""}
           onChange={(e) => {
