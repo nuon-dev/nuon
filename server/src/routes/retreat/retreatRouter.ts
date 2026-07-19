@@ -190,6 +190,13 @@ router.post("/set-postcard-content", async (req, res) => {
     return
   }
 
+  if (!community.leader || !community.deputyLeader) {
+    res
+      .status(403)
+      .send({ result: "fail", message: "Leader or deputy leader not found" })
+    return
+  }
+
   if (
     community.leader.id !== foundUser.id &&
     community.deputyLeader.id !== foundUser.id
@@ -206,6 +213,37 @@ router.post("/set-postcard-content", async (req, res) => {
 
   await retreatAttendDatabase.save(newRetreatAttendData)
   res.send({ result: "success" })
+})
+
+router.get("/get-postcard-content/:targetUserId", async (req, res) => {
+  const foundUser = await getUserFromToken(req)
+
+  if (!foundUser) {
+    res.status(401).send({ result: "fail" })
+    return
+  }
+
+  const targetUserId = req.params.targetUserId
+
+  const foundRetreatAttend = await retreatAttendDatabase.findOne({
+    where: {
+      user: {
+        id: targetUserId,
+      },
+    },
+    relations: {
+      user: true,
+    },
+  })
+
+  if (foundRetreatAttend) {
+    res.send({ result: "success", content: foundRetreatAttend.postcardContent })
+    return
+  }
+
+  res
+    .status(404)
+    .send({ result: "fail", message: "Postcard content not found" })
 })
 
 router.use("/sharing", sharingRouter)
