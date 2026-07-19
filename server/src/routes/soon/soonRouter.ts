@@ -56,12 +56,43 @@ router.get("/my-group-info", async (req, res) => {
     res.status(401).send({ error: "Unauthorized" })
     return
   }
+
   const group = user.community
   if (!group) {
     res.status(404).send({ error: "Group not found" })
     return
   }
-  const allUsers = await getAllSoonUsers(group)
+
+  const myCommunity = await communityDatabase.findOne({
+    where: { id: group.id },
+    relations: {
+      children: {
+        leader: true,
+      },
+      users: true,
+    },
+  })
+
+  if (!myCommunity) {
+    res.status(404).send({ error: "Community not found" })
+    return
+  }
+
+  let allUsers = []
+
+  if (myCommunity.children.length > 0) {
+    const childUsersPromise = myCommunity.children.map(
+      (childCommunity): User | null => childCommunity.leader,
+    )
+    const awaitedChildUsers = childUsersPromise.filter(
+      (user): user is User => !!user,
+    )
+    allUsers = [...awaitedChildUsers]
+  } else {
+    allUsers = myCommunity.users.filter(
+      (groupUser): groupUser is User => groupUser.id !== user.id,
+    )
+  }
   group.users = allUsers.map(
     (user: User) =>
       ({
@@ -74,7 +105,7 @@ router.get("/my-group-info", async (req, res) => {
       }) as any,
   )
 
-  res.send(group)
+  res.send(user.community)
 })
 
 router.post("/add-user", async (req, res) => {

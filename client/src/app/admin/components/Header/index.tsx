@@ -84,23 +84,10 @@ export default function AdminHeader() {
       type: "menu",
     },
     {
-      title: "게시판",
-      icon: <CommunityIcon fontSize="small" />,
-      type: "submenu",
-      children: [
-        {
-          title: "게시판 관리",
-          icon: <ForumIcon fontSize="small" />,
-          path: "/admin/community/boards",
-          type: "menu",
-        },
-        {
-          title: "QnA",
-          icon: <ForumIcon fontSize="small" />,
-          path: "/admin/community/qna",
-          type: "menu",
-        },
-      ],
+      title: "게시판 관리",
+      icon: <ForumIcon fontSize="small" />,
+      path: "/admin/community/boards",
+      type: "menu",
     },
     {
       type: "divider",
