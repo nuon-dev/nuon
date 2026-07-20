@@ -95,16 +95,6 @@ export default function Header() {
         type: "menu",
       })
     }
-
-    DrawerItems.push({
-      type: "divider",
-    })
-    DrawerItems.push({
-      title: "수련회 편지 쓰기",
-      icon: <EventNoteIcon fontSize="small" sx={{ color: "#667eea" }} />,
-      path: "/leader/postcard",
-      type: "menu",
-    })
   }
 
   DrawerItems.push({
