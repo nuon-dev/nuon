@@ -51,7 +51,7 @@ export default function PostcardPage() {
   }, [localStorageData, selectedUser])
 
   async function fetchGroupDate() {
-    const group: Community = await get("/soon/my-group-info")
+    const group: Community = await get("/soon/only-my-group-info")
     setGroupName(group.name)
     setSoonList(group.users)
     if (group.users.length > 0) {

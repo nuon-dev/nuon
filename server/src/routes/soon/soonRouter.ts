@@ -78,6 +78,51 @@ router.get("/my-group-info", async (req, res) => {
     return
   }
 
+  let allUsers = await getAllSoonUsers(myCommunity)
+
+  group.users = allUsers.map(
+    (user: User) =>
+      ({
+        id: user.id,
+        name: user.name,
+        yearOfBirth: user.yearOfBirth,
+        phone: user.phone,
+        gender: user.gender,
+        kakaoId: !!user.kakaoId,
+      }) as any,
+  )
+
+  res.send(user.community)
+})
+
+router.get("/only-my-group-info", async (req, res) => {
+  const user = await getUserFromToken(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const group = user.community
+  if (!group) {
+    res.status(404).send({ error: "Group not found" })
+    return
+  }
+
+  const myCommunity = await communityDatabase.findOne({
+    where: { id: group.id },
+    relations: {
+      children: {
+        leader: true,
+      },
+      users: true,
+    },
+  })
+
+  if (!myCommunity) {
+    res.status(404).send({ error: "Community not found" })
+    return
+  }
+
   let allUsers = []
 
   if (myCommunity.children.length > 0) {
