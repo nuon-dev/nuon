@@ -4,12 +4,7 @@ import useAuth from "@/hooks/useAuth"
 import { Stack } from "@mui/material"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useState } from "react"
-import FirstStep from "./steps/first"
-import SecondStep from "./steps/second"
-import ThirdStep from "./steps/third"
 import useRetreat from "./hooks/useRetreat"
-import FourthStep from "./steps/fourth"
-import FifthStep from "./steps/fifthStep"
 import usePageColor from "@/hooks/usePageColor"
 import useBodyOverflowHidden from "@/hooks/useBodyOverflowHidden"
 
@@ -76,13 +71,6 @@ function RetreatContent() {
           pt="10%"
         >
           <img src={topImageUrl} alt={`step ${step} top`} width="60%" />
-          <Stack height="100%">
-            {step === 1 && <FirstStep />}
-            {step === 2 && <SecondStep />}
-            {step === 3 && <ThirdStep />}
-            {step === 4 && <FourthStep />}
-            {step === 5 && <FifthStep />}
-          </Stack>
         </Stack>
         <Stack height="20%" alignItems="center" justifyContent="center">
           <img src="/retreat/main/bottom.png" alt="first top" width="80px" />
