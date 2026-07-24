@@ -1,8 +1,11 @@
 "use client"
 
 import { Stack } from "@mui/material"
+import { useRouter } from "next/navigation"
 
 export default function RetreatHeader() {
+  const { push } = useRouter()
+
   return (
     <Stack
       width="100%"
@@ -33,6 +36,7 @@ export default function RetreatHeader() {
           src="/retreat/header/regist_button.png"
           alt="regist_button"
           height="30px"
+          onClick={() => push("/retreat/login")}
         />
       </Stack>
     </Stack>

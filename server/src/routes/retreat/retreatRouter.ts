@@ -124,19 +124,19 @@ router.post("/attend", async (req, res) => {
   })
 
   if (foundRetreatAttend) {
-    foundRetreatAttend.isHalf = req.body.isHalf
+    //foundRetreatAttend.isHalf = req.body.isHalf
     foundRetreatAttend.isWorker = req.body.isWorker
     await retreatAttendDatabase.save(foundRetreatAttend)
     res.send({ result: "수련회 정보가 수정 되었습니다." })
     return
   }
 
-  const { isHalf, isWorker } = req.body
+  const { isWorker } = req.body
   const retreatAttend = retreatAttendDatabase.create({
     user: {
       id: foundUser.id,
     },
-    isHalf: isHalf,
+    isHalf: false,
     isWorker: isWorker,
   })
   retreatAttend.attendanceNumber = (await retreatAttendDatabase.count()) + 1
