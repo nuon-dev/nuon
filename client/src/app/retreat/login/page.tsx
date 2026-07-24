@@ -1,7 +1,7 @@
 "use client"
 
-import { Stack } from "@mui/material"
-import RetreatButton from "../components/Button"
+import { Box, IconButton, Stack } from "@mui/material"
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded"
 import { useRouter } from "next/navigation"
 import usePageColor from "@/hooks/usePageColor"
 import useBodyOverflowHidden from "@/hooks/useBodyOverflowHidden"
@@ -15,34 +15,64 @@ export default function RetreatLogin() {
 
   async function handleKakaoLogin() {
     try {
-      await executeKakaoLogin("/retreat")
+      await executeKakaoLogin("/retreat/register")
     } catch {
-      push("/retreat?newUser=true")
+      push("/retreat/register?newUser=true")
     }
   }
+
+  function handleGoToBack() {
+    push("/retreat")
+  }
+
   return (
     <Stack
       width="100vw"
       minHeight="100vh"
-      bgcolor="#2F3237"
+      bgcolor="white"
       fontFamily="NEXON_Warhaven_OTF"
       overflow="hidden"
     >
+      <IconButton
+        onClick={handleGoToBack}
+        aria-label="뒤로가기"
+        sx={{
+          position: "absolute",
+          top: "calc(16px + env(safe-area-inset-top))",
+          left: "16px",
+          zIndex: 1,
+          color: "#363232",
+        }}
+      >
+        <ArrowBackIosNewRoundedIcon fontSize="small" />
+      </IconButton>
       <Stack
         width="100vw"
         justifyContent="center"
         minHeight="100dvh"
         alignItems="center"
+        textAlign="center"
+        gap="24px"
       >
-        <img src="/retreat/login/top_bg.png" alt="top background" width="70%" />
-        <Stack width="50%" mt="5vh">
-          <RetreatButton label="카카오로 로그인" onClick={handleKakaoLogin} />
+        <Stack gap="10px" alignItems="center">
+          <Box color="#E87C7C" fontSize="20px">
+            반가워요!
+          </Box>
+          <Box color="#747073" fontSize="16px">
+            로그인 후 신청을 시작할 수 있어요.
+          </Box>
         </Stack>
-        <Stack mt="12%" alignItems="center">
+        <img
+          width="90%"
+          alt="login bottom"
+          src="/retreat/login/kakao.png"
+          onClick={handleKakaoLogin}
+        />
+        <Stack position="absolute" alignItems="center" bottom="10%">
           <img
-            src="/retreat/login/bottom_bg.png"
-            alt="bottom background"
             width="50%"
+            alt="bottom background"
+            src="/retreat/login/Calling.png"
           />
         </Stack>
       </Stack>

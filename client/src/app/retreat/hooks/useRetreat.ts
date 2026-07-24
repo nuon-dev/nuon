@@ -2,12 +2,10 @@ import axios from "@/config/axios"
 import useAuth from "@/hooks/useAuth"
 import { atom, useAtom } from "jotai"
 
-const stepAtom = atom(2)
 const isHalfAtom = atom<boolean | null>(null)
 const isWorkerAtom = atom<boolean | null>(null)
 
 export default function useRetreat() {
-  const [step, setStep] = useAtom(stepAtom)
   const [isHalf, setIsHalf] = useAtom(isHalfAtom)
   const [isWorker, setIsWorker] = useAtom(isWorkerAtom)
 
@@ -47,8 +45,6 @@ export default function useRetreat() {
   }
 
   return {
-    step,
-    setStep,
     isHalf,
     setIsHalf,
     isWorker,

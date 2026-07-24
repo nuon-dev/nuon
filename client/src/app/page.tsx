@@ -27,7 +27,7 @@ export default function Index() {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (typeof window !== "undefined" && (window as any).ReactNativeWebView) {
-        push("/temp-app")
+        // push("/temp-app")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(window as any).ReactNativeWebView.postMessage(
           JSON.stringify({

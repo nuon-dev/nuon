@@ -1,0 +1,55 @@
+.page {
+  width: 100%;
+}
+
+.image_wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.main_bg {
+  width: 100%;
+  height: auto;
+  display: block;
+  z-index: 10;
+}
+
+.text_overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+
+.text_item {
+  position: absolute;
+  left: 50%;
+  width: min(82vw, 360px);
+  transform: translate(-50%, 28px);
+  margin: 0;
+  text-align: center;
+  white-space: pre-line;
+  line-height: 1.55;
+  font-size: 1.12rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transition:
+    opacity 700ms ease,
+    transform 700ms ease;
+  will-change: opacity, transform;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.text_item_visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.start_button {
+  width: 90%;
+  z-index: 30;
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+}

@@ -124,126 +124,24 @@ router.post("/attend", async (req, res) => {
   })
 
   if (foundRetreatAttend) {
-    foundRetreatAttend.isHalf = req.body.isHalf
+    //foundRetreatAttend.isHalf = req.body.isHalf
     foundRetreatAttend.isWorker = req.body.isWorker
     await retreatAttendDatabase.save(foundRetreatAttend)
     res.send({ result: "수련회 정보가 수정 되었습니다." })
     return
   }
 
-  const { isHalf, isWorker } = req.body
+  const { isWorker } = req.body
   const retreatAttend = retreatAttendDatabase.create({
     user: {
       id: foundUser.id,
     },
-    isHalf: isHalf,
+    isHalf: false,
     isWorker: isWorker,
   })
   retreatAttend.attendanceNumber = (await retreatAttendDatabase.count()) + 1
   await retreatAttendDatabase.save(retreatAttend)
   res.send({ result: "수련회 정보가 등록 되었습니다." })
-})
-
-router.post("/set-postcard-content", async (req, res) => {
-  const foundUser = await getUserFromToken(req)
-
-  if (!foundUser) {
-    res.status(401).send({ result: "fail" })
-    return
-  }
-
-  const { content, targetUserId } = req.body
-
-  const foundRetreatAttend = await retreatAttendDatabase.findOne({
-    where: {
-      user: {
-        id: targetUserId,
-      },
-    },
-    relations: {
-      user: true,
-    },
-  })
-
-  if (foundRetreatAttend) {
-    foundRetreatAttend.postcardContent = content
-    await retreatAttendDatabase.save(foundRetreatAttend)
-    res.send({ result: "success" })
-    return
-  }
-
-  const community = await communityDatabase.findOne({
-    where: {
-      users: {
-        id: targetUserId,
-      },
-    },
-    relations: {
-      users: true,
-      leader: true,
-      deputyLeader: true,
-    },
-  })
-
-  if (!community) {
-    res.status(404).send({ result: "fail", message: "Community not found" })
-    return
-  }
-
-  if (!community.leader || !community.deputyLeader) {
-    res
-      .status(403)
-      .send({ result: "fail", message: "Leader or deputy leader not found" })
-    return
-  }
-
-  if (
-    community.leader.id !== foundUser.id &&
-    community.deputyLeader.id !== foundUser.id
-  ) {
-    res.status(403).send({ result: "fail", message: "Permission denied" })
-    return
-  }
-  const newRetreatAttendData = retreatAttendDatabase.create({
-    user: {
-      id: targetUserId,
-    },
-    postcardContent: content,
-  })
-
-  await retreatAttendDatabase.save(newRetreatAttendData)
-  res.send({ result: "success" })
-})
-
-router.get("/get-postcard-content/:targetUserId", async (req, res) => {
-  const foundUser = await getUserFromToken(req)
-
-  if (!foundUser) {
-    res.status(401).send({ result: "fail" })
-    return
-  }
-
-  const targetUserId = req.params.targetUserId
-
-  const foundRetreatAttend = await retreatAttendDatabase.findOne({
-    where: {
-      user: {
-        id: targetUserId,
-      },
-    },
-    relations: {
-      user: true,
-    },
-  })
-
-  if (foundRetreatAttend) {
-    res.send({ result: "success", content: foundRetreatAttend.postcardContent })
-    return
-  }
-
-  res
-    .status(404)
-    .send({ result: "fail", message: "Postcard content not found" })
 })
 
 router.use("/sharing", sharingRouter)
