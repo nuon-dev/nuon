@@ -7,6 +7,7 @@ import Header from "./components/Header"
 import RetreatMainFirst from "./sections/first"
 import RetreatMainSecond from "./sections/second"
 import RetreatThird from "./sections/third"
+import RetreatMainFourth from "./sections/fourth"
 
 export default function RetreatPage() {
   return (
@@ -37,6 +38,8 @@ function RetreatContent() {
       <Box height="500px" />
       <RetreatThird />
       <Box height="500px" />
+      <RetreatMainFourth />
+      <img src="/retreat/main/fifth/bottom.png" width="100%" alt="Bottom" />
     </Stack>
   )
 }
