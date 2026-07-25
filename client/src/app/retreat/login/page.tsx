@@ -17,7 +17,7 @@ export default function RetreatLogin() {
     try {
       await executeKakaoLogin("/retreat/register")
     } catch {
-      push("/retreat/register?newUser=true")
+      push("/retreat/search")
     }
   }
 
@@ -27,10 +27,11 @@ export default function RetreatLogin() {
 
   return (
     <Stack
-      width="100vw"
-      minHeight="100vh"
+      width="100%"
+      minHeight="100dvh"
       bgcolor="white"
-      fontFamily="NEXON_Warhaven_OTF"
+      fontFamily="Pretendard"
+      position="relative"
       overflow="hidden"
     >
       <IconButton
@@ -47,7 +48,7 @@ export default function RetreatLogin() {
         <ArrowBackIosNewRoundedIcon fontSize="small" />
       </IconButton>
       <Stack
-        width="100vw"
+        width="100%"
         justifyContent="center"
         minHeight="100dvh"
         alignItems="center"

@@ -83,9 +83,14 @@ export default function RetreatIntroPage() {
 
   return (
     <Stack className={styles.page} width="100vw">
-      <Stack className={styles.image_wrapper}>
+      <Stack className={styles.image_wrapper} pb={10}>
         <img src="/retreat/intro/bg_img.png" className={styles.main_bg} />
-        <Stack className={styles.text_overlay}>
+        <Stack
+          className={styles.text_overlay}
+          fontFamily="MapoDacapo"
+          fontSize="20px"
+          lineHeight="1.5"
+        >
           {texts.map((item, index) => (
             <p
               key={item.text}

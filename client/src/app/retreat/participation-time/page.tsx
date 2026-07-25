@@ -5,7 +5,9 @@ import CheckRoundedIcon from "@mui/icons-material/CheckRounded"
 import { Box, Button, IconButton, Stack } from "@mui/material"
 import { keyframes } from "@mui/material/styles"
 import { useRouter } from "next/navigation"
+import { useNotification } from "@/hooks/useNotification"
 import usePageColor from "@/hooks/usePageColor"
+import axios from "@/config/axios"
 import useRetreat from "../hooks/useRetreat"
 
 const revealPage = keyframes`
@@ -19,9 +21,10 @@ const revealPage = keyframes`
   }
 `
 
-export default function RetreatRegister() {
+export default function RetreatParticipationTime() {
   const { push } = useRouter()
-  const { isWorker, setIsWorker } = useRetreat()
+  const { warning, success } = useNotification()
+  const { isHalf, isWorker, setIsHalf } = useRetreat()
 
   usePageColor("#FFFFFF")
 
@@ -29,8 +32,25 @@ export default function RetreatRegister() {
     push("/retreat")
   }
 
-  function handleSubmit() {
-    push(`/retreat/participation-time`)
+  async function handleApply() {
+    if (!isHalf && isHalf !== false) {
+      warning("참여 일정을 선택해주세요.")
+      return
+    }
+    try {
+      const { data } = await axios.post("/retreat/attend", {
+        isHalf: isHalf,
+        isWorker: isWorker,
+      })
+      success(data.result)
+      push(`/retreat/complete?isWorker=${isWorker}`)
+    } catch (error: any) {
+      warning(
+        error.response?.data?.result ||
+          "신청 중 오류가 발생했습니다.\n뒤로가기 후 다시 시도해주세요.",
+      )
+      return
+    }
   }
 
   return (
@@ -72,25 +92,25 @@ export default function RetreatRegister() {
         }}
       >
         <Box component="h2" m={0} fontSize="26px" fontWeight={700}>
-          직장인이신가요?
+          언제 참여하시나요?
         </Box>
 
         <Box mt="20px" color="#E98585" fontSize="13px">
-          해당되는 항목을 선택해주세요.
+          참여 가능한 일정을 선택해주세요.
         </Box>
 
         <Stack direction="row" gap="12px" mt="48px">
           <Button
             type="button"
             variant="outlined"
-            onClick={() => setIsWorker(true)}
-            startIcon={isWorker ? <CheckRoundedIcon /> : undefined}
+            onClick={() => setIsHalf(false)}
+            startIcon={isHalf === false ? <CheckRoundedIcon /> : undefined}
             sx={{
               flex: 1,
               height: "72px",
               borderRadius: "11px",
-              borderColor: isWorker ? "#EAAFAF" : "#F0E4E4",
-              bgcolor: isWorker ? "#FFF1F1" : "#FCFAFA",
+              borderColor: isHalf === false ? "#EAAFAF" : "#F0E4E4",
+              bgcolor: isHalf === false ? "#FFF1F1" : "#FCFAFA",
               color: "#171717",
               fontFamily: "Pretendard",
               fontSize: "16px",
@@ -104,20 +124,20 @@ export default function RetreatRegister() {
               },
             }}
           >
-            직장인이에요!
+            주일 예배 이전
           </Button>
 
           <Button
             type="button"
             variant="outlined"
-            onClick={() => setIsWorker(false)}
-            startIcon={isWorker === false ? <CheckRoundedIcon /> : undefined}
+            onClick={() => setIsHalf(true)}
+            startIcon={isHalf === true ? <CheckRoundedIcon /> : undefined}
             sx={{
               flex: 1,
               height: "72px",
               borderRadius: "11px",
-              borderColor: isWorker === false ? "#EAAFAF" : "#F0E4E4",
-              bgcolor: isWorker === false ? "#FFF1F1" : "#FCFAFA",
+              borderColor: isHalf === true ? "#EAAFAF" : "#F0E4E4",
+              bgcolor: isHalf === true ? "#FFF1F1" : "#FCFAFA",
               color: "#171717",
               fontFamily: "Pretendard",
               fontSize: "16px",
@@ -131,7 +151,7 @@ export default function RetreatRegister() {
               },
             }}
           >
-            직장인이 아니에요!
+            주일 예배 이후
           </Button>
         </Stack>
       </Stack>
@@ -140,7 +160,7 @@ export default function RetreatRegister() {
         type="button"
         variant="contained"
         disableElevation
-        onClick={handleSubmit}
+        onClick={handleApply}
         sx={{
           mt: "auto",
           height: "50px",
@@ -156,7 +176,7 @@ export default function RetreatRegister() {
           },
         }}
       >
-        다음으로
+        신청하기
       </Button>
     </Stack>
   )

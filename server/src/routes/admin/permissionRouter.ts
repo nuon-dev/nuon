@@ -46,8 +46,6 @@ router.post("/set-user-permission", async (req, res) => {
     return
   }
 
-  console.log("user is admin", isAdmin)
-
   const permission = user.permissions.find(
     (p) => p.permissionType === permissionType,
   )

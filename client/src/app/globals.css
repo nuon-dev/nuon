@@ -1,14 +1,13 @@
 @font-face {
-  font-family: "PretendardVariable";
+  font-family: "Pretendard";
   src: url("../font/PretendardVariable.woff2");
 }
 
-/*
 @font-face {
-  font-family: "HandFont";
-  src: url("../font/hand-font.woff2");
+  font-family: "MapoDacapo";
+  src: url("../font/MapoDacapo.otf");
+  font-weight: normal;
 }
-*/
 
 @font-face {
   font-family: "NEXON_Warhaven_OTF";
