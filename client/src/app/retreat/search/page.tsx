@@ -91,7 +91,7 @@ export default function RetreatSearch() {
   const [name, setName] = useState("")
   const [gender, setGender] = useState<"남성" | "여성" | "">("")
   const [birthYear, setBirthYear] = useState("")
-  const { kakaoToken } = useAuth()
+  const { kakaoToken, login } = useAuth()
   const { updateNuon } = useRetreat()
 
   usePageColor("#FFFFFF")
@@ -100,21 +100,10 @@ export default function RetreatSearch() {
     push("/retreat")
   }
 
-  // "조회하기" 또는 "다음으로" 버튼을 누르면 form의 onSubmit을 통해 실행되는 함수
-  async function handleLookup(event: FormEvent<HTMLFormElement>) {
+  async function handlePhoneLookup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (phone.replace(/\D/g, "").length !== 11) {
       warning("전화번호 11자리를 입력해주세요.")
-      return
-    }
-
-    if (isLookupComplete) {
-      if (!name.trim() || !gender || !birthYear) {
-        warning("필수 정보를 모두 입력해주세요.")
-        return
-      }
-
-      push("/retreat/participation-time")
       return
     }
 
@@ -124,28 +113,56 @@ export default function RetreatSearch() {
       const purePhone = phone.replace(/\D/g, "")
       await axios.get("/retreat/isRegistered", { params: { phone: purePhone } })
       setIsLookupComplete(false)
+      if (!kakaoToken) {
+        warning("카카오 로그인 정보가 없습니다. 다시 시도해주세요. (1)")
+        return
+      }
       await axios.post("/retreat/bind", {
         phone: purePhone,
         kakaoToken,
       })
+      await login(kakaoToken)
       push("/retreat/register")
     } catch (error) {
       setIsLookupComplete(true)
     }
   }
 
-  function submitForm() {
-    if (!kakaoToken) {
-      warning("카카오 로그인 정보가 없습니다. 다시 시도해주세요.")
+  async function handleNextStep(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (phone.replace(/\D/g, "").length !== 11) {
+      warning("전화번호 11자리를 입력해주세요.")
       return
     }
-    updateNuon({
+
+    if (!name.trim() || !gender || !birthYear) {
+      warning("필수 정보를 모두 입력해주세요.")
+      return
+    }
+
+    if (!kakaoToken) {
+      warning("카카오 로그인 정보가 없습니다. 다시 시도해주세요. (2)")
+      return
+    }
+
+    await updateNuon({
       kakaoToken,
       name,
       yearOfBirth: parseInt(birthYear),
       gender: gender === "남성" ? "man" : "woman",
       phone: phone.replace(/\D/g, ""),
     })
+
+    push("/retreat/register")
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    if (isLookupComplete) {
+      return handleNextStep(event)
+    }
+
+    return handlePhoneLookup(event)
   }
 
   return (
@@ -176,7 +193,7 @@ export default function RetreatSearch() {
 
       <Stack
         component="form"
-        onSubmit={handleLookup}
+        onSubmit={handleSubmit}
         noValidate
         gap="35px"
         mt="35px"
@@ -343,7 +360,6 @@ export default function RetreatSearch() {
           type="submit"
           variant="contained"
           disableElevation
-          onClick={submitForm}
           sx={{
             height: "50px",
             borderRadius: "10px",

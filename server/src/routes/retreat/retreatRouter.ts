@@ -8,6 +8,7 @@ import { getUserFromToken } from "../../util/util"
 import adminRouter from "./adminRouter"
 import sharingRouter from "./sharingRouter"
 import { getKakaoIdFromAccessToken } from "../../util/auth"
+import { IsNull } from "typeorm"
 
 const router = express.Router()
 
@@ -58,7 +59,7 @@ router.get("/", async (req, res) => {
 })
 
 interface JoinNuonRequest {
-  kakaoId: string
+  kakaoToken: string
   name: string
   yearOfBirth: number
   gender: "man" | "woman"
@@ -68,12 +69,15 @@ interface JoinNuonRequest {
 router.post("/join", async (req, res) => {
   const retreatAttend: JoinNuonRequest = req.body
 
+  const kakaoId = await getKakaoIdFromAccessToken(retreatAttend.kakaoToken)
+
   const foundUser = await userDatabase.findOne({
     where: {
-      kakaoId: retreatAttend.kakaoId,
+      kakaoId: kakaoId,
     },
   })
 
+  console.log("foundUser", foundUser)
   if (foundUser) {
     res
       .status(409)
@@ -90,14 +94,14 @@ router.post("/join", async (req, res) => {
   })
 
   if (foundUserByPhoneAndName) {
-    foundUserByPhoneAndName.kakaoId = retreatAttend.kakaoId
+    foundUserByPhoneAndName.kakaoId = kakaoId
     await userDatabase.save(foundUserByPhoneAndName)
     res.send({ result: "success" })
     return
   }
 
   const newUser = await userDatabase.create({
-    kakaoId: retreatAttend.kakaoId,
+    kakaoId: kakaoId,
     name: retreatAttend.name,
     yearOfBirth: retreatAttend.yearOfBirth,
     gender: retreatAttend.gender,
@@ -151,6 +155,7 @@ router.post("/bind", async (req, res) => {
   const foundUser = await userDatabase.findOne({
     where: {
       phone: phone as string,
+      kakaoId: IsNull(),
     },
   })
 
