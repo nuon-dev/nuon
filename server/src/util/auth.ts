@@ -106,7 +106,6 @@ export async function getKakaoTokenFromAuthCode(code: string): Promise<string> {
     refresh_token_expires_in: number
     scope: string
   }
-  console.log("tokenData", tokenData)
   return tokenData.access_token
 }
 

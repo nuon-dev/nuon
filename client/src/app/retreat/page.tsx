@@ -25,7 +25,7 @@ function RetreatContent() {
       width="100%"
       minHeight="100dvh"
       bgcolor="#363232"
-      fontFamily="NEXON_Warhaven_OTF"
+      fontFamily="Pretendard"
       sx={{
         overflowX: "hidden",
         boxSizing: "border-box",

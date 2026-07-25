@@ -4,7 +4,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded"
 import { Box, Button, IconButton, Stack } from "@mui/material"
 import { keyframes } from "@mui/material/styles"
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useNotification } from "@/hooks/useNotification"
 import usePageColor from "@/hooks/usePageColor"
@@ -30,7 +29,7 @@ export default function RetreatParticipationTime() {
   usePageColor("#FFFFFF")
 
   function handleGoToBack() {
-    push("/retreat/search")
+    push("/retreat")
   }
 
   async function handleApply() {
@@ -51,6 +50,8 @@ export default function RetreatParticipationTime() {
       component="main"
       width="100%"
       minHeight="100dvh"
+      display="flex"
+      flexDirection="column"
       bgcolor="white"
       color="#171717"
       fontFamily="Pretendard"
@@ -74,6 +75,7 @@ export default function RetreatParticipationTime() {
 
       <Stack
         mt="48px"
+        flex={1}
         sx={{
           animation: `${revealPage} 480ms cubic-bezier(0.22, 1, 0.36, 1)`,
           "@media (prefers-reduced-motion: reduce)": {
@@ -94,13 +96,13 @@ export default function RetreatParticipationTime() {
             type="button"
             variant="outlined"
             onClick={() => setIsHalf(false)}
-            startIcon={!isHalf ? <CheckRoundedIcon /> : undefined}
+            startIcon={isHalf === false ? <CheckRoundedIcon /> : undefined}
             sx={{
               flex: 1,
               height: "72px",
               borderRadius: "11px",
-              borderColor: !isHalf ? "#EAAFAF" : "#F0E4E4",
-              bgcolor: !isHalf ? "#FFF1F1" : "#FCFAFA",
+              borderColor: isHalf === false ? "#EAAFAF" : "#F0E4E4",
+              bgcolor: isHalf === false ? "#FFF1F1" : "#FCFAFA",
               color: "#171717",
               fontFamily: "Pretendard",
               fontSize: "16px",
@@ -121,13 +123,13 @@ export default function RetreatParticipationTime() {
             type="button"
             variant="outlined"
             onClick={() => setIsHalf(true)}
-            startIcon={isHalf ? <CheckRoundedIcon /> : undefined}
+            startIcon={isHalf === true ? <CheckRoundedIcon /> : undefined}
             sx={{
               flex: 1,
               height: "72px",
               borderRadius: "11px",
-              borderColor: isHalf ? "#EAAFAF" : "#F0E4E4",
-              bgcolor: isHalf ? "#FFF1F1" : "#FCFAFA",
+              borderColor: isHalf === true ? "#EAAFAF" : "#F0E4E4",
+              bgcolor: isHalf === true ? "#FFF1F1" : "#FCFAFA",
               color: "#171717",
               fontFamily: "Pretendard",
               fontSize: "16px",
@@ -152,7 +154,7 @@ export default function RetreatParticipationTime() {
         disableElevation
         onClick={handleApply}
         sx={{
-          mt: "35px",
+          mt: "auto",
           height: "50px",
           borderRadius: "12px",
           bgcolor: "#EAAFAF",

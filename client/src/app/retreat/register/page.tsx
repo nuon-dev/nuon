@@ -1,100 +1,163 @@
 "use client"
 
-import { Box, Button, IconButton, Stack } from "@mui/material"
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded"
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded"
+import { Box, Button, IconButton, Stack } from "@mui/material"
+import { keyframes } from "@mui/material/styles"
 import { useRouter } from "next/navigation"
-import axios from "@/config/axios"
-import { useNotification } from "@/hooks/useNotification"
+import usePageColor from "@/hooks/usePageColor"
 import useRetreat from "../hooks/useRetreat"
+
+const revealPage = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`
 
 export default function RetreatRegister() {
   const { push } = useRouter()
-  const { success } = useNotification()
-  const { isHalf, isWorker, setIsWorker } = useRetreat()
+  const { isWorker, setIsWorker } = useRetreat()
+
+  usePageColor("#FFFFFF")
+
   function handleGoToBack() {
     push("/retreat")
   }
 
-  async function handleSubmit() {
+  function handleSubmit() {
     push(`/retreat/participation-time`)
   }
 
   return (
-    <Stack paddingX="20px" gap="30px">
-      <Stack direction="row" alignItems="center">
+    <Stack
+      component="main"
+      width="100%"
+      minHeight="100dvh"
+      display="flex"
+      flexDirection="column"
+      bgcolor="white"
+      color="#171717"
+      fontFamily="Pretendard"
+      px="24px"
+      pt="calc(18px + env(safe-area-inset-top))"
+      pb="calc(32px + env(safe-area-inset-bottom))"
+      boxSizing="border-box"
+    >
+      <Stack direction="row" alignItems="center" ml="-10px">
         <IconButton
           onClick={handleGoToBack}
           aria-label="뒤로가기"
-          sx={{
-            zIndex: 1,
-            color: "#363232",
-          }}
+          sx={{ color: "#171717" }}
         >
           <ArrowBackIosNewRoundedIcon fontSize="small" />
         </IconButton>
-        <Box>수련회 신청</Box>
+        <Box component="h1" m={0} fontSize="24px" fontWeight={700}>
+          수련회 신청
+        </Box>
       </Stack>
-      <Stack marginLeft="6px" gap="10px">
-        <Box fontWeight="bold" fontSize="20px">
+
+      <Stack
+        mt="48px"
+        flex={1}
+        sx={{
+          animation: `${revealPage} 480ms cubic-bezier(0.22, 1, 0.36, 1)`,
+          "@media (prefers-reduced-motion: reduce)": {
+            animation: "none",
+          },
+        }}
+      >
+        <Box component="h2" m={0} fontSize="26px" fontWeight={700}>
           직장인이신가요?
         </Box>
+
+        <Box mt="20px" color="#E98585" fontSize="13px">
+          해당되는 항목을 선택해주세요.
+        </Box>
+
+        <Stack direction="row" gap="12px" mt="48px">
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={() => setIsWorker(true)}
+            startIcon={isWorker ? <CheckRoundedIcon /> : undefined}
+            sx={{
+              flex: 1,
+              height: "72px",
+              borderRadius: "11px",
+              borderColor: isWorker ? "#EAAFAF" : "#F0E4E4",
+              bgcolor: isWorker ? "#FFF1F1" : "#FCFAFA",
+              color: "#171717",
+              fontFamily: "Pretendard",
+              fontSize: "16px",
+              textTransform: "none",
+              "& .MuiButton-startIcon": {
+                color: "#C87575",
+              },
+              "&:hover": {
+                borderColor: "#EAAFAF",
+                bgcolor: "#FFF6F6",
+              },
+            }}
+          >
+            직장인이에요!
+          </Button>
+
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={() => setIsWorker(false)}
+            startIcon={isWorker === false ? <CheckRoundedIcon /> : undefined}
+            sx={{
+              flex: 1,
+              height: "72px",
+              borderRadius: "11px",
+              borderColor: isWorker === false ? "#EAAFAF" : "#F0E4E4",
+              bgcolor: isWorker === false ? "#FFF1F1" : "#FCFAFA",
+              color: "#171717",
+              fontFamily: "Pretendard",
+              fontSize: "16px",
+              textTransform: "none",
+              "& .MuiButton-startIcon": {
+                color: "#C87575",
+              },
+              "&:hover": {
+                borderColor: "#EAAFAF",
+                bgcolor: "#FFF6F6",
+              },
+            }}
+          >
+            직장인 아니예요!
+          </Button>
+        </Stack>
       </Stack>
-      <Stack
-        fontSize="15px"
-        width="100%"
-        direction="row"
-        gap="12px"
-        justifyContent="center"
+
+      <Button
+        type="button"
+        variant="contained"
+        disableElevation
+        onClick={handleSubmit}
+        sx={{
+          mt: "auto",
+          height: "50px",
+          borderRadius: "12px",
+          bgcolor: "#EAAFAF",
+          color: "white",
+          fontFamily: "Pretendard",
+          fontSize: "16px",
+          fontWeight: 700,
+          textTransform: "none",
+          "&:hover": {
+            bgcolor: "#DF9F9F",
+          },
+        }}
       >
-        <Box
-          flex="1"
-          bgcolor={isWorker ? "#FFD9D9" : "#E3E3E3"}
-          display="flex"
-          width="100px"
-          textAlign="center"
-          alignItems="center"
-          justifyContent="center"
-          border="1px solid #D1A5A5"
-          borderRadius="8px"
-          height="100px"
-          onClick={() => {
-            setIsWorker(true)
-          }}
-        >
-          직장인이에요!
-        </Box>
-        <Box
-          flex="1"
-          display="flex"
-          width="100px"
-          textAlign="center"
-          alignItems="center"
-          justifyContent="center"
-          border="1px solid #D1A5A5"
-          borderRadius="8px"
-          height="100px"
-          bgcolor={isWorker ? "#E3E3E3" : "#FFD9D9"}
-          onClick={() => {
-            setIsWorker(false)
-          }}
-        >
-          직장인 아니예요!
-        </Box>
-      </Stack>
-      <Stack position="absolute" bottom="20px" width="90%">
-        <Button
-          sx={{
-            bgcolor: "#FFAFAF",
-            color: "#f8efe4",
-            "&:hover": {
-              bgcolor: "#694444",
-            },
-          }}
-          onClick={handleSubmit}
-        >
-          신청하기
-        </Button>
-      </Stack>
+        신청하기
+      </Button>
     </Stack>
   )
 }
