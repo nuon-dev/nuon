@@ -131,7 +131,7 @@ export default function RetreatRegister() {
               },
             }}
           >
-            직장인 아니예요!
+            직장인이 아니에요!
           </Button>
         </Stack>
       </Stack>
@@ -156,7 +156,7 @@ export default function RetreatRegister() {
           },
         }}
       >
-        신청하기
+        다음으로
       </Button>
     </Stack>
   )
