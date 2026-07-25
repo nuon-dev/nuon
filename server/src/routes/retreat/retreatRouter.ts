@@ -7,6 +7,8 @@ import {
 import { getUserFromToken } from "../../util/util"
 import adminRouter from "./adminRouter"
 import sharingRouter from "./sharingRouter"
+import { getKakaoIdFromAccessToken } from "../../util/auth"
+import { IsNull } from "typeorm"
 
 const router = express.Router()
 
@@ -57,7 +59,7 @@ router.get("/", async (req, res) => {
 })
 
 interface JoinNuonRequest {
-  kakaoId: string
+  kakaoToken: string
   name: string
   yearOfBirth: number
   gender: "man" | "woman"
@@ -67,12 +69,15 @@ interface JoinNuonRequest {
 router.post("/join", async (req, res) => {
   const retreatAttend: JoinNuonRequest = req.body
 
+  const kakaoId = await getKakaoIdFromAccessToken(retreatAttend.kakaoToken)
+
   const foundUser = await userDatabase.findOne({
     where: {
-      kakaoId: retreatAttend.kakaoId,
+      kakaoId: kakaoId,
     },
   })
 
+  console.log("foundUser", foundUser)
   if (foundUser) {
     res
       .status(409)
@@ -89,14 +94,14 @@ router.post("/join", async (req, res) => {
   })
 
   if (foundUserByPhoneAndName) {
-    foundUserByPhoneAndName.kakaoId = retreatAttend.kakaoId
+    foundUserByPhoneAndName.kakaoId = kakaoId
     await userDatabase.save(foundUserByPhoneAndName)
     res.send({ result: "success" })
     return
   }
 
   const newUser = await userDatabase.create({
-    kakaoId: retreatAttend.kakaoId,
+    kakaoId: kakaoId,
     name: retreatAttend.name,
     yearOfBirth: retreatAttend.yearOfBirth,
     gender: retreatAttend.gender,
@@ -124,24 +129,62 @@ router.post("/attend", async (req, res) => {
   })
 
   if (foundRetreatAttend) {
-    //foundRetreatAttend.isHalf = req.body.isHalf
+    foundRetreatAttend.isHalf = req.body.isHalf
     foundRetreatAttend.isWorker = req.body.isWorker
     await retreatAttendDatabase.save(foundRetreatAttend)
     res.send({ result: "수련회 정보가 수정 되었습니다." })
     return
   }
 
-  const { isWorker } = req.body
+  const { isHalf, isWorker } = req.body
   const retreatAttend = retreatAttendDatabase.create({
     user: {
       id: foundUser.id,
     },
-    isHalf: false,
+    isHalf: isHalf,
     isWorker: isWorker,
   })
   retreatAttend.attendanceNumber = (await retreatAttendDatabase.count()) + 1
   await retreatAttendDatabase.save(retreatAttend)
   res.send({ result: "수련회 정보가 등록 되었습니다." })
+})
+
+router.post("/bind", async (req, res) => {
+  const { phone, kakaoToken } = req.body
+
+  const foundUser = await userDatabase.findOne({
+    where: {
+      phone: phone as string,
+      kakaoId: IsNull(),
+    },
+  })
+
+  if (!foundUser) {
+    res.status(401).send({ result: "fail" })
+    return
+  }
+
+  const kakaoId = await getKakaoIdFromAccessToken(kakaoToken as string)
+  foundUser.kakaoId = kakaoId
+  await userDatabase.save(foundUser)
+  res.send({ result: "success" })
+})
+
+router.get("/isRegistered", async (req, res) => {
+  const { phone } = req.query
+
+  const foundUser = await userDatabase.findOne({
+    where: {
+      phone: phone as string,
+    },
+  })
+
+  if (!foundUser) {
+    res.status(404).send({ result: "fail" })
+    return
+  }
+
+  res.send({ result: foundUser ? "success" : "fail" })
 })
 
 router.use("/sharing", sharingRouter)

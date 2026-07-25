@@ -3,25 +3,20 @@
 import { Box, Button, IconButton, Stack } from "@mui/material"
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
 import axios from "@/config/axios"
 import { useNotification } from "@/hooks/useNotification"
+import useRetreat from "../hooks/useRetreat"
 
 export default function RetreatRegister() {
   const { push } = useRouter()
   const { success } = useNotification()
-  const [isWorking, setIsWorking] = useState(false)
-
+  const { isHalf, isWorker, setIsWorker } = useRetreat()
   function handleGoToBack() {
     push("/retreat")
   }
 
   async function handleSubmit() {
-    const { data } = await axios.post("/retreat/attend", {
-      isWorker: isWorking,
-    })
-    success(data.result)
-    push(`/retreat/complete?isWorker=${isWorking}`)
+    push(`/retreat/participation-time`)
   }
 
   return (
@@ -53,7 +48,7 @@ export default function RetreatRegister() {
       >
         <Box
           flex="1"
-          bgcolor={isWorking ? "#EBB8B8" : "#E3E3E3"}
+          bgcolor={isWorker ? "#FFD9D9" : "#E3E3E3"}
           display="flex"
           width="100px"
           textAlign="center"
@@ -63,7 +58,7 @@ export default function RetreatRegister() {
           borderRadius="8px"
           height="100px"
           onClick={() => {
-            setIsWorking(true)
+            setIsWorker(true)
           }}
         >
           직장인이에요!
@@ -78,18 +73,18 @@ export default function RetreatRegister() {
           border="1px solid #D1A5A5"
           borderRadius="8px"
           height="100px"
-          bgcolor={isWorking ? "#E3E3E3" : "#EBB8B8"}
+          bgcolor={isWorker ? "#E3E3E3" : "#FFD9D9"}
           onClick={() => {
-            setIsWorking(false)
+            setIsWorker(false)
           }}
         >
-          직장인 아니에요!
+          직장인 아니예요!
         </Box>
       </Stack>
       <Stack position="absolute" bottom="20px" width="90%">
         <Button
           sx={{
-            bgcolor: "#EBB8B8",
+            bgcolor: "#FFAFAF",
             color: "#f8efe4",
             "&:hover": {
               bgcolor: "#694444",

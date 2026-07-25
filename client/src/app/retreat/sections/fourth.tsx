@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react"
 import { Box, Stack } from "@mui/material"
 
 const DAY_MS = 1000 * 60 * 60 * 24
+const MAP_ADDRESS = "경기도 화성시 정남면 세자로 286"
+const MAP_URL = `https://map.naver.com/p/search/${encodeURIComponent(MAP_ADDRESS)}`
 
 function getTargetDday() {
   const targetDate = new Date(2026, 7, 14)
@@ -121,7 +123,18 @@ export default function RetreatMainFourth() {
         </Box>
       </Stack>
       <Stack>
-        <img src="/retreat/main/fourth/place.png" width="100%" alt="place" />
+        <Box
+          component="a"
+          href={MAP_URL}
+          target="_blank"
+          rel="noreferrer"
+          sx={{ display: { xs: "block", md: "none" }, width: "100%" }}
+        >
+          <img src="/retreat/main/fourth/place.png" width="100%" alt="place" />
+        </Box>
+        <Box sx={{ display: { xs: "none", md: "block" } }}>
+          <img src="/retreat/main/fourth/place.png" width="100%" alt="place" />
+        </Box>
       </Stack>
     </Stack>
   )

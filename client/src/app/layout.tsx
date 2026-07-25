@@ -3,8 +3,6 @@
 import Notification from "@/components/notification/notification"
 import "./globals.css"
 import { Provider } from "jotai"
-import Head from "next/head"
-import Script from "next/script"
 
 export default function RootLayout({
   children,
@@ -43,12 +41,8 @@ export default function RootLayout({
 
       <meta name="title" property="og:title" content={title} />
       <meta name="description" property="og:description" content="" />
-      <meta
-        name="image"
-        property="og:image"
-        content="/retreat/retreat_bg.jpeg"
-      />
-      <meta name="url" property="og:url" content="/retreat/retreat_bg.jpeg" />
+      <meta name="image" property="og:image" content="/retreat/og.png" />
+      <meta name="url" property="og:url" content="/retreat/og.png" />
       <meta name="format-detection" content="telephone=no" />
       <Provider>
         <body>

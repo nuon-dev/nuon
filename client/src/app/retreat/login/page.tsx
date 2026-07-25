@@ -17,7 +17,7 @@ export default function RetreatLogin() {
     try {
       await executeKakaoLogin("/retreat/register")
     } catch {
-      push("/retreat/register?newUser=true")
+      push("/retreat/search")
     }
   }
 
