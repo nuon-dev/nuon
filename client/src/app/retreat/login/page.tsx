@@ -30,7 +30,7 @@ export default function RetreatLogin() {
       width="100vw"
       minHeight="100vh"
       bgcolor="white"
-      fontFamily="NEXON_Warhaven_OTF"
+      fontFamily="Pretendard"
       overflow="hidden"
     >
       <IconButton

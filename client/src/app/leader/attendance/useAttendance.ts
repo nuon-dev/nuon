@@ -98,14 +98,12 @@ export default function useAttendance() {
     if (!groupInfo) return
 
     const dateStr = getLastSundayDateString()
-    console.log("지난주 일요일 날짜:", dateStr)
 
     // 지난주 일요일 일정 찾기
     const lastSundaySchedule = worshipScheduleList.find(
       (schedule) => schedule.date === dateStr,
     )
 
-    console.log("지난주 일요일 일정:", lastSundaySchedule?.id)
     if (!lastSundaySchedule) {
       error("지난주 일요일 예배 일정이 없습니다.")
       return
@@ -132,7 +130,6 @@ export default function useAttendance() {
       return attendData
     })
 
-    console.log("updatedAttendData", updatedAttendData)
     setSoonAttendData(updatedAttendData)
     success("지난주 일요일 출석 데이터를 불러왔습니다.")
   }

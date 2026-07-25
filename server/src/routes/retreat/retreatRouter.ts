@@ -77,7 +77,6 @@ router.post("/join", async (req, res) => {
     },
   })
 
-  console.log("foundUser", foundUser)
   if (foundUser) {
     res
       .status(409)
