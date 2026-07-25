@@ -8,6 +8,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useNotification } from "@/hooks/useNotification"
 import usePageColor from "@/hooks/usePageColor"
+import axios from "@/config/axios"
+import useRetreat from "../hooks/useRetreat"
 
 const revealPage = keyframes`
   from {
@@ -20,13 +22,10 @@ const revealPage = keyframes`
   }
 `
 
-type AttendanceSchedule = "beforeSundayWorship" | "afterSundayWorship" | ""
-
 export default function RetreatParticipationTime() {
   const { push } = useRouter()
-  const { warning } = useNotification()
-  const [attendanceSchedule, setAttendanceSchedule] =
-    useState<AttendanceSchedule>("")
+  const { warning, success } = useNotification()
+  const { isHalf, isWorker, setIsHalf } = useRetreat()
 
   usePageColor("#FFFFFF")
 
@@ -34,13 +33,17 @@ export default function RetreatParticipationTime() {
     push("/retreat/search")
   }
 
-  function handleApply() {
-    if (!attendanceSchedule) {
+  async function handleApply() {
+    if (!isHalf && isHalf !== false) {
       warning("참여 일정을 선택해주세요.")
       return
     }
-
-    // TODO: 신청하기 API를 연결해주세요.
+    const { data } = await axios.post("/retreat/attend", {
+      isHalf: isHalf,
+      isWorker: isWorker,
+    })
+    success(data.result)
+    push(`/retreat/complete?isWorker=${isWorker}`)
   }
 
   return (
@@ -90,24 +93,14 @@ export default function RetreatParticipationTime() {
           <Button
             type="button"
             variant="outlined"
-            onClick={() => setAttendanceSchedule("beforeSundayWorship")}
-            startIcon={
-              attendanceSchedule === "beforeSundayWorship" ? (
-                <CheckRoundedIcon />
-              ) : undefined
-            }
+            onClick={() => setIsHalf(false)}
+            startIcon={!isHalf ? <CheckRoundedIcon /> : undefined}
             sx={{
               flex: 1,
               height: "72px",
               borderRadius: "11px",
-              borderColor:
-                attendanceSchedule === "beforeSundayWorship"
-                  ? "#EAAFAF"
-                  : "#F0E4E4",
-              bgcolor:
-                attendanceSchedule === "beforeSundayWorship"
-                  ? "#FFF1F1"
-                  : "#FCFAFA",
+              borderColor: !isHalf ? "#EAAFAF" : "#F0E4E4",
+              bgcolor: !isHalf ? "#FFF1F1" : "#FCFAFA",
               color: "#171717",
               fontFamily: "Pretendard",
               fontSize: "16px",
@@ -127,24 +120,14 @@ export default function RetreatParticipationTime() {
           <Button
             type="button"
             variant="outlined"
-            onClick={() => setAttendanceSchedule("afterSundayWorship")}
-            startIcon={
-              attendanceSchedule === "afterSundayWorship" ? (
-                <CheckRoundedIcon />
-              ) : undefined
-            }
+            onClick={() => setIsHalf(true)}
+            startIcon={isHalf ? <CheckRoundedIcon /> : undefined}
             sx={{
               flex: 1,
               height: "72px",
               borderRadius: "11px",
-              borderColor:
-                attendanceSchedule === "afterSundayWorship"
-                  ? "#EAAFAF"
-                  : "#F0E4E4",
-              bgcolor:
-                attendanceSchedule === "afterSundayWorship"
-                  ? "#FFF1F1"
-                  : "#FCFAFA",
+              borderColor: isHalf ? "#EAAFAF" : "#F0E4E4",
+              bgcolor: isHalf ? "#FFF1F1" : "#FCFAFA",
               color: "#171717",
               fontFamily: "Pretendard",
               fontSize: "16px",

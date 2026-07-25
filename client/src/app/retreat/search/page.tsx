@@ -18,6 +18,9 @@ import { FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useNotification } from "@/hooks/useNotification"
 import usePageColor from "@/hooks/usePageColor"
+import axios from "@/config/axios"
+import useAuth from "@/hooks/useAuth"
+import useRetreat from "../hooks/useRetreat"
 
 const revealField = keyframes`
   from {
@@ -76,8 +79,7 @@ function formatPhoneNumber(value: string) {
 
   return digits.replace(
     /^(\d{3})(\d{0,4})(\d{0,4})$/,
-    (_, first, middle, last) =>
-      [first, middle, last].filter(Boolean).join("-"),
+    (_, first, middle, last) => [first, middle, last].filter(Boolean).join("-"),
   )
 }
 
@@ -89,6 +91,8 @@ export default function RetreatSearch() {
   const [name, setName] = useState("")
   const [gender, setGender] = useState<"남성" | "여성" | "">("")
   const [birthYear, setBirthYear] = useState("")
+  const { kakaoToken } = useAuth()
+  const { updateNuon } = useRetreat()
 
   usePageColor("#FFFFFF")
 
@@ -97,7 +101,7 @@ export default function RetreatSearch() {
   }
 
   // "조회하기" 또는 "다음으로" 버튼을 누르면 form의 onSubmit을 통해 실행되는 함수
-  function handleLookup(event: FormEvent<HTMLFormElement>) {
+  async function handleLookup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (phone.replace(/\D/g, "").length !== 11) {
       warning("전화번호 11자리를 입력해주세요.")
@@ -116,7 +120,32 @@ export default function RetreatSearch() {
 
     // TODO: 전화번호 조회 API가 연결되면 성공 응답을 받은 경우에만 true로 변경해주세요.
     // 현재는 올바른 길이의 전화번호로 폼을 제출하면 조회가 완료된 것으로 처리합니다.
-    setIsLookupComplete(true)
+    try {
+      const purePhone = phone.replace(/\D/g, "")
+      await axios.get("/retreat/isRegistered", { params: { phone: purePhone } })
+      setIsLookupComplete(false)
+      await axios.post("/retreat/bind", {
+        phone: purePhone,
+        kakaoToken,
+      })
+      push("/retreat/register")
+    } catch (error) {
+      setIsLookupComplete(true)
+    }
+  }
+
+  function submitForm() {
+    if (!kakaoToken) {
+      warning("카카오 로그인 정보가 없습니다. 다시 시도해주세요.")
+      return
+    }
+    updateNuon({
+      kakaoToken,
+      name,
+      yearOfBirth: parseInt(birthYear),
+      gender: gender === "남성" ? "man" : "woman",
+      phone: phone.replace(/\D/g, ""),
+    })
   }
 
   return (
@@ -255,8 +284,7 @@ export default function RetreatSearch() {
                       height: "50px",
                       borderRadius: "10px",
                       border: "1px solid",
-                      borderColor:
-                        gender === option ? "#EAAFAF" : "#F0E4E4",
+                      borderColor: gender === option ? "#EAAFAF" : "#F0E4E4",
                       bgcolor: gender === option ? "#FFF1F1" : "#FCFAFA",
                       color: gender === option ? "#C87575" : "#555",
                       fontFamily: "Pretendard",
@@ -315,6 +343,7 @@ export default function RetreatSearch() {
           type="submit"
           variant="contained"
           disableElevation
+          onClick={submitForm}
           sx={{
             height: "50px",
             borderRadius: "10px",

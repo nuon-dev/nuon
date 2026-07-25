@@ -7,6 +7,7 @@ import {
 import { getUserFromToken } from "../../util/util"
 import adminRouter from "./adminRouter"
 import sharingRouter from "./sharingRouter"
+import { getKakaoIdFromAccessToken } from "../../util/auth"
 
 const router = express.Router()
 
@@ -145,7 +146,23 @@ router.post("/attend", async (req, res) => {
 })
 
 router.post("/bind", async (req, res) => {
-  const { phone, kakaoId } = req.body
+  const { phone, kakaoToken } = req.body
+
+  const foundUser = await userDatabase.findOne({
+    where: {
+      phone: phone as string,
+    },
+  })
+
+  if (!foundUser) {
+    res.status(401).send({ result: "fail" })
+    return
+  }
+
+  const kakaoId = await getKakaoIdFromAccessToken(kakaoToken as string)
+  foundUser.kakaoId = kakaoId
+  await userDatabase.save(foundUser)
+  res.send({ result: "success" })
 })
 
 router.get("/isRegistered", async (req, res) => {
@@ -158,7 +175,7 @@ router.get("/isRegistered", async (req, res) => {
   })
 
   if (!foundUser) {
-    res.status(401).send({ result: "fail" })
+    res.status(404).send({ result: "fail" })
     return
   }
 

@@ -16,12 +16,7 @@ export default function RetreatRegister() {
   }
 
   async function handleSubmit() {
-    const { data } = await axios.post("/retreat/attend", {
-      isHalf: isHalf,
-      isWorker: isWorker,
-    })
-    success(data.result)
-    push(`/retreat/complete?isWorker=${isWorker}`)
+    push(`/retreat/participation-time`)
   }
 
   return (

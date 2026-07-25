@@ -5,9 +5,11 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import { useNotification } from "@/hooks/useNotification"
+import useRetreat from "../hooks/useRetreat"
 
 export default function RetreatRegister() {
   const { push } = useRouter()
+  const { isHalf, isWorker } = useRetreat()
 
   function handleGoToBack() {
     push("/retreat")
@@ -44,12 +46,33 @@ function Content() {
   const { success } = useNotification()
   const searchParams = useSearchParams()
   const isWorker = searchParams.get("isWorker") === "true"
+  const { isHalf } = useRetreat()
 
   function copyToClipboard() {
     const accountInfo = `3333342703455 카카오뱅크\n
-     ${isWorker ? "150,000원" : "120,000원"}`
+     ${getPrice()} ${getText()}`
     navigator.clipboard.writeText(accountInfo)
     success("계좌 정보가 복사되었습니다.")
+  }
+
+  function getText() {
+    if (isHalf) {
+      return "부분 참여"
+    }
+    if (!isWorker) {
+      return "학생"
+    }
+    return "직장인 "
+  }
+
+  function getPrice() {
+    if (isHalf) {
+      return "100,000원"
+    }
+    if (!isWorker) {
+      return "120,000원"
+    }
+    return "150,000원"
   }
 
   return (
@@ -67,8 +90,7 @@ function Content() {
         <Stack mt="24px">수련회비</Stack>
         <Stack>
           <Box color="#E87C7C">
-            {isWorker ? "직장인" : "학생"}:{" "}
-            {isWorker ? "150,000원" : "120,000원"}
+            {getText()}: {getPrice()}
           </Box>
         </Stack>
       </Stack>

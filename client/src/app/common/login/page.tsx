@@ -37,7 +37,7 @@ function Login() {
           .catch((e) => {
             const returnUrl = searchParams.get("state")
             if (returnUrl === "/retreat/register") {
-              push(returnUrl + "?newUser=true")
+              push(`/retreat/search`)
             }
           })
       })
