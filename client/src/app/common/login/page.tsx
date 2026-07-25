@@ -29,10 +29,17 @@ function Login() {
     if (code) {
       //카카오에서 리다이렉트된 경우
       getKakaoTokenFromAuthCode(code).then((kakaoToken) => {
-        login(kakaoToken).then(() => {
-          const returnUrl = searchParams.get("state")
-          push(returnUrl || "/")
-        })
+        login(kakaoToken)
+          .then(() => {
+            const returnUrl = searchParams.get("state")
+            push(returnUrl || "/")
+          })
+          .catch((e) => {
+            const returnUrl = searchParams.get("state")
+            if (returnUrl === "/retreat/register") {
+              push(returnUrl + "?newUser=true")
+            }
+          })
       })
     } else if (isLogin) {
       const returnUrl = searchParams.get("returnUrl")

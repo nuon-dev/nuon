@@ -124,24 +124,45 @@ router.post("/attend", async (req, res) => {
   })
 
   if (foundRetreatAttend) {
-    //foundRetreatAttend.isHalf = req.body.isHalf
+    foundRetreatAttend.isHalf = req.body.isHalf
     foundRetreatAttend.isWorker = req.body.isWorker
     await retreatAttendDatabase.save(foundRetreatAttend)
     res.send({ result: "수련회 정보가 수정 되었습니다." })
     return
   }
 
-  const { isWorker } = req.body
+  const { isHalf, isWorker } = req.body
   const retreatAttend = retreatAttendDatabase.create({
     user: {
       id: foundUser.id,
     },
-    isHalf: false,
+    isHalf: isHalf,
     isWorker: isWorker,
   })
   retreatAttend.attendanceNumber = (await retreatAttendDatabase.count()) + 1
   await retreatAttendDatabase.save(retreatAttend)
   res.send({ result: "수련회 정보가 등록 되었습니다." })
+})
+
+router.post("/bind", async (req, res) => {
+  const { phone, kakaoId } = req.body
+})
+
+router.get("/isRegistered", async (req, res) => {
+  const { phone } = req.query
+
+  const foundUser = await userDatabase.findOne({
+    where: {
+      phone: phone as string,
+    },
+  })
+
+  if (!foundUser) {
+    res.status(401).send({ result: "fail" })
+    return
+  }
+
+  res.send({ result: foundUser ? "success" : "fail" })
 })
 
 router.use("/sharing", sharingRouter)
