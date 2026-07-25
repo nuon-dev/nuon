@@ -37,12 +37,20 @@ export default function RetreatParticipationTime() {
       warning("참여 일정을 선택해주세요.")
       return
     }
-    const { data } = await axios.post("/retreat/attend", {
-      isHalf: isHalf,
-      isWorker: isWorker,
-    })
-    success(data.result)
-    push(`/retreat/complete?isWorker=${isWorker}`)
+    try {
+      const { data } = await axios.post("/retreat/attend", {
+        isHalf: isHalf,
+        isWorker: isWorker,
+      })
+      success(data.result)
+      push(`/retreat/complete?isWorker=${isWorker}`)
+    } catch (error: any) {
+      warning(
+        error.response?.data?.result ||
+          "신청 중 오류가 발생했습니다.\n뒤로가기 후 다시 시도해주세요.",
+      )
+      return
+    }
   }
 
   return (

@@ -156,7 +156,7 @@ export default function RetreatRegister() {
           },
         }}
       >
-        신청하기
+        다음으로
       </Button>
     </Stack>
   )
