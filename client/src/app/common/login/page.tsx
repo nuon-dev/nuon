@@ -26,10 +26,15 @@ function Login() {
 
   useEffect(() => {
     const code = searchParams.get("code")
-    if (code) {
+    if (isLogin) {
+      const returnUrl =
+        searchParams.get("returnUrl") || searchParams.get("state")
+      push(returnUrl || "/")
+    } else if (code) {
       //카카오에서 리다이렉트된 경우
       getKakaoTokenFromAuthCode(code)
         .then((kakaoToken) => {
+          console.log("kakaoToken", kakaoToken)
           login(kakaoToken)
             .then(() => {
               const returnUrl = searchParams.get("state")
@@ -48,9 +53,6 @@ function Login() {
             push(`/retreat/search`)
           }
         })
-    } else if (isLogin) {
-      const returnUrl = searchParams.get("returnUrl")
-      push(returnUrl || "/")
     }
   }, [searchParams.get("code"), isLogin])
 
