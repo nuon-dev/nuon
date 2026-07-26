@@ -26,26 +26,33 @@ function Login() {
 
   useEffect(() => {
     const code = searchParams.get("code")
-    console.log("code", code)
-    console.log("isLogin", isLogin)
-    if (code) {
-      //카카오에서 리다이렉트된 경우
-      getKakaoTokenFromAuthCode(code).then((kakaoToken) => {
-        login(kakaoToken)
-          .then(() => {
-            const returnUrl = searchParams.get("state")
-            push(returnUrl || "/")
-          })
-          .catch((e) => {
-            const returnUrl = searchParams.get("state")
-            if (returnUrl === "/retreat/register") {
-              push(`/retreat/search`)
-            }
-          })
-      })
-    } else if (isLogin) {
-      const returnUrl = searchParams.get("returnUrl")
+    if (isLogin) {
+      const returnUrl =
+        searchParams.get("returnUrl") || searchParams.get("state")
       push(returnUrl || "/")
+    } else if (code) {
+      //카카오에서 리다이렉트된 경우
+      getKakaoTokenFromAuthCode(code)
+        .then((kakaoToken) => {
+          console.log("kakaoToken", kakaoToken)
+          login(kakaoToken)
+            .then(() => {
+              const returnUrl = searchParams.get("state")
+              push(returnUrl || "/")
+            })
+            .catch((e) => {
+              const returnUrl = searchParams.get("state")
+              if (returnUrl === "/retreat/register") {
+                push(`/retreat/search`)
+              }
+            })
+        })
+        .catch((e) => {
+          const returnUrl = searchParams.get("state")
+          if (returnUrl === "/retreat/register") {
+            push(`/retreat/search`)
+          }
+        })
     }
   }, [searchParams.get("code"), isLogin])
 
