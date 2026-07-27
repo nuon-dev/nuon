@@ -25,6 +25,7 @@ router.get("/get-room-assignment", async (req, res) => {
       etc: true,
       inOutInfos: true,
       roomNumber: true,
+      isHalf: true,
       user: {
         id: true,
         name: true,

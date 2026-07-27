@@ -20,6 +20,7 @@ router.get("/get-retreat-group-formation", async (req, res) => {
       etc: true,
       groupNumber: true,
       inOutInfos: true,
+      isHalf: true,
       user: {
         id: true,
         name: true,
