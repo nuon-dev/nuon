@@ -73,7 +73,7 @@ export default function Admin() {
     return Object.fromEntries(sortedEntries)
   }
 
-  const targetCount = 400
+  const targetCount = 500
   const attendanceRate = ((attendeeStatus.all / targetCount) * 100).toFixed(1)
   const maleRate = ((attendeeStatus.man / attendeeStatus.all) * 100).toFixed(1)
   const femaleRate = (
