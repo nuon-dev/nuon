@@ -4,7 +4,7 @@ import {
   retreatAttendDatabase,
   userDatabase,
 } from "../../model/dataSource"
-import { getUserFromToken } from "../../util/util"
+import { checkJwt, getUserFromToken } from "../../util/util"
 import adminRouter from "./adminRouter"
 import sharingRouter from "./sharingRouter"
 import { getKakaoIdFromAccessToken } from "../../util/auth"
@@ -184,6 +184,43 @@ router.get("/isRegistered", async (req, res) => {
   }
 
   res.send({ result: foundUser ? "success" : "fail" })
+})
+
+router.get("/retreat-attendance-records-for-same-age", async (req, res) => {
+  const user = await checkJwt(req)
+  if (!user) {
+    res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+  if (!user.role.Leader) {
+    res.status(403).send({ error: "Forbidden" })
+    return
+  }
+
+  let attendDataList = await userDatabase.find({
+    where: {
+      yearOfBirth: user.yearOfBirth,
+    },
+    select: {
+      id: true,
+      name: true,
+      yearOfBirth: true,
+      gender: true,
+      phone: true,
+      retreatAttend: {
+        id: true,
+        isWorker: true,
+        isHalf: true,
+        createAt: true,
+        isCanceled: true,
+      },
+    },
+    relations: {
+      retreatAttend: true,
+    },
+  })
+
+  res.status(200).send(attendDataList)
 })
 
 router.use("/sharing", sharingRouter)
