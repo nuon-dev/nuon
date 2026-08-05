@@ -15,7 +15,7 @@ export default function RetreatAttendancePage() {
   async function fetchSoonList() {
     try {
       const response = await axios.get<User[]>(
-        "/soon/retreat-attendance-records",
+        "/retreat/retreat-attendance-records-for-same-age",
       )
       setSoonList(response.data)
     } catch (error) {
