@@ -50,6 +50,12 @@ function RoomAssignment() {
     return [...rooms].sort((left, right) => left.roomNumber - right.roomNumber)
   }
 
+  function getVisibleMembers(room: DraftRoom) {
+    return room.members.filter(
+      (retreatAttend) => retreatAttend.user.gender === gender,
+    )
+  }
+
   function normalizeResponse(response: Array<RetreatAttend>) {
     const unassignedUsers = sortByBirthYear(
       response.filter(
@@ -320,60 +326,21 @@ function RoomAssignment() {
       return
     }
 
-    const targetRoom = draftState.rooms.find(
-      (room) => room.roomNumber === nextRoomNumber && room.id !== roomId,
-    )
-
-    let nextRooms: Array<DraftRoom>
-
-    if (targetRoom) {
-      const mergedMembers = sortByBirthYear([
-        ...targetRoom.members,
-        ...sourceRoom.members.map((user) => ({
-          ...user,
-          roomNumber: nextRoomNumber,
-        })),
-      ])
-
-      nextRooms = sortRooms(
-        draftState.rooms
-          .filter((room) => room.id !== roomId)
-          .map((room) =>
-            room.id === targetRoom.id
-              ? {
-                  ...room,
-                  roomNumber: nextRoomNumber,
-                  members: mergedMembers,
-                }
-              : room,
-          ),
-      )
-    } else {
-      nextRooms = sortRooms(
-        draftState.rooms.map((room) =>
-          room.id === roomId
-            ? {
-                ...room,
-                roomNumber: nextRoomNumber,
-                members: sortByBirthYear(
-                  room.members.map((user) => ({
-                    ...user,
-                    roomNumber: nextRoomNumber,
-                  })),
-                ),
-              }
-            : room,
+    const updatedUsers = [
+      ...draftState.unassignedUsers,
+      ...draftState.rooms.flatMap((room) =>
+        room.members.map((user) =>
+          room.id === roomId && user.user.gender === gender
+            ? { ...user, roomNumber: nextRoomNumber }
+            : user,
         ),
-      )
-    }
+      ),
+    ]
 
-    const nextState = {
-      ...draftState,
-      rooms: nextRooms,
-    }
+    const nextState = normalizeResponse(updatedUsers)
 
     setDraftState(nextState)
-    syncRoomNumberDrafts(nextRooms)
+    syncRoomNumberDrafts(nextState.rooms)
     void persistDraftState(nextState)
   }
 
@@ -425,9 +392,7 @@ function RoomAssignment() {
   }
 
   function renderRoom(room: DraftRoom) {
-    const visibleMembers = room.members.filter(
-      (retreatAttend) => retreatAttend.user.gender === gender,
-    )
+    const visibleMembers = getVisibleMembers(room)
 
     return (
       <Stack
@@ -634,7 +599,9 @@ function RoomAssignment() {
               flexDirection: "row",
             }}
           >
-            {draftState.rooms.map((room) => renderRoom(room))}
+            {draftState.rooms
+              .filter((room) => getVisibleMembers(room).length > 0)
+              .map((room) => renderRoom(room))}
           </Stack>
         </Stack>
         {selectedUser && selectedUser.id && (
