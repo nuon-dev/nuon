@@ -16,6 +16,7 @@ type DraftRoom = {
   id: string
   roomNumber: number
   members: Array<RetreatAttend>
+  isDraft?: boolean
 }
 
 type DraftState = {
@@ -79,6 +80,7 @@ function RoomAssignment() {
       id: `room-${roomNumber}`,
       roomNumber,
       members: sortByBirthYear(members),
+      isDraft: false,
     }))
 
     return {
@@ -276,6 +278,7 @@ function RoomAssignment() {
             id: `room-${nextRoomNumber}-${Date.now()}`,
             roomNumber: nextRoomNumber,
             members: [],
+            isDraft: true,
           },
         ]),
       }
@@ -339,6 +342,27 @@ function RoomAssignment() {
 
     const nextState = normalizeResponse(updatedUsers)
 
+    if (sourceRoom.isDraft && sourceRoom.members.length === 0) {
+      nextState.rooms.push({
+        ...sourceRoom,
+        roomNumber: nextRoomNumber,
+        isDraft: true,
+      })
+    }
+
+    draftState.rooms.forEach((room) => {
+      if (
+        room.id !== roomId &&
+        room.isDraft &&
+        room.members.length === 0 &&
+        nextState.rooms.every((nextRoom) => nextRoom.id !== room.id)
+      ) {
+        nextState.rooms.push(room)
+      }
+    })
+
+    nextState.rooms = sortRooms(nextState.rooms)
+
     setDraftState(nextState)
     syncRoomNumberDrafts(nextState.rooms)
     void persistDraftState(nextState)
@@ -393,6 +417,11 @@ function RoomAssignment() {
 
   function renderRoom(room: DraftRoom) {
     const visibleMembers = getVisibleMembers(room)
+    const shouldShowRoom = visibleMembers.length > 0 || room.isDraft
+
+    if (!shouldShowRoom) {
+      return null
+    }
 
     return (
       <Stack
@@ -599,9 +628,7 @@ function RoomAssignment() {
               flexDirection: "row",
             }}
           >
-            {draftState.rooms
-              .filter((room) => getVisibleMembers(room).length > 0)
-              .map((room) => renderRoom(room))}
+            {draftState.rooms.map((room) => renderRoom(room))}
           </Stack>
         </Stack>
         {selectedUser && selectedUser.id && (
