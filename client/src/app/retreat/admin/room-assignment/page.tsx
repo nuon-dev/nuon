@@ -461,8 +461,7 @@ function RoomAssignment() {
               const nextRoomNumber = Number(event.target.value)
               renameRoom(room.id, nextRoomNumber)
             }}
-            inputProps={{ min: 1, step: 1 }}
-            sx={{ width: "72px" }}
+            sx={{ width: "88px" }}
           />
           <Box whiteSpace="nowrap">{visibleMembers.length}명</Box>
           <IconButton
