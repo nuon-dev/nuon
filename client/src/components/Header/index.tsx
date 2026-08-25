@@ -77,6 +77,7 @@ export default function Header() {
       path: "/leader/attendance",
       type: "menu",
     })
+    /*
     DrawerItems.push({
       title: "순원 수련회 접수 조회",
       icon: <HowToRegIcon fontSize="small" sx={{ color: "#667eea" }} />,
@@ -90,6 +91,7 @@ export default function Header() {
       path: "/leader/retreat-attendance-for-same-age",
       type: "menu",
     })
+    */
 
     if (authUserData?.role.VillageLeader) {
       DrawerItems.push({
