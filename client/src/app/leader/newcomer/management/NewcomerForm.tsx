@@ -68,7 +68,7 @@ export default function NewcomerForm({
       flex={1}
       gap="12px"
       p="16px"
-      m="12px"
+      fontSize="14px"
       border="1px solid #e0e0e0"
       borderRadius="12px"
       bgcolor="#ffffff"
