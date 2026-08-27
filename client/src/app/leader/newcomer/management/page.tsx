@@ -325,7 +325,20 @@ export default function NewcomerManagement() {
 
   return (
     <Stack>
-      <Stack direction="row" p="12px" gap="12px">
+      <NewcomerFilter
+        filterName={filterName}
+        setFilterName={setFilterName}
+        filterGender={filterGender}
+        setFilterGender={setFilterGender}
+        filterMinYear={filterMinYear}
+        setFilterMinYear={setFilterMinYear}
+        filterMaxYear={filterMaxYear}
+        setFilterMaxYear={setFilterMaxYear}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        clearFilters={clearFilters}
+      />
+      <Stack direction="row" px="12px" gap="12px">
         <NewcomerTable
           newcomerList={newcomerList}
           filteredNewcomerList={filteredNewcomers}
@@ -335,19 +348,6 @@ export default function NewcomerManagement() {
           onNewcomerSelect={setSelectedNewcomer}
         />
         <Stack width="40%">
-          <NewcomerFilter
-            filterName={filterName}
-            setFilterName={setFilterName}
-            filterGender={filterGender}
-            setFilterGender={setFilterGender}
-            filterMinYear={filterMinYear}
-            setFilterMinYear={setFilterMinYear}
-            filterMaxYear={filterMaxYear}
-            setFilterMaxYear={setFilterMaxYear}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-            clearFilters={clearFilters}
-          />
           <NewcomerForm
             selectedNewcomer={selectedNewcomer}
             onDataChange={onChangeData}

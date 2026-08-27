@@ -16,6 +16,9 @@ export const hashCode = function (content: string) {
     .digest("hex")
 }
 
+/**
+ * @deprecated use hasPermissionFromReq instead
+ */
 export async function hasPermission(
   token: string | undefined,
   permissionType: PermissionType,

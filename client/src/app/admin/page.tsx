@@ -25,6 +25,7 @@ import AttendanceChart from "@/app/admin/AttendanceChart"
 
 interface DashboardData {
   totalUsers: number
+  communityUsers: number
   totalCommunities: number
   statistics: {
     weekly: {
@@ -63,6 +64,11 @@ interface DashboardData {
     community: string
     date: string
     memo: string
+  }>
+  villagesWithoutAttendance: Array<{
+    leader: { id: string; name: string }
+    villageId: number
+    villageName: string
   }>
   lastUpdated: string
 }
@@ -179,6 +185,26 @@ function index() {
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     등록된 인원
+                    <br />
+                    (장결 포함)
+                  </Typography>
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <Card sx={{ flex: 1 }}>
+            <CardContent>
+              <Stack direction="row" alignItems="center" spacing={2}>
+                <PeopleIcon sx={{ fontSize: 40, color: "#1976d2" }} />
+                <Stack>
+                  <Typography variant="h4" fontWeight="bold">
+                    {dashboardData.communityUsers}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    등록된 인원
+                    <br />
+                    (장결 재외)
                   </Typography>
                 </Stack>
               </Stack>
@@ -235,6 +261,46 @@ function index() {
         </Stack>
 
         <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
+          <Box
+            sx={{
+              width: { xs: "100%", md: 180 },
+              flexShrink: 0,
+              pt: { xs: 0, md: 2 },
+            }}
+          >
+            <Typography textAlign="center" variant="subtitle2" gutterBottom>
+              출석 미등록 마을
+            </Typography>
+            <Stack
+              width="100%"
+              direction="row"
+              gap="4px"
+              overflow="none"
+              display="flex"
+              flexWrap="wrap"
+            >
+              {dashboardData.villagesWithoutAttendance.map((village) => (
+                <Stack
+                  bgcolor="white"
+                  key={village.villageId}
+                  border={1}
+                  borderColor="divider"
+                  p={1}
+                  borderRadius="8px"
+                >
+                  <Typography variant="body2" noWrap>
+                    {village.villageName}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+            {dashboardData.villagesWithoutAttendance.length === 0 && (
+              <Typography variant="caption" color="text.secondary">
+                없음
+              </Typography>
+            )}
+          </Box>
+
           <Card sx={{ flex: 1 }}>
             <CardContent>
               <Typography variant="h6" fontWeight="bold" gutterBottom>
