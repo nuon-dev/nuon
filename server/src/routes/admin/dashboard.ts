@@ -57,6 +57,12 @@ router.get("/", async (req: Request, res: Response) => {
         name: Not(IsNull()),
       },
     })
+    const communityUsers = await userDatabase.count({
+      where: {
+        community: Not(IsNull()),
+        name: Not(IsNull()),
+      },
+    })
     const totalCommunities = await communityDatabase.count()
 
     // 이번 주 예배 일정 조회
@@ -83,7 +89,7 @@ router.get("/", async (req: Request, res: Response) => {
     const weeklyAttendance =
       weeklySchedules.length > 0
         ? await attendDataDatabase.find({
-            relations: ["worshipSchedule", "user"],
+            relations: ["worshipSchedule", "user", "user.community"],
             where: {
               worshipSchedule: {
                 id: In(weeklySchedules.map((s) => s.id)),
@@ -104,6 +110,43 @@ router.get("/", async (req: Request, res: Response) => {
             },
           })
         : []
+
+    // 출석 등록하지 않은 마을 정보
+    const areaWithAttendance = await communityDatabase.find({
+      where: {
+        parent: IsNull(),
+      },
+      relations: {
+        parent: true,
+      },
+    })
+    const villageIdsWithAttendance = await communityDatabase.find({
+      where: {
+        parent: In(areaWithAttendance.map((area) => area.id)),
+      },
+      relations: {
+        parent: true,
+        leader: true,
+      },
+    })
+
+    const attendanceVillageIds = new Set(
+      weeklyAttendance
+        .map((attendance) => attendance.user?.community?.id)
+        .filter((villageId): villageId is number => villageId !== undefined),
+    )
+    const villagesWithoutAttendance = villageIdsWithAttendance
+      .filter((village) => !attendanceVillageIds.has(village.id))
+      .map((village) => ({
+        villageId: village.id,
+        villageName: village.name,
+        leader: village.leader
+          ? {
+              id: village.leader.id,
+              name: village.leader.name,
+            }
+          : null,
+      }))
 
     // 새가족 등록자 수 계산 함수
     const countNewFamilyRegistrants = async (scheduleIds: number[]) => {
@@ -258,6 +301,7 @@ router.get("/", async (req: Request, res: Response) => {
 
     const dashboardData = {
       totalUsers,
+      communityUsers,
       totalCommunities,
       statistics: {
         weekly: weeklyStats,
@@ -265,6 +309,7 @@ router.get("/", async (req: Request, res: Response) => {
         last4Weeks: last4WeeksStats,
       },
       recentAbsentees: absenteeInfo,
+      villagesWithoutAttendance,
       lastUpdated: new Date().toISOString(),
     }
 
