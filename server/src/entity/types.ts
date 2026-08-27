@@ -32,6 +32,10 @@ export enum PermissionType {
   retreatEditTeamScore = "retreatEditTeamScore",
   retreatDeleteUser = "retreatDeleteUser",
   retreatMediaManage = "retreatMediaManage",
+
+  // 새가족 관련 권한
+  MANAGE_NEWCOMER_INFORMATION = "MANAGE_NEWCOMER_INFORMATION",
+  MANAGE_NEWCOMER_EDUCATION = "MANAGE_NEWCOMER_EDUCATION",
 }
 
 export function permissionTypeToString(
@@ -68,6 +72,10 @@ export function permissionTypeToString(
       return "수련회 참가자 삭제"
     case PermissionType.retreatMediaManage:
       return "수련회 미디어 관리"
+    case PermissionType.MANAGE_NEWCOMER_INFORMATION:
+      return "새가족 정보 관리"
+    case PermissionType.MANAGE_NEWCOMER_EDUCATION:
+      return "새가족 교육 관리"
     default:
       return "기타"
   }

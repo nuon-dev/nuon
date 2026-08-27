@@ -8,8 +8,12 @@ import {
   userDatabase,
   worshipScheduleDatabase,
 } from "../../model/dataSource"
-import { checkJwt } from "../../util/util"
-import { EducationLecture, NewcomerStatus } from "../../entity/types"
+import { checkJwt, hasPermission, hasPermissionFromReq } from "../../util/util"
+import {
+  EducationLecture,
+  NewcomerStatus,
+  PermissionType,
+} from "../../entity/types"
 
 const router = express.Router()
 
@@ -32,6 +36,16 @@ router.post("/", async (req, res) => {
   const user = await checkJwt(req)
   if (!user) {
     res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const hasPermission = await hasPermissionFromReq(
+    req,
+    PermissionType.MANAGE_NEWCOMER_INFORMATION,
+  )
+
+  if (!hasPermission) {
+    res.status(403).send({ error: "권한이 없습니다." })
     return
   }
 
@@ -119,6 +133,16 @@ router.put("/:id", async (req, res) => {
   const user = await checkJwt(req)
   if (!user) {
     res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const hasPermission = await hasPermissionFromReq(
+    req,
+    PermissionType.MANAGE_NEWCOMER_INFORMATION,
+  )
+
+  if (!hasPermission) {
+    res.status(403).send({ error: "권한이 없습니다." })
     return
   }
 
@@ -223,6 +247,16 @@ router.delete("/:id", async (req, res) => {
     return
   }
 
+  const hasPermission = await hasPermissionFromReq(
+    req,
+    PermissionType.MANAGE_NEWCOMER_INFORMATION,
+  )
+
+  if (!hasPermission) {
+    res.status(403).send({ error: "권한이 없습니다." })
+    return
+  }
+
   const { id } = req.params
 
   try {
@@ -243,6 +277,16 @@ router.get("/", async (req, res) => {
   const user = await checkJwt(req)
   if (!user) {
     res.status(401).send({ error: "Unauthorized" })
+    return
+  }
+
+  const hasPermission = await hasPermissionFromReq(
+    req,
+    PermissionType.MANAGE_NEWCOMER_INFORMATION,
+  )
+
+  if (!hasPermission) {
+    res.status(403).send({ error: "권한이 없습니다." })
     return
   }
 
@@ -310,6 +354,16 @@ router.get("/education", async (req, res) => {
     return
   }
 
+  const hasPermission = await hasPermissionFromReq(
+    req,
+    PermissionType.MANAGE_NEWCOMER_EDUCATION,
+  )
+
+  if (!hasPermission) {
+    res.status(403).send({ error: "권한이 없습니다." })
+    return
+  }
+
   try {
     const status = req.query.status as NewcomerStatus | undefined
 
@@ -333,6 +387,12 @@ router.get("/education", async (req, res) => {
       },
       order: {
         createdAt: "DESC",
+      },
+      select: {
+        id: true,
+        name: true,
+        yearOfBirth: true,
+        gender: true,
       },
     })
 
@@ -382,13 +442,9 @@ router.get("/education", async (req, res) => {
         name: newcomer.name,
         yearOfBirth: newcomer.yearOfBirth,
         gender: newcomer.gender,
-        phone: newcomer.phone,
-        address: newcomer.address,
-        occupation: newcomer.occupation,
         visitPath: newcomer.visitPath,
         registrationMotivation: newcomer.registrationMotivation,
         faithLevel: newcomer.faithLevel,
-        previousChurch: newcomer.previousChurch,
         carNumber: newcomer.carNumber,
         birthday: newcomer.birthday,
         registrationDate: newcomer.registrationDate,

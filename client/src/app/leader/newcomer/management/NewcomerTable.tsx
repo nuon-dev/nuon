@@ -61,7 +61,8 @@ export default function NewcomerTable({
       width="50%"
       flex={1}
       border="1px solid #ccc"
-      maxHeight="calc(100vh - 100px)"
+      borderRadius="8px"
+      maxHeight="calc(100vh - 230px)"
       overflow="auto"
     >
       <Box p="8px" bgcolor="#f5f5f5" fontSize="14px">
