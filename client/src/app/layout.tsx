@@ -30,10 +30,7 @@ export default function RootLayout({
     <html lang="kr">
       <title>{title}</title>
       <meta name="referrer" content="same-origin" />
-      <meta
-        httpEquiv="Content-Security-Policy"
-        content="upgrade-insecure-requests"
-      />
+
       <meta
         name="viewport"
         content="initial-scale=1.0,user-scalable=no,maximum-scale=1,width=device-width,viewport-fit=cover"
