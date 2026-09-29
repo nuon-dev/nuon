@@ -23,8 +23,6 @@
 
 body {
   font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-  margin-bottom: calc(env(safe-area-inset-bottom) + 15px);
-  margin-top: calc(env(safe-area-inset-top) + 15px);
   margin: 0px;
 
   -webkit-user-select: none;

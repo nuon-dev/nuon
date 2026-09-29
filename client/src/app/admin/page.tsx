@@ -184,9 +184,7 @@ function index() {
                     {dashboardData.totalUsers}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    등록된 인원
-                    <br />
-                    (장결 포함)
+                    장결 포함 인원
                   </Typography>
                 </Stack>
               </Stack>
@@ -202,9 +200,7 @@ function index() {
                     {dashboardData.communityUsers}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    등록된 인원
-                    <br />
-                    (장결 재외)
+                    장결 제외 인원
                   </Typography>
                 </Stack>
               </Stack>
