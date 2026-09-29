@@ -23,6 +23,7 @@ function Login() {
   const { executeKakaoLogin } = useKakaoHook()
   const { error } = useNotification()
   const [modeCounter, setModeCounter] = useState(0)
+  const [isDev, setIsDev] = useState(false)
 
   useEffect(() => {
     const code = searchParams.get("code")
@@ -68,6 +69,13 @@ function Login() {
     }
   }, [modeCounter])
 
+  useEffect(() => {
+    const url = globalThis.location.href
+    if (url.includes("nuon-dev") || url.includes("localhost")) {
+      setIsDev(true)
+    }
+  }, [])
+
   async function handleLogin() {
     try {
       const returnUrl = searchParams.get("returnUrl") || "/"
@@ -102,6 +110,7 @@ function Login() {
             }}
           >
             수원 제일 교회 청년부
+            {isDev ? "(개발 서버)" : ""}
           </span>
           <span
             style={{

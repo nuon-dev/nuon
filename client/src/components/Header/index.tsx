@@ -118,21 +118,29 @@ export default function Header() {
 
   return (
     <Stack
-      py="8px"
       width="100%"
       display="flex"
       flexDirection="row"
-      bgcolor="#42C7F1"
       alignItems="center"
       justifyContent="space-between"
       style={{
-        paddingTop: "calc(env(safe-area-inset-top) + 8px)",
+        paddingTop: "calc(env(safe-area-inset-top))",
       }}
     >
+      <Stack height="50px" />
       <Stack
         width="100%"
         flexDirection="row"
         alignItems="center"
+        position="fixed"
+        height="50px"
+        top="0"
+        zIndex={1000}
+        bgcolor="#42C7F1"
+        sx={{
+          paddingTop: "env(safe-area-inset-top)",
+          boxSizing: "border-box",
+        }}
         justifyContent="space-between"
         gap="8px"
       >
