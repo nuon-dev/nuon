@@ -55,7 +55,28 @@ export default function RootLayout({
           {isKakaoBrowser ? (
             <div>카카오톡 브라우저에서는 사용할 수 없습니다.</div>
           ) : (
-            children
+            <div
+              style={{
+                height: "100dvh",
+                display: "flex",
+                flexDirection: "column",
+                boxSizing: "border-box",
+                paddingTop: "calc(env(safe-area-inset-top))",
+                paddingBottom: "calc(env(safe-area-inset-bottom))",
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "white",
+                  flex: "1 1 auto",
+                  minHeight: 0,
+                  overflowY: "auto",
+                  overflowX: "hidden",
+                }}
+              >
+                {children}
+              </div>
+            </div>
           )}
         </body>
       </Provider>
