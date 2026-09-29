@@ -125,6 +125,9 @@ export default function Header() {
       bgcolor="#42C7F1"
       alignItems="center"
       justifyContent="space-between"
+      style={{
+        paddingTop: "calc(env(safe-area-inset-top) + 8px)",
+      }}
     >
       <Stack
         width="100%"
