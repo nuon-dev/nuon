@@ -91,7 +91,7 @@ export default function RetreatSearch() {
   const [name, setName] = useState("")
   const [gender, setGender] = useState<"남성" | "여성" | "">("")
   const [birthYear, setBirthYear] = useState("")
-  const { kakaoToken, login } = useAuth()
+  const { kakaoToken } = useAuth()
   const { updateNuon } = useRetreat()
 
   usePageColor("#FFFFFF")
@@ -121,7 +121,7 @@ export default function RetreatSearch() {
         phone: purePhone,
         kakaoToken,
       })
-      await login(kakaoToken)
+      // await login(kakaoToken)
       push("/retreat/register")
     } catch (error) {
       setIsLookupComplete(true)

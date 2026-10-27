@@ -122,8 +122,7 @@ interface jumoaTokenPayload {
 
 export function decodeJumoaToken(token: string): jumoaTokenPayload | null {
   try {
-    const payload = jwt.decode(token)
-    return payload
+    return jwt.decode(token) as any as jumoaTokenPayload
   } catch (e) {
     return null
   }
