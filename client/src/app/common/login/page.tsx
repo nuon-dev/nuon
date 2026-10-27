@@ -19,8 +19,12 @@ export default function LoginPage() {
 function Login() {
   const { push } = useRouter()
   const searchParams = useSearchParams()
-  const { getKakaoTokenFromAuthCode, login, isLogin } = useAuth()
-  const { executeKakaoLogin } = useKakaoHook()
+  const {
+    getKakaoTokenFromAuthCode,
+    bindjJumoaWithKakao,
+    isLogin,
+    requestJumoaLogin,
+  } = useAuth()
   const { error } = useNotification()
   const [modeCounter, setModeCounter] = useState(0)
   const [isDev, setIsDev] = useState(false)
@@ -35,8 +39,7 @@ function Login() {
       //카카오에서 리다이렉트된 경우
       getKakaoTokenFromAuthCode(code)
         .then((kakaoToken) => {
-          console.log("kakaoToken", kakaoToken)
-          login(kakaoToken)
+          bindjJumoaWithKakao(kakaoToken)
             .then(() => {
               const returnUrl = searchParams.get("state")
               push(returnUrl || "/")
@@ -79,9 +82,9 @@ function Login() {
   async function handleLogin() {
     try {
       const returnUrl = searchParams.get("returnUrl") || "/"
-      await executeKakaoLogin(returnUrl)
+      await requestJumoaLogin(returnUrl)
     } catch (e) {
-      error("카카오 로그인 실패")
+      error("주모아 로그인 실패")
     }
   }
 
@@ -121,7 +124,7 @@ function Login() {
               letterSpacing: -0.5,
             }}
           >
-            새벽이슬
+            새벽이슬 로그인이 주모아와 통합 됩니다!.
           </span>
         </Stack>
         <Button
@@ -137,7 +140,7 @@ function Login() {
             "&:hover": { background: "#ffe066" },
           }}
         >
-          카카오로 로그인
+          주모아로 로그인
         </Button>
       </Stack>
     </Stack>

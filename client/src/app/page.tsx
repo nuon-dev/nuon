@@ -9,19 +9,9 @@ import Link from "@/app/link/page"
 import { AxiosError } from "axios"
 
 export default function Index() {
-  const { isLogin } = useAuth()
-  const { push } = useRouter()
-
   useEffect(() => {
-    checkLogin()
     isApp()
   }, [])
-
-  async function checkLogin() {
-    if (!isLogin) {
-      push("/common/login")
-    }
-  }
 
   function isApp() {
     try {

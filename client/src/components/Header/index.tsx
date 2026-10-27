@@ -28,6 +28,14 @@ export default function Header() {
 
   const DrawerItems: Array<DrawerItemsType> = []
 
+  if (!isLogin) {
+    DrawerItems.push({
+      title: "로그인",
+      icon: <PeopleIcon fontSize="small" sx={{ color: "#667eea" }} />,
+      path: "/common/login",
+      type: "menu",
+    })
+  }
   if (isLogin) {
     DrawerItems.push({
       title: "나의 정보 수정",

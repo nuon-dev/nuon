@@ -68,4 +68,7 @@ export class User {
     nullable: true,
   })
   retreatAttend!: RetreatAttend | null
+
+  @Column({ nullable: true })
+  jumoaId!: number | null
 }
