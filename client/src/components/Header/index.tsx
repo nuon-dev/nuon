@@ -36,6 +36,7 @@ export default function Header() {
       type: "menu",
     })
   }
+
   if (isLogin) {
     DrawerItems.push({
       title: "나의 정보 수정",
@@ -43,17 +44,18 @@ export default function Header() {
       path: "/common/myPage",
       type: "menu",
     })
+  }
+  DrawerItems.push({
+    type: "divider",
+  })
+
+  for (const board of boards) {
     DrawerItems.push({
-      type: "divider",
-    })
-    for (const board of boards) {
-      DrawerItems.push({
-        title: board.name,
-        icon: <ForumIcon fontSize="small" sx={{ color: "#42a5f5" }} />,
-        path: `/community/?slug=${encodeURIComponent(board.slug)}`,
-        type: "menu",
-      } as DrawerItemsType)
-    }
+      title: board.name,
+      icon: <ForumIcon fontSize="small" sx={{ color: "#42a5f5" }} />,
+      path: `/community/?slug=${encodeURIComponent(board.slug)}`,
+      type: "menu",
+    } as DrawerItemsType)
   }
 
   if (boards.length > 0) {

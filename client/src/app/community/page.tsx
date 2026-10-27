@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import useCommunity from "./useCommunity"
 import { Suspense } from "react"
 import List from "./components/list"
+import useAuth from "@/hooks/useAuth"
 
 export default function CommunityHomePage() {
   return (
@@ -54,8 +55,13 @@ function CommunityHomePageContent() {
 function WriteButton() {
   const searchParams = useSearchParams()
   const { push } = useRouter()
+  const { isLogin } = useAuth()
 
   function handleClick() {
+    if (!isLogin) {
+      push("/common/login")
+      return
+    }
     push(`/community/write?slug=${searchParams.get("slug")}`)
   }
 
