@@ -44,6 +44,9 @@ jobs:
         env:
           NEXT_PUBLIC_API_TARGET: prod
           NEXT_PUBLIC_PROD_SERVER: ${{ secrets.PROD_SERVER_URL }}
+          NEXT_PUBLIC_PROD_JUMOA_CLIENT_ID: ${{ secrets.PROD_JUMOA_CLIENT_ID }}
+          NEXT_PUBLIC_PROD_JUMOA_SERVER_URL: ${{ secrets.PROD_JUMOA_SERVER_URL }}
+          NEXT_PUBLIC_PROD_JUMOA_REDIRECT_URI: ${{ secrets.PROD_JUMOA_REDIRECT_URI }}
         run: npm run build
 
       - name: deploy-client
