@@ -111,3 +111,19 @@ export async function hasPermissionFromReq(
   const token = req.header("token")
   return await hasPermission(token, permissionType)
 }
+
+interface jumoaTokenPayload {
+  sub: number
+  role: string
+  iat: number
+  exp: number
+  clientId: string
+}
+
+export function decodeJumoaToken(token: string): jumoaTokenPayload | null {
+  try {
+    return jwt.decode(token) as any as jumoaTokenPayload
+  } catch (e) {
+    return null
+  }
+}

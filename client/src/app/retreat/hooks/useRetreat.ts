@@ -9,7 +9,7 @@ export default function useRetreat() {
   const [isHalf, setIsHalf] = useAtom(isHalfAtom)
   const [isWorker, setIsWorker] = useAtom(isWorkerAtom)
 
-  const { login, isLogin, authUserData } = useAuth()
+  const { isLogin, authUserData } = useAuth()
 
   interface JoinNuonRequest {
     kakaoToken: string
@@ -22,7 +22,7 @@ export default function useRetreat() {
   async function updateNuon(request: JoinNuonRequest) {
     if (!isLogin) {
       await axios.post("/retreat/join", request)
-      await login(request.kakaoToken)
+      // await login(request.kakaoToken)
     } else {
       return axios.post("/auth/edit-my-information", {
         ...request,

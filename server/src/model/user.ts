@@ -4,10 +4,26 @@ import { userDatabase } from "./dataSource"
 
 export const REFRESH_TOKEN_EXPIRE_DAYS = 21
 
-async function loginFromKakaoId(kakaoId: string): Promise<{
+async function loginFromUser(user: User): Promise<{
   accessToken: string
   refreshToken: string
-} | null> {
+}> {
+  const newRefreshToken = generateRefreshToken(user)
+  user.token = newRefreshToken
+  const expireDay = new Date()
+  expireDay.setDate(expireDay.getDate() + REFRESH_TOKEN_EXPIRE_DAYS)
+  user.expire = expireDay
+  await userDatabase.save(user)
+
+  const newAccessToken = await generateAccessToken(user)
+
+  return {
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+  }
+}
+
+async function getUSerFromKakaoId(kakaoId: string): Promise<User | null> {
   const foundUser = await userDatabase.findOne({
     where: {
       kakaoId: kakaoId,
@@ -19,23 +35,7 @@ async function loginFromKakaoId(kakaoId: string): Promise<{
       },
     },
   })
-  if (!foundUser) {
-    return null
-  }
-
-  const newRefreshToken = generateRefreshToken(foundUser)
-  foundUser.token = newRefreshToken
-  const expireDay = new Date()
-  expireDay.setDate(expireDay.getDate() + REFRESH_TOKEN_EXPIRE_DAYS)
-  foundUser.expire = expireDay
-  await userDatabase.save(foundUser)
-
-  const newAccessToken = await generateAccessToken(foundUser)
-
-  return {
-    accessToken: newAccessToken,
-    refreshToken: newRefreshToken,
-  }
+  return foundUser || null
 }
 
 async function registerNewUser(
@@ -63,13 +63,13 @@ async function updateUserData(user: User): Promise<void> {
   await userDatabase.save(user)
 }
 
-async function createNewAccessToken(currentToken: string): Promise<{
-  success: boolean
-  accessToken?: string
-  refreshToken?: string
-}> {
+async function getUserFromRefreshToken(
+  refreshToken: string,
+): Promise<User | null> {
   const foundUser = await userDatabase.findOne({
-    where: { token: currentToken },
+    where: {
+      token: refreshToken,
+    },
     relations: {
       community: {
         leader: true,
@@ -77,31 +77,47 @@ async function createNewAccessToken(currentToken: string): Promise<{
       },
     },
   })
-  if (!foundUser) {
-    return {
-      success: false,
+  return foundUser || null
+}
+
+interface JumoaData {
+  id: number
+  email: string
+  name: string
+  mobile: string
+  role: "pending" | "super" | "minister" | "leader" | "member"
+  linkedProviders: string[]
+}
+
+async function getJumoaDataFromJumoaToken(
+  jumoaToken: string,
+): Promise<JumoaData | null> {
+  const jumoaApiUrl = process.env.DEV_JUMOA_SERVER_URL
+  try {
+    const response = await fetch(`${jumoaApiUrl}/users/me`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${jumoaToken}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch Jumoa data")
     }
-  }
 
-  const newRefreshToken = generateRefreshToken(foundUser)
-  foundUser.token = newRefreshToken
-  const expireDay = new Date()
-  expireDay.setDate(expireDay.getDate() + 21)
-  foundUser.expire = expireDay
-  await userDatabase.save(foundUser)
-
-  const newAccessToken = await generateAccessToken(foundUser)
-
-  return {
-    success: true,
-    accessToken: newAccessToken,
-    refreshToken: newRefreshToken,
+    const jumoaData = await response.json()
+    return jumoaData
+  } catch (error) {
+    console.error("Error fetching Jumoa data:", error)
+    return null
   }
 }
 
 export default {
-  loginFromKakaoId,
+  loginFromUser,
   registerNewUser,
   updateUserData,
-  createNewAccessToken,
+  getUSerFromKakaoId,
+  getJumoaDataFromJumoaToken,
+  getUserFromRefreshToken,
 }

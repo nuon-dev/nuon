@@ -9,6 +9,7 @@ import axios from "@/config/axios"
 import { Community } from "@server/entity/community"
 import { useRouter } from "next/navigation"
 import { useNotification } from "@/hooks/useNotification"
+import useKakaoHook from "./useKakao"
 
 export const JwtInformationAtom = atom<jwtPayload | null | undefined>(null)
 
@@ -70,15 +71,56 @@ export default function useAuth() {
     return data.kakaoToken
   }
 
-  async function login(kakaoToken: string): Promise<jwtPayload> {
+  const { executeKakaoLogin } = useKakaoHook()
+  async function getJumoaTokenFromAuthCode(code: string) {
+    if (!code) {
+      throw new Error("주모아 인증 코드가 없습니다.")
+    }
+
+    try {
+      const { data, status } = await axios.post("/auth/login-from-jumoa-code", {
+        code,
+      })
+
+      if (status === 200) {
+        const { accessToken } = data
+        localStorage.setItem("token", accessToken)
+        const userData = jwtDecode<jwtPayload>(accessToken)
+        setAuthUserData(userData)
+        return userData
+      }
+      return data.jumoaToken
+    } catch (error: any) {
+      console.error("Error getting Jumoa token:", error)
+      if (error.status === 404) {
+        const { accessToken, refreshToken } = error.response.data
+        localStorage.setItem("jumoaToken", accessToken)
+        alert(
+          "주모아 계정이 등록되지 않았습니다. 카카오 로그인으로 연동을 시도합니다.",
+        )
+        await executeKakaoLogin()
+      }
+      throw new Error(
+        error.response?.data?.message ||
+          "주모아 로그인 처리 중 오류가 발생했습니다.",
+      )
+    }
+  }
+
+  async function bindjJumoaWithKakao(kakaoToken: string): Promise<jwtPayload> {
     if (!kakaoToken) {
       throw new Error("카카오 토큰이 없습니다.")
     }
-    //setKakaoToken(kakaoToken)
+
+    const jumoaToken = localStorage.getItem("jumoaToken")
+    if (!jumoaToken) {
+      alert("주모아 토큰이 없습니다.")
+    }
     const { data } = await axios.post(
-      "/auth/login",
+      "/auth/bind-jumoa-with-kakao",
       {
         kakaoToken: kakaoToken,
+        jumoaToken: jumoaToken,
       },
       {
         withCredentials: true,
@@ -137,15 +179,33 @@ export default function useAuth() {
     push("/common/login")
   }
 
+  function requestJumoaLogin(returnUrl?: string) {
+    const jumoaClientId = process.env.NEXT_PUBLIC_DEV_JUMOA_CLIENT_ID
+    const jumoaRedirectUri = process.env.NEXT_PUBLIC_DEV_JUMOA_REDIRECT_URI
+    const jumoaServerUrl = process.env.NEXT_PUBLIC_DEV_JUMOA_SERVER_URL
+
+    let jumoaLoginUrl = `${jumoaServerUrl}/oauth2/authorize?response_type=code&client_id=${jumoaClientId}&redirect_uri=${
+      jumoaRedirectUri
+    }`
+
+    if (returnUrl) {
+      jumoaLoginUrl += `&state=${encodeURIComponent(returnUrl)}`
+    }
+
+    globalThis.location.href = jumoaLoginUrl
+  }
+
   return {
     authUserData,
     isLogin,
-    login,
+    bindjJumoaWithKakao,
     ifNotLoggedGoToLogin,
     isLeaderIfNotExit,
     isAdminIfNotExit,
     logout,
     kakaoToken,
     getKakaoTokenFromAuthCode,
+    getJumoaTokenFromAuthCode,
+    requestJumoaLogin,
   }
 }
